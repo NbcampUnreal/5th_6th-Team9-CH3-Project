@@ -11,13 +11,13 @@ struct FP9WaveData
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Wave")
+	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = "Wave")
 	float WaveEndTime;		// wave 종료 시간
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Wave")
+	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = "Wave")
 	FString WaveName;
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWaveChangedSignature, int32, NewWaveIndex, const FString&, NewWaveName);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWaveChangedSignature, int32, NewWaveIndex, FString, NewWaveName);
 
 
 UCLASS()
@@ -30,10 +30,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wave")
 	TArray<FP9WaveData> WaveSettings;
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float CurrentGameTime;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Wave")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wave")
 	int32 CurrentWaveIndex;
 
 	UPROPERTY(BlueprintAssignable, Category = "Wave")
@@ -41,7 +41,6 @@ public:
 
 	void NextWave();
 
-	UFUNCTION()
 	void SetCurrentWave(int32 NewWaveIndex);		// wave 변경용
 	
 };

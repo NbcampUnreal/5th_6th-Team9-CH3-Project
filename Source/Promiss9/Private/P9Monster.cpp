@@ -1,34 +1,74 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "P9Monster.h"
+#include "TimerManager.h"
+#include "GameFramework/Actor.h"
+#include "Kismet/GameplayStatics.h"
 
-// Sets default values
 AP9Monster::AP9Monster()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bCanEverTick = true;
 
+    // 기본값
+    HP = 100.0f;
+    AttackPower = 10.0f;
+    ExpReward = 10;
+    GoldReward = 5;
+    DamageInterval = 1.0f;
+    bIsPlayerInRange = false;
+    TargetPlayer = nullptr;
 }
 
-// Called when the game starts or when spawned
 void AP9Monster::BeginPlay()
 {
-	Super::BeginPlay();
-	
+    Super::BeginPlay();
 }
 
-// Called every frame
 void AP9Monster::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+    Super::Tick(DeltaTime);
 
 }
 
-// Called to bind functionality to input
-void AP9Monster::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+    HP -= DamageAmount;
 
+    if (HP <= 0.0f)
+    {
+        HP = 0.0f;
+        Destroy(); 
+    }
 }
 
+void AP9Monster::StartDamagePlayer(AActor* PlayerActor)
+{
+    if (!PlayerActor) return;
+
+    TargetPlayer = PlayerActor;
+    bIsPlayerInRange = true;
+
+    // 일정 간격으로 데미지 적용
+    GetWorldTimerManager().SetTimer(
+        DamageTimerHandle,
+        this,
+        &AP9Monster::DealDamageToPlayer,
+        DamageInterval,
+        true
+    );
+}
+
+void AP9Monster::StopDamagePlayer()
+{
+    bIsPlayerInRange = false;
+    TargetPlayer = nullptr;
+    GetWorldTimerManager().ClearTimer(DamageTimerHandle);
+}
+
+void AP9Monster::DealDamageToPlayer()
+{
+    if (!bIsPlayerInRange || !TargetPlayer) return;
+
+    // 실제 데미지 전달은 블루프린트에서 구현 가능 (예: 플레이어의 BP 함수 호출)
+    // 여기선 예시로 출력만
+    UE_LOG(LogTemp, Warning, TEXT("%s attacks %s for %.1f damage!"),
+        *GetName(), *TargetPlayer->GetName(), AttackPower);
+}
