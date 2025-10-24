@@ -4,28 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "P9ItemInterface.generated.h"
+#include "ItemInterface.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UP9ItemInterface : public UInterface
+class UItemInterface : public UInterface
 {
 	GENERATED_BODY()
 };
 
-/**
- * 
- */
-class PROMISS9_API IP9ItemInterface
+class PROMISS9_API IItemInterface
 {
 	GENERATED_BODY()
-
 	
-
-
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
-public:
-
 	virtual void OnItemOverlap(AActor* OverlapActor) = 0;
 
 	virtual void OnItemEndOverlap(AActor* OverlapActor) = 0;
@@ -33,4 +24,7 @@ public:
 	virtual void ActivateItem(AActor* Activator) = 0;
 
 	virtual FName GetItemType() const = 0;
+
+	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
+public:
 };
