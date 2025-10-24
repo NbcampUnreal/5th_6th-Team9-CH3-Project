@@ -11,7 +11,6 @@
 #include "Components/ProgressBar.h"
 #include "Blueprint/UserWidget.h"
 
-
 // Sets default values
 AP9Character::AP9Character()
 {
@@ -27,7 +26,10 @@ AP9Character::AP9Character()
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false;
 
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
+	bUseControllerRotationPitch = true;
+	bUseControllerRotationRoll = false;
+	bIsFreeLookMode = false;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 
 	//UI
@@ -35,25 +37,52 @@ AP9Character::AP9Character()
 	OverheadWidget->SetupAttachment(GetMesh());
 	OverheadWidget->SetWidgetSpace(EWidgetSpace::Screen);
 
+	// 디동관련 변수, 함수 초기화
 	NormalSpeed = 600.0f;
-	SpeedMultiplier = 1.0f;
+	SprintSpeedMultiplier = 1.5f;
+	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
+	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 	ForwardRollSpeed = 900.0f;
+	TargetRotation = FRotator(0.0f, 0.0f, 0.0f);
+	RotationInterpSpeed = 5.0f;
+	bShouldRotate = false;
+	bForwardRolling = false;
+	bCanRoll = true;
 
+	// Health
 	MaxHealth = 100.0f;
 	Health = MaxHealth;
+
+	// Level 관련
+	CharacterLevel = 1;
+	CurrentExp = 0;
+	ExpToNextLevel = 100;
 }
 
 void AP9Character::BeginPlay()
 {
 	Super::BeginPlay();
-	UpdateOverheadHP();
-	
 }
 
 // Called every frame
 void AP9Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// 캐릭터의 부드러운 회전을 위한 함수
+	if (bShouldRotate)
+	{
+		FRotator CurrentRotation = GetActorRotation();
+		FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, RotationInterpSpeed);
+
+		SetActorRotation(NewRotation);
+
+		// 회전이 거의 완료되었는지 확인
+		if (NewRotation.Equals(TargetRotation, 0.5f))
+		{
+			bShouldRotate = false;
+		}
+	}
 }
 
 void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -75,6 +104,16 @@ void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 				);
 			}
 
+			// 캐릭터 회전 바인딩
+			if (PlayerController->TurnAction)
+			{
+				EnhancedInput->BindAction(
+					PlayerController->TurnAction, 
+					ETriggerEvent::Triggered,
+					this, 
+					&AP9Character::TurnCharacter
+				);
+			}
 
 			// 점프 입력 바인딩
 			if (PlayerController->JumpAction)
@@ -94,6 +133,24 @@ void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 				);
 			}
 
+			// Sprint
+			if (PlayerController->SprintAction)
+			{
+				EnhancedInput->BindAction(
+					PlayerController->SprintAction,
+					ETriggerEvent::Triggered,
+					this,
+					&AP9Character::StartSprint
+				);
+
+				EnhancedInput->BindAction(
+					PlayerController->SprintAction,
+					ETriggerEvent::Completed,
+					this,
+					&AP9Character::StopSprint
+				);
+			}
+
 			// Look
 			if (PlayerController->LookAction)
 			{
@@ -103,6 +160,36 @@ void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 					this,
 					&AP9Character::Look
 				);
+			}
+
+			//Zoom
+			if (PlayerController->ZoomCameraAction)
+			{
+				EnhancedInput->BindAction(
+					PlayerController->ZoomCameraAction,
+					ETriggerEvent::Triggered,
+					this,
+					&AP9Character::ZoomCamera
+				);
+			}
+
+			//FreeLook
+			if (PlayerController->FreeLookAction)
+			{
+				EnhancedInput->BindAction(
+					PlayerController->FreeLookAction,
+					ETriggerEvent::Triggered,
+					this,
+					&AP9Character::OnFreeLookStart
+				);
+
+				EnhancedInput->BindAction(
+					PlayerController->FreeLookAction,
+					ETriggerEvent::Completed,
+					this,
+					&AP9Character::OnFreeLookEnd
+				);
+
 			}
 
 			// ForwardRoll
@@ -135,17 +222,16 @@ void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 			}
 		}
 	}
-
 }
 
-void AP9Character::Move(const FInputActionValue& value)
+void AP9Character::Move(const FInputActionValue& Value)
 {
 	if (!Controller)
 	{
 		return;
 	}
 
-	FVector2D MoveInput = value.Get<FVector2D>();
+	FVector2D MoveInput = Value.Get<FVector2D>();
 
 	if (!FMath::IsNearlyZero(MoveInput.X))
 	{
@@ -153,55 +239,119 @@ void AP9Character::Move(const FInputActionValue& value)
 	}
 	if (!FMath::IsNearlyZero(MoveInput.Y))
 	{
-		float RotationSpeed = 90.0f; // 초당 회전 속도 (도 단위)
-		float DeltaTime = GetWorld()->GetDeltaSeconds();
-		float YawDelta = MoveInput.Y * RotationSpeed * DeltaTime;
-
-		FRotator NewRotation = GetActorRotation();
-		NewRotation.Yaw += YawDelta;
-
-		SetActorRotation(NewRotation);
+		AddMovementInput(GetActorRightVector(), MoveInput.Y);
 	}
 }
 
-void AP9Character::StartJump(const FInputActionValue& value)
+void AP9Character::TurnCharacter(const FInputActionValue& Value)
 {
-	if (value.Get<bool>())
+	FVector2D TurnDirection = Value.Get<FVector2D>(); // Q: -1, E: +1
+
+	if (!FMath::IsNearlyZero(TurnDirection.X))
+	{
+		TargetRotation = GetActorRotation();
+		TargetRotation.Yaw += TurnDirection.X * 45.0f;
+		bShouldRotate = true;
+	}
+}
+
+void AP9Character::StartJump(const FInputActionValue& Value)
+{
+	if (Value.Get<bool>())
 	{
 		Jump();
 	}
 }
 
-void AP9Character::StopJump(const FInputActionValue& value)
+void AP9Character::StopJump(const FInputActionValue& Value)
 {
-	if (value.Get<bool>())
+	if (Value.Get<bool>())
 	{
 		StopJumping();
 	}
 }
 
-void AP9Character::Look(const FInputActionValue& value)
+void AP9Character::StartSprint(const FInputActionValue& Value)
 {
-	FVector2D LookInput = value.Get<FVector2D>();
-	AddControllerYawInput(LookInput.X);
-	AddControllerPitchInput(LookInput.Y);
+	bSprinting = true;
+	UpdateMoveSpeed();
 }
 
-void AP9Character::StartForwardRoll(const FInputActionValue& value)
+void AP9Character::StopSprint(const FInputActionValue& Value)
 {
-	bForwardRolling = true;
-	UpdateRollingSpeed();
+	bSprinting = false;
+	UpdateMoveSpeed();
 }
 
-void AP9Character::StopForwardRoll(const FInputActionValue& value)
+void AP9Character::Look(const FInputActionValue& Value)
+{
+	FVector2D LookInput = Value.Get<FVector2D>();
+	if (Controller != nullptr)
+	{
+		AddControllerPitchInput(LookInput.Y);
+		AddControllerYawInput(LookInput.X);
+	}
+}
+
+void AP9Character::ZoomCamera(const FInputActionValue& Value)
+{
+	float NewLength = FMath::Clamp(SpringArmComp->TargetArmLength + Value.Get<float>() * 100.0f, 200.0f, 1100.0f);
+	SpringArmComp->TargetArmLength = NewLength;
+}
+
+void AP9Character::OnFreeLookStart(const FInputActionValue& Value)
+{
+	bIsFreeLookMode = true;
+	bUseControllerRotationYaw = false;
+}
+
+void AP9Character::OnFreeLookEnd(const FInputActionValue& Value)
+{
+	bIsFreeLookMode = false;
+	bUseControllerRotationYaw = true;
+}
+
+void AP9Character::StartForwardRoll()
+{
+	if (bForwardRolling || !bCanRoll) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && ForwardRollMontage)
+	{
+		bForwardRolling = true;
+		bCanRoll = false;
+		//몽타주 재생
+		AnimInstance->Montage_Play(ForwardRollMontage);
+
+		RollMontageEndedDelegate.BindUObject(this, &AP9Character::OnRollMontageEnded);
+		AnimInstance->Montage_SetEndDelegate(RollMontageEndedDelegate, ForwardRollMontage);
+
+		GetWorldTimerManager().SetTimer(RollCooldownTimerHandle, this, &AP9Character::ResetRollCooldown, 3.0f, false);
+	}
+}
+
+void AP9Character::OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	// 다른 몽타주와 섞이지 않게 확인
+	if (Montage == ForwardRollMontage)
+	{
+		bForwardRolling = false;
+	}
+}
+
+void AP9Character::StopForwardRoll()
 {
 	bForwardRolling = false;
-	UpdateRollingSpeed();
 }
 
-void AP9Character::Interact(const FInputActionValue& value)
+void AP9Character::Interact(const FInputActionValue& Value)
 {
 
+}
+
+void AP9Character::ResetRollCooldown()
+{
+	bCanRoll = true;
 }
 
 float AP9Character::GetHealth() const
@@ -212,7 +362,6 @@ float AP9Character::GetHealth() const
 void AP9Character::AddHealth(float Amount)
 {
 	Health = FMath::Clamp(Health + Amount, 0.0f, MaxHealth);
-	UpdateOverheadHP();
 }
 
 void AP9Character::OnDeath()
@@ -220,34 +369,39 @@ void AP9Character::OnDeath()
 
 }
 
-void AP9Character::UpdateOverheadHP()
+void AP9Character::UpdateMoveSpeed()
 {
-	if (UUserWidget* WidgetInstance = OverheadWidget->GetUserWidgetObject())
+	const float BaseSpeed = bSprinting ? SprintSpeed : NormalSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = BaseSpeed * SprintSpeedMultiplier;
+}
+
+int AP9Character::GetCharacterLevel() const
+{
+	return CharacterLevel;
+}
+
+void AP9Character::AddExperience(int Amount)
+{
+	CurrentExp += Amount;
+
+	while (CurrentExp >= ExpToNextLevel)
 	{
-		if (UProgressBar* HPBar = Cast<UProgressBar>(WidgetInstance->GetWidgetFromName(TEXT("HealthBar"))))
-		{
-			const float HPPercent = (MaxHealth > 0.f) ? Health / MaxHealth : 0.f;
-			HPBar->SetPercent(HPPercent);
-
-			if (HPPercent < 0.3f)
-			{
-				HPBar->SetFillColorAndOpacity(FLinearColor::Red);
-			}
-		}
-
-		if (UTextBlock* HPText = Cast<UTextBlock>(WidgetInstance->GetWidgetFromName(TEXT("HPText"))))
-		{
-			HPText->SetText(FText::FromString(FString::Printf(TEXT("%.0f / %.0f"), Health, MaxHealth)));
-		}
+		CurrentExp -= ExpToNextLevel;
 	}
 }
 
-void AP9Character::UpdateRollingSpeed()
+void AP9Character::LevelUp()
 {
-	const float BaseSpeed = bForwardRolling ? ForwardRollSpeed : NormalSpeed;
-	GetCharacterMovement()->MaxWalkSpeed = BaseSpeed * SpeedMultiplier;
+	CharacterLevel++;
+	ExpToNextLevel += 50;
 }
 
+void AP9Character::SetLevel(int NewLevel)
+{
+	CharacterLevel = NewLevel;
+	CurrentExp = 0;
+	ExpToNextLevel = 100 + (NewLevel - 1) * 50;
+}
 
 //void AP9Character::TakeDamage(
 //	float DamageAmount,
