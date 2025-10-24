@@ -1,6 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "UObject/ObjectPtr.h"
@@ -20,4 +18,8 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<AP9GameState> P9GameState;
+	FTimerHandle WaveTimer;
+
+	void UpdateTimer();
+	void BeginPlay() override;
 };
