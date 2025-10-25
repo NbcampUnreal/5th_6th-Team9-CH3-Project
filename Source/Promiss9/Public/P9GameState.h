@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
+#include "P9Monster.h"
 #include "P9GameState.generated.h"
 
 
@@ -15,6 +16,12 @@ public:
 	float WaveEndTime;		// wave 종료 시간
 	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = "Wave")
 	FString WaveName;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave|Spawn")
+	TSubclassOf<AP9Monster> Monster;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave|Spawn")
+	int32 Population;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave|Spawn")
+	float Frequency;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWaveChangedSignature, int32, NewWaveIndex, FString, NewWaveName);
