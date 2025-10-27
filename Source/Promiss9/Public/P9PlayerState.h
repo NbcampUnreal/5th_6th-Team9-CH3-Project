@@ -31,14 +31,16 @@ enum class EP9Rarity : uint8
 };
 
 USTRUCT(BlueprintType)
-struct P9LevelUpReward
+struct FP9LevelUpReward
 {
 	GENERATED_BODY()
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Reward")
 	EP9Stat Stat;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Reward")
 	EP9Rarity Rarity;
-
-	FString 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Reward")
+	FString Description;
 };
 
 UCLASS()
