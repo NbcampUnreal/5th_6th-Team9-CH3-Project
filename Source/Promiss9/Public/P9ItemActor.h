@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "P9ItemInterface.h"
 #include "P9WeaponData.h"
+#include "P9InventoryComponent.h"
 #include "P9ItemActor.generated.h"
 
 
@@ -25,15 +26,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Data")
 	FDataTableRowHandle P9WeaponRow;
 
-
-	const FP9WeaponData* RowData = nullptr;
+	FP9WeaponData* GetRowData() const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Root")
 	USceneComponent* SceneRoot;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Mesh")
 	UStaticMeshComponent* StaticMesh;
 	
 	
-
+	void Fire() const;
 	virtual void OnItemOverlap(AActor* OverlapActor) override;
 	virtual void OnItemEndOverlap(AActor* OverlapActor) override;
 	virtual void ActivateItem(AActor* Activator) override;
