@@ -1,5 +1,6 @@
 #include "P9Monster.h"
 #include "TimerManager.h"
+#include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -15,6 +16,16 @@ AP9Monster::AP9Monster()
     DamageInterval = 1.0f;
     bIsPlayerInRange = false;
     TargetPlayer = nullptr;
+
+    AttackRangeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AttackRangeSphere"));
+    AttackRangeSphere->SetupAttachment(RootComponent);
+
+    AttackRangeRadius = 200.f; // 에디터에서 조정 가능 (기본값)
+    AttackRangeSphere->InitSphereRadius(AttackRangeRadius);
+
+    AttackRangeSphere->SetCollisionProfileName(TEXT("Trigger"));
+    AttackRangeSphere->SetGenerateOverlapEvents(true);
+
 }
 
 void AP9Monster::BeginPlay()
@@ -71,4 +82,23 @@ void AP9Monster::DealDamageToPlayer()
     // 여기선 예시로 출력만
     UE_LOG(LogTemp, Warning, TEXT("%s attacks %s for %.1f damage!"),
         *GetName(), *TargetPlayer->GetName(), AttackPower);
+}
+
+void AP9Monster::OnAttackRangeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+    bool bFromSweep, const FHitResult& SweepResult)
+{
+    if (OtherActor && OtherActor != this)
+    {
+        StartDamagePlayer(OtherActor);
+    }
+}
+
+void AP9Monster::OnAttackRangeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+    if (OtherActor && OtherActor == TargetPlayer)
+    {
+        StopDamagePlayer();
+    }
 }
