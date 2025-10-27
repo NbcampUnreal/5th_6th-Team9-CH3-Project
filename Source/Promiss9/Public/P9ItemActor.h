@@ -22,8 +22,17 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	FName ItemType;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Data")
+	FDataTableRowHandle P9WeaponRow;
 
+
+	const FP9WeaponData* RowData = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Root")
+	USceneComponent* SceneRoot;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Mesh")
+	UStaticMeshComponent* StaticMesh;
+	
+	
 
 	virtual void OnItemOverlap(AActor* OverlapActor) override;
 	virtual void OnItemEndOverlap(AActor* OverlapActor) override;
