@@ -8,6 +8,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class USphereComponent;
 class UWidgetComponent;
 class UUserWidget;
 
@@ -27,7 +28,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 
 	// Health
 	UFUNCTION(BlueprintPure, Category = "Health")
@@ -54,17 +54,17 @@ public:
 	// 사망
 	void OnDeath();
 
-
-
-	// Life cycle
-	//virtual void TakeDamage(
-	//	float DamageAmount,
-	//	struct FDamageEvent const& DamageEvent,
-	//	AController* EventInstigator,
-	//	AActor* DamageCauser) override;
+	// Damage
+	virtual float TakeDamage(
+		float DamageAmount,
+		struct FDamageEvent const& DamageEvent,
+		AController* EventInstigator,
+		AActor* DamageCauser) override;
 
 	UFUNCTION()
 	void Move(const FInputActionValue& Value);
+	UFUNCTION()
+	void MoveCompleted(const FInputActionValue& Value);
 	UFUNCTION()
 	void TurnCharacter(const FInputActionValue& Value);
 	UFUNCTION()
@@ -98,10 +98,8 @@ protected:
 	USpringArmComponent* SpringArmComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	UCameraComponent* CameraComp;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
-	UWidgetComponent* OverheadWidget;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu")
-	TSubclassOf<UUserWidget> BuffInfoWidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Collision")
+	class USphereComponent* SphereCollision;
 
 	// 앞구르기 여부
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Roll")
@@ -112,17 +110,21 @@ protected:
 	UAnimMontage* ForwardRollMontage;
 
 	// 기본 및 앞구르기 속도
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Speed")
 	float NormalSpeed;
 	float SprintSpeedMultiplier;
 	float SprintSpeed;
 	float ForwardRollSpeed;
 
-	// 캐릭터 회전 관련
-	FRotator TargetRotation;
-	float RotationInterpSpeed;
-	bool bShouldRotate;
+	// 캐릭터 좌우 이동 관련
+	float DefaultYaw;
+	float TargetYawOffset; // 회전 오프셋
+	float RotationInterpSpeed; // 회전 보간 속도
+	bool bIsSideMoving; // 좌우 이동 여부
 
-	// 자유시점 여부
+	// 자유시점 관련
+	float SavedArmLength;
+	FRotator SavedControlRotation;
 	bool bIsFreeLookMode;
 
 	// 달리기 여부
@@ -130,17 +132,21 @@ protected:
 
 	// Health
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
-	int MaxHealth;
+	int32 MaxHealth;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
-	int Health;
+	int32 Health;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health|Death")
+	bool bIsDead = false;
+	UPROPERTY(EditDefaultsOnly, Category = "Health|Death")
+	UAnimMontage* DeathMontage;
 
 	// Status
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Status")
-	int CharacterLevel;
+	int32 CharacterLevel;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Status")
-	int CurrentExp;
+	float CurrentExp;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Status")
-	int ExpToNextLevel;
+	float ExpToNextLevel;
 
 	FOnMontageEnded RollMontageEndedDelegate;
 	FTimerHandle RollCooldownTimerHandle;

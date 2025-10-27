@@ -10,6 +10,7 @@
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/SphereComponent.h"
 
 // Sets default values
 AP9Character::AP9Character()
@@ -26,28 +27,31 @@ AP9Character::AP9Character()
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false;
 
-	bUseControllerRotationYaw = true;
-	bUseControllerRotationPitch = true;
-	bUseControllerRotationRoll = false;
+	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
+	SphereCollision->SetupAttachment(RootComponent);
+	SphereCollision->InitSphereRadius(150.0f);
+	SphereCollision->SetCollisionProfileName(TEXT("OverlapAllDynamic")); // 충돌 설정
+	SphereCollision->SetGenerateOverlapEvents(true); // 오버랩 이벤트 활성화
+
 	bIsFreeLookMode = false;
-	GetCharacterMovement()->bOrientRotationToMovement = false;
+	SavedArmLength = 0.0f;
 
-	//UI
-	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
-	OverheadWidget->SetupAttachment(GetMesh());
-	OverheadWidget->SetWidgetSpace(EWidgetSpace::Screen);
-
-	// 디동관련 변수, 함수 초기화
+	// 이동관련 변수, 함수 초기화
 	NormalSpeed = 600.0f;
 	SprintSpeedMultiplier = 1.5f;
 	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	bUseControllerRotationYaw = false;
 	ForwardRollSpeed = 900.0f;
-	TargetRotation = FRotator(0.0f, 0.0f, 0.0f);
-	RotationInterpSpeed = 5.0f;
-	bShouldRotate = false;
 	bForwardRolling = false;
 	bCanRoll = true;
+	bSprinting = false;
+	// 좌우 이동
+	DefaultYaw = 0.f;
+	TargetYawOffset = 0.f;
+	RotationInterpSpeed = 8.0f;
+	bIsSideMoving = false;
 
 	// Health
 	MaxHealth = 100.0f;
@@ -69,19 +73,25 @@ void AP9Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// 캐릭터의 부드러운 회전을 위한 함수
-	if (bShouldRotate)
+	if (!Controller) return;
+
+	if (!bIsFreeLookMode)
 	{
-		FRotator CurrentRotation = GetActorRotation();
-		FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, RotationInterpSpeed);
+		// 컨트롤러(카메라) 방향 기준으로 몸 회전
+		FRotator ControlRot = Controller->GetControlRotation();
+		FRotator TargetRot = ControlRot;
+		TargetRot.Pitch = 0.f;
+		TargetRot.Roll = 0.f;
+		TargetRot.Yaw += TargetYawOffset;
 
-		SetActorRotation(NewRotation);
-
-		// 회전이 거의 완료되었는지 확인
-		if (NewRotation.Equals(TargetRotation, 0.5f))
-		{
-			bShouldRotate = false;
-		}
+		// 부드럽게 회전 보간
+		FRotator NewRot = FMath::RInterpTo(GetActorRotation(), TargetRot, DeltaTime, RotationInterpSpeed);
+		SetActorRotation(NewRot);
+	}
+	// 앞구르기
+	if (bForwardRolling)
+	{
+		AddMovementInput(GetActorForwardVector(), 1.0f);
 	}
 }
 
@@ -102,6 +112,14 @@ void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 					this,
 					&AP9Character::Move
 				);
+
+				EnhancedInput->BindAction(
+					PlayerController->MoveAction, 
+					ETriggerEvent::Completed, 
+					this, 
+					&AP9Character::MoveCompleted
+				);
+
 			}
 
 			// 캐릭터 회전 바인딩
@@ -178,7 +196,7 @@ void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 			{
 				EnhancedInput->BindAction(
 					PlayerController->FreeLookAction,
-					ETriggerEvent::Triggered,
+					ETriggerEvent::Started,
 					this,
 					&AP9Character::OnFreeLookStart
 				);
@@ -233,25 +251,57 @@ void AP9Character::Move(const FInputActionValue& Value)
 
 	FVector2D MoveInput = Value.Get<FVector2D>();
 
-	if (!FMath::IsNearlyZero(MoveInput.X))
+	float ForwardValue = MoveInput.X;
+	float SideValue = MoveInput.Y;
+
+	FRotator ControlRot = Controller->GetControlRotation();
+	ControlRot.Pitch = 0.f;
+	ControlRot.Roll = 0.f;
+
+
+	if (!FMath::IsNearlyZero(ForwardValue))
 	{
-		AddMovementInput(GetActorForwardVector(), MoveInput.X);
+		AddMovementInput(FRotationMatrix(ControlRot).GetUnitAxis(EAxis::X), ForwardValue);
+		TargetYawOffset = 0.f;
 	}
-	if (!FMath::IsNearlyZero(MoveInput.Y))
+	if (!FMath::IsNearlyZero(SideValue))
 	{
-		AddMovementInput(GetActorRightVector(), MoveInput.Y);
+		bIsSideMoving = true;
+
+		// 왼쪽
+		if (SideValue < 0) 
+		{
+			TargetYawOffset = -90.f;
+		}
+
+		// 오른쪽
+		else if (SideValue > 0)
+		{
+			TargetYawOffset = 90.f;
+		}
+	
+		const FRotator MoveRot(0.f, ControlRot.Yaw + TargetYawOffset, 0.f);
+		FVector MoveDir = FRotationMatrix(MoveRot).GetUnitAxis(EAxis::X);
+		AddMovementInput(MoveDir, 1.f);
+
+	}
+}
+
+void AP9Character::MoveCompleted(const FInputActionValue& Value)
+{
+	// 좌우 입력이 끝나면 정면 복귀
+	if (bIsSideMoving)
+	{
+		TargetYawOffset = 0.f;
+		bIsSideMoving = false;
 	}
 }
 
 void AP9Character::TurnCharacter(const FInputActionValue& Value)
 {
-	FVector2D TurnDirection = Value.Get<FVector2D>(); // Q: -1, E: +1
-
-	if (!FMath::IsNearlyZero(TurnDirection.X))
+	if (!Controller)
 	{
-		TargetRotation = GetActorRotation();
-		TargetRotation.Yaw += TurnDirection.X * 45.0f;
-		bShouldRotate = true;
+		return;
 	}
 }
 
@@ -286,10 +336,20 @@ void AP9Character::StopSprint(const FInputActionValue& Value)
 void AP9Character::Look(const FInputActionValue& Value)
 {
 	FVector2D LookInput = Value.Get<FVector2D>();
-	if (Controller != nullptr)
+
+	if (!Controller) return;
+
+	if (bIsFreeLookMode)
 	{
-		AddControllerPitchInput(LookInput.Y);
+		// 프리룩 중엔 컨트롤러 회전만 변경
 		AddControllerYawInput(LookInput.X);
+		AddControllerPitchInput(LookInput.Y);
+	}
+	else
+	{
+		// 일반 모드에서는 카메라와 캐릭터가 함께 회전
+		AddControllerYawInput(LookInput.X);
+		AddControllerPitchInput(LookInput.Y);
 	}
 }
 
@@ -302,29 +362,56 @@ void AP9Character::ZoomCamera(const FInputActionValue& Value)
 void AP9Character::OnFreeLookStart(const FInputActionValue& Value)
 {
 	bIsFreeLookMode = true;
+
 	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+
+	SavedControlRotation = Controller->GetControlRotation();
+
+	UE_LOG(LogTemp, Warning, TEXT(">> FreeLook Start"));
 }
 
 void AP9Character::OnFreeLookEnd(const FInputActionValue& Value)
 {
 	bIsFreeLookMode = false;
-	bUseControllerRotationYaw = true;
+
+	// 카메라를 freelook 모드 이전 마지막 위치로 복원
+	//SpringArmComp->TargetArmLength = SavedArmLength;
+	//SpringArmComp->SetRelativeRotation(SavedSpringArmRotation);
+
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+
+	if (Controller)
+	{
+		Controller->SetControlRotation(SavedControlRotation);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT(">> FreeLook End"));
 }
+
 
 void AP9Character::StartForwardRoll()
 {
-	if (bForwardRolling || !bCanRoll) return;
+	if (bForwardRolling || !bCanRoll || !ForwardRollMontage) return;
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && ForwardRollMontage)
+	if (AnimInstance)
 	{
 		bForwardRolling = true;
 		bCanRoll = false;
-		//몽타주 재생
+
+		// 몽타주 재생
 		AnimInstance->Montage_Play(ForwardRollMontage);
 
+		// 몽타주 종료
 		RollMontageEndedDelegate.BindUObject(this, &AP9Character::OnRollMontageEnded);
 		AnimInstance->Montage_SetEndDelegate(RollMontageEndedDelegate, ForwardRollMontage);
+
+		// 앞 방향으로 캐릭터 이동
+		FVector ForwardDir = GetActorForwardVector();
+		AddMovementInput(ForwardDir, 1.0f);
+
 
 		GetWorldTimerManager().SetTimer(RollCooldownTimerHandle, this, &AP9Character::ResetRollCooldown, 3.0f, false);
 	}
@@ -346,7 +433,30 @@ void AP9Character::StopForwardRoll()
 
 void AP9Character::Interact(const FInputActionValue& Value)
 {
+	{
+		// 트레이스(시야 방향으로 레이저)
+		FVector Start = GetActorLocation();
+		FVector End = Start + GetActorForwardVector() * 300.0f;
 
+		FHitResult HitResult;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this); // 자기 자신 무시
+
+		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
+
+		FColor LineColor = bHit ? FColor::Green : FColor::Red;
+		DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.0f, 0, 2.0f);
+
+		if (bHit && HitResult.GetActor())
+		{
+			//// 액터와 상호작용
+			//IInteractableInterface* Interactable = Cast<IInteractableInterface>(HitResult.GetActor());
+			//if (Interactable)
+			//{
+			//	Interactable->Execute_OnInteract(HitResult.GetActor(), this);
+			//}
+		}
+	}
 }
 
 void AP9Character::ResetRollCooldown()
@@ -366,6 +476,26 @@ void AP9Character::AddHealth(float Amount)
 
 void AP9Character::OnDeath()
 {
+	if (bIsDead)
+	{
+		return;
+	}
+
+	bIsDead = true;
+	GetCharacterMovement()->DisableMovement();
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC)
+	{
+		PC->SetIgnoreMoveInput(true);
+		PC->SetIgnoreLookInput(true);
+	}
+	
+	if (DeathMontage)
+	{
+		PlayAnimMontage(DeathMontage);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("%s 사망"), *GetName());
 
 }
 
@@ -403,23 +533,21 @@ void AP9Character::SetLevel(int NewLevel)
 	ExpToNextLevel = 100 + (NewLevel - 1) * 50;
 }
 
+float AP9Character::TakeDamage(
+	float DamageAmount,
+	struct FDamageEvent const& DamageEvent,
+	AController* EventInstigator,
+	AActor* DamageCauser)
+{
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	Health = FMath::Clamp(Health - DamageAmount, 0.0f, MaxHealth);
 
 
-//void AP9Character::TakeDamage(
-//	float DamageAmount,
-//	struct FDamageEvent const& DamageEvent,
-//	AController* EventInstigator,
-//	AActor* DamageCauser)
-//{
-//	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-//
-//	Health = FMath::Clamp(Health - DamageAmount, 0.0f, MaxHealth);
-//	UpdateOverheadHP();
-//
-//	if (Health <= 0.0f)
-//	{
-//		OnDeath();
-//	}
-//
-//	return ActualDamage;
-//}
+	if (Health <= 0.0f)
+	{
+		OnDeath();
+	}
+
+	return ActualDamage;
+}
