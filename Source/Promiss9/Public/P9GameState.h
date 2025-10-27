@@ -2,9 +2,20 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
+#include "P9Monster.h"
 #include "P9GameState.generated.h"
 
+USTRUCT(BlueprintType)
+struct FSpawnData
+{
+	GENERATED_BODY()
 
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<AP9Monster> MonsterClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	int32 SpawnCount;
+};
 USTRUCT(BlueprintType)
 struct FP9WaveData
 {
@@ -15,6 +26,8 @@ public:
 	float WaveEndTime;		// wave 종료 시간
 	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = "Wave")
 	FString WaveName;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TArray<FSpawnData> SpawnList;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWaveChangedSignature, int32, NewWaveIndex, FString, NewWaveName);
