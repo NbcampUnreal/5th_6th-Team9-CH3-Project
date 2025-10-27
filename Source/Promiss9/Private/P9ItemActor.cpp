@@ -34,15 +34,41 @@ void AP9ItemActor::Tick(float DeltaTime)
 
 void AP9ItemActor::OnItemOverlap(AActor* OverlapActor)
 {
+
 }
 
 void AP9ItemActor::OnItemEndOverlap(AActor* OverlapActor)
 {
+
+}
+
+FP9WeaponData* AP9ItemActor::GetRowData() const
+{
+	if (!P9WeaponRow.DataTable)
+	{
+		return nullptr;
+	}
+		return P9WeaponRow.DataTable->FindRow<FP9WeaponData>(P9WeaponRow.RowName, TEXT("AP9ItemActor::GetRowData"));
+	
+}
+
+void AP9ItemActor::Fire() const
+{
+	FP9WeaponData* Row = GetRowData();
+
 }
 
 void AP9ItemActor::ActivateItem(AActor* Activator)
 {
+	FP9WeaponData* SelectedRow = GetRowData();
+	if (!SelectedRow)
+	{
+		return;
+	}
+	Fire();
 }	
+
+
 
 FName AP9ItemActor::GetItemType() const
 {
