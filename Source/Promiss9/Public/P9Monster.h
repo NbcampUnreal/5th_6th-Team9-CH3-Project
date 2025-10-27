@@ -45,6 +45,25 @@ protected:
     UPROPERTY()
     AActor* TargetPlayer;
 
+
+    //스피어 콜리전
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
+    class USphereComponent* AttackRangeSphere;
+
+    //공격 범위
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+    float AttackRangeRadius;
+
+    //오버렙 
+    UFUNCTION()
+    void OnAttackRangeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+    UFUNCTION()
+    void OnAttackRangeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+
 public:
     virtual void Tick(float DeltaTime) override;
 
@@ -52,13 +71,12 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Combat")
     void TakeDamageFromPlayer(float DamageAmount);
 
-    // 공격 범위에 플레이어가 들어왔을 때
     UFUNCTION(BlueprintCallable, Category = "Combat")
     void StartDamagePlayer(AActor* PlayerActor);
 
-    // 공격 범위에서 나갔을 때
     UFUNCTION(BlueprintCallable, Category = "Combat")
     void StopDamagePlayer();
+
 
 private:
     // 플레이어에게 일정 주기로 데미지를 주는 내부 함수
