@@ -36,36 +36,38 @@ AP9Character::AP9Character()
 	bIsFreeLookMode = false;
 	SavedArmLength = 0.0f;
 
-	// 이동관련 변수, 함수 초기화
+	// 이동 관련
 	NormalSpeed = 600.0f;
 	SprintSpeedMultiplier = 1.5f;
 	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	bSprinting = false;
+
+	// 회전 관련
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	bUseControllerRotationYaw = false;
-	ForwardRollSpeed = 900.0f;
-	bForwardRolling = false;
-	bCanRoll = true;
-	bSprinting = false;
-	// 좌우 이동
 	DefaultYaw = 0.f;
 	TargetYawOffset = 0.f;
 	RotationInterpSpeed = 8.0f;
 	bIsSideMoving = false;
+	bIsDiagonalMoving = false;
+
+	// 앞구르기 관련
+	ForwardRollSpeed = 900.0f;
+	bForwardRolling = false;
+	bCanRoll = true;
 
 	// Health
 	MaxHealth = 100.0f;
 	Health = MaxHealth;
-
-	// Level 관련
-	CharacterLevel = 1;
-	CurrentExp = 0;
-	ExpToNextLevel = 100;
 }
 
 void AP9Character::BeginPlay()
 {
 	Super::BeginPlay();
+
+	EquipWeaponToMultipleSockets();
+	EquipWeaponToRightHandSockets();
 }
 
 // Called every frame
@@ -79,9 +81,15 @@ void AP9Character::Tick(float DeltaTime)
 	{
 		// 컨트롤러(카메라) 방향 기준으로 몸 회전
 		FRotator ControlRot = Controller->GetControlRotation();
+		ControlRot.Pitch = 0.f;
+		ControlRot.Roll = 0.f;
+
+		if (!bIsDiagonalMoving)
+		{
+			TargetYawOffset = FMath::FInterpTo(TargetYawOffset, 0.f, DeltaTime, RotationInterpSpeed);
+		}
+
 		FRotator TargetRot = ControlRot;
-		TargetRot.Pitch = 0.f;
-		TargetRot.Roll = 0.f;
 		TargetRot.Yaw += TargetYawOffset;
 
 		// 부드럽게 회전 보간
@@ -114,22 +122,29 @@ void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 				);
 
 				EnhancedInput->BindAction(
-					PlayerController->MoveAction, 
-					ETriggerEvent::Completed, 
-					this, 
+					PlayerController->MoveAction,
+					ETriggerEvent::Completed,
+					this,
 					&AP9Character::MoveCompleted
 				);
 
 			}
 
-			// 캐릭터 회전 바인딩
-			if (PlayerController->TurnAction)
+			// 대각선 이동 바인딩
+			if (PlayerController->DiagonalAction)
 			{
 				EnhancedInput->BindAction(
-					PlayerController->TurnAction,
+					PlayerController->DiagonalAction,
 					ETriggerEvent::Triggered,
 					this,
-					&AP9Character::TurnCharacter
+					&AP9Character::StartDiagonalMove
+				);
+
+				EnhancedInput->BindAction(
+					PlayerController->DiagonalAction,
+					ETriggerEvent::Completed,
+					this,
+					&AP9Character::StopDiagonalMove
 				);
 			}
 
@@ -250,7 +265,6 @@ void AP9Character::Move(const FInputActionValue& Value)
 	}
 
 	FVector2D MoveInput = Value.Get<FVector2D>();
-
 	float ForwardValue = MoveInput.X;
 	float SideValue = MoveInput.Y;
 
@@ -269,7 +283,7 @@ void AP9Character::Move(const FInputActionValue& Value)
 		bIsSideMoving = true;
 
 		// 왼쪽
-		if (SideValue < 0) 
+		if (SideValue < 0)
 		{
 			TargetYawOffset = -90.f;
 		}
@@ -279,11 +293,10 @@ void AP9Character::Move(const FInputActionValue& Value)
 		{
 			TargetYawOffset = 90.f;
 		}
-	
+
 		const FRotator MoveRot(0.f, ControlRot.Yaw + TargetYawOffset, 0.f);
 		FVector MoveDir = FRotationMatrix(MoveRot).GetUnitAxis(EAxis::X);
 		AddMovementInput(MoveDir, 1.f);
-
 	}
 }
 
@@ -297,11 +310,43 @@ void AP9Character::MoveCompleted(const FInputActionValue& Value)
 	}
 }
 
-void AP9Character::TurnCharacter(const FInputActionValue& Value)
+void AP9Character::StartDiagonalMove(const FInputActionValue& Value)
 {
 	if (!Controller)
 	{
 		return;
+	}
+
+	float DiagonalValue = Value.Get<float>();
+
+	FRotator ControlRot = Controller->GetControlRotation();
+	ControlRot.Pitch = 0.f;
+	ControlRot.Roll = 0.f;
+
+	if (!FMath::IsNearlyZero(DiagonalValue))
+	{
+		bIsDiagonalMoving = true;
+
+		if (DiagonalValue < 0)
+		{
+			TargetYawOffset = -45.f;
+		}
+		else if (DiagonalValue > 0)
+		{
+			TargetYawOffset = 45.f;
+		}
+
+		FRotator MoveRot(0.f, ControlRot.Yaw + TargetYawOffset, 0.f);
+		FVector MoveDir = FRotationMatrix(MoveRot).GetUnitAxis(EAxis::X);
+		AddMovementInput(MoveDir, 1.f);
+	}
+}
+
+void AP9Character::StopDiagonalMove(const FInputActionValue& Value)
+{
+	if (bIsDiagonalMoving)
+	{
+		bIsDiagonalMoving = false;
 	}
 }
 
@@ -341,13 +386,13 @@ void AP9Character::Look(const FInputActionValue& Value)
 
 	if (bIsFreeLookMode)
 	{
-		// 프리룩 중엔 컨트롤러 회전만 변경
+		// 자유시점 중엔 컨트롤러만 회전 변경
 		AddControllerYawInput(LookInput.X);
 		AddControllerPitchInput(LookInput.Y);
 	}
 	else
 	{
-		// 일반 모드에서는 카메라와 캐릭터가 함께 회전
+		// 일반 모드 카메라, 캐릭터 모두 회전
 		AddControllerYawInput(LookInput.X);
 		AddControllerPitchInput(LookInput.Y);
 	}
@@ -401,6 +446,9 @@ void AP9Character::StartForwardRoll()
 		bForwardRolling = true;
 		bCanRoll = false;
 
+		// 무기 숨기기
+		HideAllWeapons(true);
+
 		// 몽타주 재생
 		AnimInstance->Montage_Play(ForwardRollMontage);
 
@@ -423,6 +471,8 @@ void AP9Character::OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 	if (Montage == ForwardRollMontage)
 	{
 		bForwardRolling = false;
+
+		HideAllWeapons(false);
 	}
 }
 
@@ -489,7 +539,7 @@ void AP9Character::OnDeath()
 		PC->SetIgnoreMoveInput(true);
 		PC->SetIgnoreLookInput(true);
 	}
-	
+
 	if (DeathMontage)
 	{
 		PlayAnimMontage(DeathMontage);
@@ -503,34 +553,6 @@ void AP9Character::UpdateMoveSpeed()
 {
 	const float BaseSpeed = bSprinting ? SprintSpeed : NormalSpeed;
 	GetCharacterMovement()->MaxWalkSpeed = BaseSpeed * SprintSpeedMultiplier;
-}
-
-int AP9Character::GetCharacterLevel() const
-{
-	return CharacterLevel;
-}
-
-void AP9Character::AddExperience(int Amount)
-{
-	CurrentExp += Amount;
-
-	while (CurrentExp >= ExpToNextLevel)
-	{
-		CurrentExp -= ExpToNextLevel;
-	}
-}
-
-void AP9Character::LevelUp()
-{
-	CharacterLevel++;
-	ExpToNextLevel += 50;
-}
-
-void AP9Character::SetLevel(int NewLevel)
-{
-	CharacterLevel = NewLevel;
-	CurrentExp = 0;
-	ExpToNextLevel = 100 + (NewLevel - 1) * 50;
 }
 
 float AP9Character::TakeDamage(
@@ -550,4 +572,108 @@ float AP9Character::TakeDamage(
 	}
 
 	return ActualDamage;
+}
+
+// 멀티 무기(캐릭터 4방향)
+void AP9Character::EquipWeaponToMultipleSockets()
+{
+	if (!MultiWeaponClass) return;
+
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	// 원하는 소켓 이름 목록
+	TArray<FName> SocketNames = {
+		TEXT("Weapon1_fr"),
+		TEXT("Weapon2_fl"),
+		TEXT("Weapon3_rl"),
+		TEXT("Weapon4_rr")
+	};
+
+	for (FName SocketName : SocketNames)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = GetInstigator();
+
+		FVector SpawnLocation = GetActorLocation();
+		FRotator SpawnRotation = GetActorRotation();
+
+		// 무기 액터 생성
+		AActor* SpawnedWeapon = World->SpawnActor<AActor>(MultiWeaponClass, SpawnLocation, SpawnRotation, SpawnParams);
+		if (!SpawnedWeapon) continue;
+
+		// 캐릭터 메시에 부착
+		USkeletalMeshComponent* MeshComp = GetMesh();
+		if (!MeshComp) continue;
+
+		SpawnedWeapon->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+
+		// 참조 저장
+		EquippedWeapons.Add(SpawnedWeapon);
+
+		UE_LOG(LogTemp, Warning, TEXT("Weapon spawned: %s"), *SpawnedWeapon->GetName());
+	}
+}
+
+// 오른손 무기
+void AP9Character::EquipWeaponToRightHandSockets()
+{
+	if (!HandWeaponClass) return;
+
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	// 원하는 소켓 이름 목록
+	TArray<FName> SocketNames = { TEXT("Weapon_rh") };
+
+	for (FName SocketName : SocketNames)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = GetInstigator();
+
+		FVector SpawnLocation = GetActorLocation();
+		FRotator SpawnRotation = GetActorRotation();
+
+		// 무기 액터 생성
+		AActor* SpawnedWeapon = World->SpawnActor<AActor>(HandWeaponClass, SpawnLocation, SpawnRotation, SpawnParams);
+		if (!SpawnedWeapon) continue;
+
+		// 캐릭터 메시에 부착
+		USkeletalMeshComponent* MeshComp = GetMesh();
+		if (!MeshComp) continue;
+
+		SpawnedWeapon->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+
+		// 참조 저장
+		EquippedWeapons.Add(SpawnedWeapon);
+
+		UE_LOG(LogTemp, Warning, TEXT("Weapon spawned: %s"), *SpawnedWeapon->GetName());
+	}
+}
+
+// 무기 숨기기
+void AP9Character::HideAllWeapons(bool bHide)
+{
+
+	for (AActor* Weapon : EquippedWeapons)
+	{
+		if (!Weapon) continue;
+
+		// 렌더링 숨기기
+		Weapon->SetActorHiddenInGame(bHide);
+
+		// 충돌 제거
+		TArray<UActorComponent*> MeshComponents;
+		Weapon->GetComponents(UPrimitiveComponent::StaticClass(), MeshComponents);
+		for (UActorComponent* Comp : MeshComponents)
+		{
+			UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(Comp);
+			if (Primitive)
+			{
+				Primitive->SetCollisionEnabled(bHide ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
+			}
+		}
+	}
 }
