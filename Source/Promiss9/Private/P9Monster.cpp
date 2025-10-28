@@ -20,7 +20,7 @@ AP9Monster::AP9Monster()
     AttackRangeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AttackRangeSphere"));
     AttackRangeSphere->SetupAttachment(RootComponent);
 
-    AttackRangeRadius = 200.f; // 에디터에서 조정 가능 (기본값)
+    AttackRangeRadius = 100.f;
     AttackRangeSphere->InitSphereRadius(AttackRangeRadius);
 
     AttackRangeSphere->SetCollisionProfileName(TEXT("Trigger"));
