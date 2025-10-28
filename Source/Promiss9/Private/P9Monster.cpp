@@ -48,13 +48,13 @@ void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
 
     PlayHitFlashEffect();
 
+    ApplyKnockback();
 
-
-    if (HP <= 0.0f)
-    {
-        HP = 0.0f;
-        Destroy(); 
-    }
+    //if (HP <= 0.0f)
+    //{
+    //    HP = 0.0f;
+    //    Destroy(); 
+    //}
 }
 
 void AP9Monster::PlayHitFlashEffect()
