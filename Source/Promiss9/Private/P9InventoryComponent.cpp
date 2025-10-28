@@ -68,3 +68,7 @@ int32 UP9InventoryComponent::FindSlotIndexById(FName WeaponId) const
 	return INDEX_NONE;
 }
 
+bool UP9InventoryComponent::HasWeaponId(FName WeaponId) const
+{
+	return FindSlotIndexById(WeaponId) != INDEX_NONE;
+}

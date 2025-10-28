@@ -51,9 +51,9 @@ public:
     //UFUNCTION(BlueprintCallable, Category = "Inventory")
     //bool AddWeaponById(FName WeaponId);
 
-    //// 보유 여부 확인
-    //UFUNCTION(BlueprintPure, Category = "Inventory")
-    //bool HasWeaponId(FName WeaponId) const;
+    // 보유 여부 확인
+    UFUNCTION(BlueprintPure, Category = "Inventory")
+    bool HasWeaponId(FName WeaponId) const;
 
     //// 슬롯 개수 조정
     //UFUNCTION(BlueprintCallable, Category = "Inventory")
