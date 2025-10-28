@@ -23,7 +23,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	UInputAction* MoveAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
-	UInputAction* TurnAction;
+	UInputAction* DiagonalAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	UInputAction* JumpAction;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
