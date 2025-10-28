@@ -35,16 +35,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void AddHealth(float Amount);
 
-	// Status
-	UFUNCTION()
-	int GetCharacterLevel() const;
-	UFUNCTION()
-	void AddExperience(int Amount);
-	UFUNCTION()
-	void LevelUp();
-	UFUNCTION()
-	void SetLevel(int NewLevel);
-
 	// 이동 속도
 	void UpdateMoveSpeed();
 
@@ -66,7 +56,9 @@ public:
 	UFUNCTION()
 	void MoveCompleted(const FInputActionValue& Value);
 	UFUNCTION()
-	void TurnCharacter(const FInputActionValue& Value);
+	void StartDiagonalMove(const FInputActionValue& Value);
+	UFUNCTION()
+	void StopDiagonalMove(const FInputActionValue& Value);
 	UFUNCTION()
 	void StartJump(const FInputActionValue& Value);
 	UFUNCTION()
@@ -88,9 +80,16 @@ public:
 	UFUNCTION()
 	void Interact(const FInputActionValue& Value);
 
-	//LMB 누르기/떼기 시
+	// 자유 시점
 	void OnFreeLookStart(const FInputActionValue& Value);
 	void OnFreeLookEnd(const FInputActionValue& Value);
+
+	// 무기 장착
+	void EquipWeaponToMultipleSockets();
+	void EquipWeaponToRightHandSockets();
+
+	// 몽타주 실행 중 무기 숨기기
+	void HideAllWeapons(bool bHide);
 
 protected:
 
@@ -116,11 +115,12 @@ protected:
 	float SprintSpeed;
 	float ForwardRollSpeed;
 
-	// 캐릭터 좌우 이동 관련
+	// 캐릭터 이동 관련
 	float DefaultYaw;
 	float TargetYawOffset; // 회전 오프셋
 	float RotationInterpSpeed; // 회전 보간 속도
 	bool bIsSideMoving; // 좌우 이동 여부
+	bool bIsDiagonalMoving; // 대각선 이동 여부
 
 	// 자유시점 관련
 	float SavedArmLength;
@@ -147,6 +147,17 @@ protected:
 	float CurrentExp;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Status")
 	float ExpToNextLevel;
+
+	// Weapon 장착 관련
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	TSubclassOf<AActor> HandWeaponClass;
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	TSubclassOf<AActor> MultiWeaponClass;
+	UPROPERTY()
+	TArray<AActor*> EquippedWeapons;
+
+
+
 
 	FOnMontageEnded RollMontageEndedDelegate;
 	FTimerHandle RollCooldownTimerHandle;

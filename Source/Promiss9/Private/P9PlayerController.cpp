@@ -7,7 +7,7 @@
 AP9PlayerController::AP9PlayerController()
 	:InputMappingContext(nullptr),
 	MoveAction(nullptr),
-	TurnAction(nullptr),
+	DiagonalAction(nullptr),
 	JumpAction(nullptr),
 	SprintAction(nullptr),
 	LookAction(nullptr),
