@@ -92,6 +92,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
 	float BonusLuck;
 
+	UPROPERTY(EditDefaultsOnly, Category = " Level")
+	TObjectPtr<UDataTable> RewardStatTable;
+
 	UFUNCTION(BlueprintCallable)
 	void AddXP(int32 XPAmount);
 	void LevelUp();
