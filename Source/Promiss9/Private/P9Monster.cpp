@@ -34,6 +34,15 @@ AP9Monster::AP9Monster()
 void AP9Monster::BeginPlay()
 {
     Super::BeginPlay();
+
+    if (MonsterMesh)
+    {
+        UMaterialInterface* BaseMat = MonsterMesh->GetMaterial(0);
+        if (BaseMat)
+        {
+            HitFlashMatInstance = MonsterMesh->CreateAndSetMaterialInstanceDynamicFromMaterial(0, BaseMat);
+        }
+    }
 }
 
 void AP9Monster::Tick(float DeltaTime)
@@ -44,35 +53,34 @@ void AP9Monster::Tick(float DeltaTime)
 
 void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
 {
+    UE_LOG(LogTemp, Warning, TEXT("데미지 함수 실행!"));
+
+
     HP -= DamageAmount;
 
     PlayHitFlashEffect();
 
     ApplyKnockback();
 
-    //if (HP <= 0.0f)
-    //{
-    //    HP = 0.0f;
-    //    Destroy(); 
-    //}
+    if (HP <= 0.0f)
+    {
+        HP = 0.0f;
+        Destroy(); 
+    }
 }
 
 void AP9Monster::PlayHitFlashEffect()
 {
-    if (MonsterMesh && HitFlashMaterial)
+    if (HitFlashMatInstance)
     {
-        UMaterialInstanceDynamic* DynMat = MonsterMesh->CreateAndSetMaterialInstanceDynamic(0);
-        if (DynMat)
-        {
-            DynMat->SetScalarParameterValue("HitFlash", 1.0f);
+        HitFlashMatInstance->SetScalarParameterValue("HitFlash", 1.0f);
 
-            // 일정 시간 후 원래대로 복구
-            FTimerHandle FlashTimer;
-            GetWorld()->GetTimerManager().SetTimer(FlashTimer, [DynMat]()
-                {
-                    DynMat->SetScalarParameterValue("HitFlash", 0.0f);
-                }, 0.1f, false);
-        }
+        FTimerHandle FlashTimer;
+        GetWorld()->GetTimerManager().SetTimer(FlashTimer, [this]()
+            {
+                if (HitFlashMatInstance)
+                    HitFlashMatInstance->SetScalarParameterValue("HitFlash", 0.0f);
+            }, 0.1f, false);
     }
 }
 
