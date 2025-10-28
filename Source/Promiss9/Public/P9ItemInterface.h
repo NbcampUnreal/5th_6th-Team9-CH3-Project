@@ -30,7 +30,7 @@ public:
 
 	virtual void OnItemEndOverlap(AActor* OverlapActor) = 0;
 
-	virtual void ActivateItem(AActor* Activator) = 0;
+	virtual void ActivateItem(AActor* Activator, int32 RowNumber) = 0;
 
-	virtual FName GetItemType() const = 0;
+	virtual FName GetItemType(int32 RowNumber) const = 0;
 };
