@@ -3,10 +3,13 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AP9Monster::AP9Monster()
 {
     PrimaryActorTick.bCanEverTick = true;
+
+    MonsterMesh = GetMesh();
 
     // 기본값
     HP = 100.0f;
@@ -20,7 +23,7 @@ AP9Monster::AP9Monster()
     AttackRangeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AttackRangeSphere"));
     AttackRangeSphere->SetupAttachment(RootComponent);
 
-    AttackRangeRadius = 200.f; // 에디터에서 조정 가능 (기본값)
+    AttackRangeRadius = 40.f;
     AttackRangeSphere->InitSphereRadius(AttackRangeRadius);
 
     AttackRangeSphere->SetCollisionProfileName(TEXT("Trigger"));
@@ -31,6 +34,15 @@ AP9Monster::AP9Monster()
 void AP9Monster::BeginPlay()
 {
     Super::BeginPlay();
+
+    if (MonsterMesh)
+    {
+        UMaterialInterface* BaseMat = MonsterMesh->GetMaterial(0);
+        if (BaseMat)
+        {
+            HitFlashMatInstance = MonsterMesh->CreateAndSetMaterialInstanceDynamicFromMaterial(0, BaseMat);
+        }
+    }
 }
 
 void AP9Monster::Tick(float DeltaTime)
@@ -41,7 +53,14 @@ void AP9Monster::Tick(float DeltaTime)
 
 void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
 {
+    UE_LOG(LogTemp, Warning, TEXT("데미지 함수 실행!"));
+
+
     HP -= DamageAmount;
+
+    PlayHitFlashEffect();
+
+    ApplyKnockback();
 
     if (HP <= 0.0f)
     {
@@ -49,6 +68,67 @@ void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
         Destroy(); 
     }
 }
+
+void AP9Monster::PlayHitFlashEffect()
+{
+    if (HitFlashMatInstance)
+    {
+        HitFlashMatInstance->SetScalarParameterValue("HitFlash", 1.0f);
+
+        FTimerHandle FlashTimer;
+        GetWorld()->GetTimerManager().SetTimer(FlashTimer, [this]()
+            {
+                if (HitFlashMatInstance)
+                    HitFlashMatInstance->SetScalarParameterValue("HitFlash", 0.0f);
+            }, 0.1f, false);
+    }
+}
+
+void AP9Monster::ApplyKnockback()
+{
+    ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+    if (!Player) return;
+
+    //넉백 방향
+    FVector KnockbackDir = (GetActorLocation() - Player->GetActorLocation()).GetSafeNormal();
+
+    //넉백 세기
+    float KnockbackStrength = 600.0f; // 상황에 맞게 조절 가능 (300~1000 정도 권장)
+
+    //수직 방향(살짝 위로 밀리는 효과)
+    FVector KnockbackVelocity = (KnockbackDir + FVector(0, 0, 0.3f)) * KnockbackStrength;
+
+    //캐릭터 이동 중 넉백 효과 적용
+    LaunchCharacter(KnockbackVelocity, true, true);
+
+    //넉백 중 이동 잠깐 제한 (선택사항)
+    GetCharacterMovement()->StopMovementImmediately();
+}
+
+//void AP9Monster::Die()
+//{
+//    if (CurrentState == EMonsterState::Dead) return;
+//
+//    CurrentState = EMonsterState::Dead;
+//
+//    // 움직임 정지
+//    GetCharacterMovement()->DisableMovement();
+//
+//    // 비헤이비어 트리 AI 정지
+//    if (AAIController* AICon = Cast<AAIController>(GetController()))
+//    {
+//        AICon->BrainComponent->StopLogic("Dead");
+//    }
+//
+//    // 사망 애니메이션 재생
+//    if (DeathAnimMontage)
+//    {
+//        PlayAnimMontage(DeathAnimMontage);
+//    }
+//
+//    // 점점 투명화 시작
+//    StartDissolveEffect();
+//}
 
 void AP9Monster::StartDamagePlayer(AActor* PlayerActor)
 {
