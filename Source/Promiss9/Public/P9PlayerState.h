@@ -48,7 +48,12 @@ class PROMISS9_API AP9PlayerState : public APlayerState
 {
 	GENERATED_BODY()
 	
+public:
 	AP9PlayerState();
+
+
+private:
+	void GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutValue, FString& OutDescription);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
@@ -68,4 +73,13 @@ protected:
 	float BonusReloadSpeed;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
 	float BonusLuck;
+
+	UFUNCTION(BlueprintCallable)
+	void AddXP(int32 XPAmount);
+	void LevelUp();
+	TArray<FP9LevelUpReward> GenerateReward();
+	UFUNCTION(BlueprintCallable)
+	void ApplyReward(const FP9LevelUpReward& Selected);
+	UFUNCTION(BlueprintImplementableEvent, Category = "Level")
+	void LevelUpUI(const TArray<FP9LevelUpReward>& Reward);
 };
