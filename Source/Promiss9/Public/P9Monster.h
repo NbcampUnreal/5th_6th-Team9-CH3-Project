@@ -3,16 +3,15 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "P9Monster.generated.h"
-//#include "AIController.h"
 
-UENUM(BlueprintType)
-enum class EMonsterState : uint8
-{
-    Idle        UMETA(DisplayName = "Idle"),
-    Chase       UMETA(DisplayName = "Chase"),
-    Attack      UMETA(DisplayName = "Attack"),
-    Dead        UMETA(DisplayName = "Dead")
-};
+//UENUM(BlueprintType)
+//enum class EMonsterState : uint8
+//{
+//    Idle        UMETA(DisplayName = "Idle"),
+//    Chase       UMETA(DisplayName = "Chase"),
+//    Attack      UMETA(DisplayName = "Attack"),
+//    Dead        UMETA(DisplayName = "Dead")
+//};
 
 UCLASS()
 class PROMISS9_API AP9Monster : public ACharacter
@@ -85,8 +84,8 @@ protected:
 public:
     virtual void Tick(float DeltaTime) override;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster")
-    EMonsterState CurrentState;
+    //UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster")
+    //EMonsterState CurrentState;
 
     // 몬스터가 데미지를 입는 함수
     UFUNCTION(BlueprintCallable, Category = "Combat")
@@ -104,8 +103,8 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Combat")
     void StopDamagePlayer();
 
-	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void Die();
+	//UFUNCTION(BlueprintCallable, Category = "Combat")
+	//void Die();
 
 
 private:
