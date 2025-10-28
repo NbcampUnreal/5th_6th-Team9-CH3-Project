@@ -105,7 +105,30 @@ void AP9Monster::ApplyKnockback()
     GetCharacterMovement()->StopMovementImmediately();
 }
 
-
+//void AP9Monster::Die()
+//{
+//    if (CurrentState == EMonsterState::Dead) return;
+//
+//    CurrentState = EMonsterState::Dead;
+//
+//    // 움직임 정지
+//    GetCharacterMovement()->DisableMovement();
+//
+//    // 비헤이비어 트리 AI 정지
+//    if (AAIController* AICon = Cast<AAIController>(GetController()))
+//    {
+//        AICon->BrainComponent->StopLogic("Dead");
+//    }
+//
+//    // 사망 애니메이션 재생
+//    if (DeathAnimMontage)
+//    {
+//        PlayAnimMontage(DeathAnimMontage);
+//    }
+//
+//    // 점점 투명화 시작
+//    StartDissolveEffect();
+//}
 
 void AP9Monster::StartDamagePlayer(AActor* PlayerActor)
 {

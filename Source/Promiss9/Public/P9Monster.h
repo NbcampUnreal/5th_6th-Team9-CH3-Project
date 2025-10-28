@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "P9Monster.generated.h"
+//#include "AIController.h"
 
 UENUM(BlueprintType)
 enum class EMonsterState : uint8
@@ -102,6 +103,9 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Combat")
     void StopDamagePlayer();
+
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void Die();
 
 
 private:
