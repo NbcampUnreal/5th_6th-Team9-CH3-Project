@@ -4,6 +4,15 @@
 #include "GameFramework/Character.h"
 #include "P9Monster.generated.h"
 
+//UENUM(BlueprintType)
+//enum class EMonsterState : uint8
+//{
+//    Idle        UMETA(DisplayName = "Idle"),
+//    Chase       UMETA(DisplayName = "Chase"),
+//    Attack      UMETA(DisplayName = "Attack"),
+//    Dead        UMETA(DisplayName = "Dead")
+//};
+
 UCLASS()
 class PROMISS9_API AP9Monster : public ACharacter
 {
@@ -14,6 +23,14 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+
+    //몬스터 메시
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster")
+    USkeletalMeshComponent* MonsterMesh;
+
+    //피격 이펙트용 머티리얼
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|Effect")
+    UMaterialInstanceDynamic* HitFlashMatInstance;
 
     // 체력
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Stats")
@@ -67,15 +84,27 @@ protected:
 public:
     virtual void Tick(float DeltaTime) override;
 
+    //UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster")
+    //EMonsterState CurrentState;
+
     // 몬스터가 데미지를 입는 함수
     UFUNCTION(BlueprintCallable, Category = "Combat")
     void TakeDamageFromPlayer(float DamageAmount);
+
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    void PlayHitFlashEffect();
+
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    void ApplyKnockback();
 
     UFUNCTION(BlueprintCallable, Category = "Combat")
     void StartDamagePlayer(AActor* PlayerActor);
 
     UFUNCTION(BlueprintCallable, Category = "Combat")
     void StopDamagePlayer();
+
+	//UFUNCTION(BlueprintCallable, Category = "Combat")
+	//void Die();
 
 
 private:
