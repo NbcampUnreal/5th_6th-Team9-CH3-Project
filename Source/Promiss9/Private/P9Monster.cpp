@@ -3,10 +3,13 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AP9Monster::AP9Monster()
 {
     PrimaryActorTick.bCanEverTick = true;
+
+    MonsterMesh = GetMesh();
 
     // 기본값
     HP = 100.0f;
@@ -43,12 +46,58 @@ void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
 {
     HP -= DamageAmount;
 
+    PlayHitFlashEffect();
+
+
+
     if (HP <= 0.0f)
     {
         HP = 0.0f;
         Destroy(); 
     }
 }
+
+void AP9Monster::PlayHitFlashEffect()
+{
+    if (MonsterMesh && HitFlashMaterial)
+    {
+        UMaterialInstanceDynamic* DynMat = MonsterMesh->CreateAndSetMaterialInstanceDynamic(0);
+        if (DynMat)
+        {
+            DynMat->SetScalarParameterValue("HitFlash", 1.0f);
+
+            // 일정 시간 후 원래대로 복구
+            FTimerHandle FlashTimer;
+            GetWorld()->GetTimerManager().SetTimer(FlashTimer, [DynMat]()
+                {
+                    DynMat->SetScalarParameterValue("HitFlash", 0.0f);
+                }, 0.1f, false);
+        }
+    }
+}
+
+void AP9Monster::ApplyKnockback()
+{
+    ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+    if (!Player) return;
+
+    //넉백 방향
+    FVector KnockbackDir = (GetActorLocation() - Player->GetActorLocation()).GetSafeNormal();
+
+    //넉백 세기
+    float KnockbackStrength = 600.0f; // 상황에 맞게 조절 가능 (300~1000 정도 권장)
+
+    //수직 방향(살짝 위로 밀리는 효과)
+    FVector KnockbackVelocity = (KnockbackDir + FVector(0, 0, 0.3f)) * KnockbackStrength;
+
+    //캐릭터 이동 중 넉백 효과 적용
+    LaunchCharacter(KnockbackVelocity, true, true);
+
+    //넉백 중 이동 잠깐 제한 (선택사항)
+    GetCharacterMovement()->StopMovementImmediately();
+}
+
+
 
 void AP9Monster::StartDamagePlayer(AActor* PlayerActor)
 {

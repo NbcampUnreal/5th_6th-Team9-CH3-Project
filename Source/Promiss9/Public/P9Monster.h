@@ -15,6 +15,14 @@ public:
 protected:
     virtual void BeginPlay() override;
 
+    //몬스터 메시
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster")
+    USkeletalMeshComponent* MonsterMesh;
+
+    //피격 이펙트용 머티리얼
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|Effect")
+    UMaterialInterface* HitFlashMaterial;
+
     // 체력
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Stats")
     float HP;
@@ -70,6 +78,12 @@ public:
     // 몬스터가 데미지를 입는 함수
     UFUNCTION(BlueprintCallable, Category = "Combat")
     void TakeDamageFromPlayer(float DamageAmount);
+
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    void PlayHitFlashEffect();
+
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    void ApplyKnockback();
 
     UFUNCTION(BlueprintCallable, Category = "Combat")
     void StartDamagePlayer(AActor* PlayerActor);
