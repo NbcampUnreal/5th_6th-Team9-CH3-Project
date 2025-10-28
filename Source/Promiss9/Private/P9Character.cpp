@@ -88,6 +88,11 @@ void AP9Character::Tick(float DeltaTime)
 		FRotator NewRot = FMath::RInterpTo(GetActorRotation(), TargetRot, DeltaTime, RotationInterpSpeed);
 		SetActorRotation(NewRot);
 	}
+	// 앞구르기
+	if (bForwardRolling)
+	{
+		AddMovementInput(GetActorForwardVector(), 1.0f);
+	}
 }
 
 void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -388,18 +393,25 @@ void AP9Character::OnFreeLookEnd(const FInputActionValue& Value)
 
 void AP9Character::StartForwardRoll()
 {
-	if (bForwardRolling || !bCanRoll) return;
+	if (bForwardRolling || !bCanRoll || !ForwardRollMontage) return;
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && ForwardRollMontage)
+	if (AnimInstance)
 	{
 		bForwardRolling = true;
 		bCanRoll = false;
-		//몽타주 재생
+
+		// 몽타주 재생
 		AnimInstance->Montage_Play(ForwardRollMontage);
 
+		// 몽타주 종료
 		RollMontageEndedDelegate.BindUObject(this, &AP9Character::OnRollMontageEnded);
 		AnimInstance->Montage_SetEndDelegate(RollMontageEndedDelegate, ForwardRollMontage);
+
+		// 앞 방향으로 캐릭터 이동
+		FVector ForwardDir = GetActorForwardVector();
+		AddMovementInput(ForwardDir, 1.0f);
+
 
 		GetWorldTimerManager().SetTimer(RollCooldownTimerHandle, this, &AP9Character::ResetRollCooldown, 3.0f, false);
 	}

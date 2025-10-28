@@ -110,6 +110,7 @@ protected:
 	UAnimMontage* ForwardRollMontage;
 
 	// 기본 및 앞구르기 속도
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Speed")
 	float NormalSpeed;
 	float SprintSpeedMultiplier;
 	float SprintSpeed;
