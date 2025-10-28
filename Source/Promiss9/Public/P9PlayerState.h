@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "Engine/DataTable.h"
 #include "P9PlayerState.generated.h"
 
 
@@ -41,6 +42,23 @@ struct FP9LevelUpReward
 	EP9Rarity Rarity;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Reward")
 	FString Description;
+};
+
+USTRUCT(BlueprintType)
+struct FP9RewardStatData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FString StatName;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float Common;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float Uncommon;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float Rare;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float Legendary;
 };
 
 UCLASS()
