@@ -37,6 +37,10 @@ struct FP9WeaponData : public FTableRowBase
 	int32 Count;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int32 Price;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	TSoftObjectPtr<UStaticMesh> ItemMesh;
+
+	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float FireSpeed;
