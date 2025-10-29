@@ -1,6 +1,8 @@
 ﻿#include "P9PlayerState.h"
 #include "P9Character.h"
 #include "Algo/RandomShuffle.h"
+
+
 AP9PlayerState::AP9PlayerState()
 {
 	
@@ -8,6 +10,8 @@ AP9PlayerState::AP9PlayerState()
 	
 	CurrentXP=0;
 	
+	CurrentGold = 0;
+
 	XPForNextLevel=50;
 
 	BonusHeadshotChance=0.0f;
@@ -19,8 +23,8 @@ AP9PlayerState::AP9PlayerState()
 
 void AP9PlayerState::GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutValue, FString& OutDescription)
 {
-	OutValue = 0.0f;
-	OutDescription = TEXT("EMPTYDATA");
+	if (RewardStatTable == nullptr) return;
+	FName RowName;
 
 	switch (Stat)
 	{
@@ -121,7 +125,7 @@ void AP9PlayerState::GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutV
 
 
 
-void AP9PlayerState::AddXP(int32 XPAmount)
+	void AP9PlayerState::AddXP(int32 XPAmount)
 {
 	if (CurrentXP < XPForNextLevel)
 	{
@@ -158,11 +162,13 @@ TArray<FP9LevelUpReward> AP9PlayerState::GenerateReward()
 	{
 		EP9Stat SelectedStat = StatPool[i];
 		EP9Rarity SelectedRarity = (EP9Rarity)FMath::RandRange(0, (int32)EP9Rarity::MAX - 1);
-		FString SelectedDescription = TEXT("X등급 능력치 이름 X증가");
 		FP9LevelUpReward Choice;
+		float Value;
+		FString Desc;
 		Choice.Stat=(SelectedStat);
 		Choice.Rarity=(SelectedRarity);
-		Choice.Description=(SelectedDescription);
+		GetRewardDetail(SelectedStat, SelectedRarity, Value, Desc);
+		Choice.Description=(Desc);
 
 		Choices.Add(Choice);
 	}
