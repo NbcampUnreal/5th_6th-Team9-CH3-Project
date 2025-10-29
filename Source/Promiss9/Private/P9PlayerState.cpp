@@ -9,6 +9,8 @@ AP9PlayerState::AP9PlayerState()
 	
 	CurrentXP=0;
 	
+	CurrentGold = 0;
+
 	XPForNextLevel=50;
 
 	BonusHeadshotChance=0.0f;
@@ -214,6 +216,11 @@ void AP9PlayerState::ApplyReward(const FP9LevelUpReward& Selected)
 	}
 	}
 
+}
+
+void AP9PlayerState::AddGold(int32 GoldAmount)
+{
+	CurrentGold += GoldAmount;
 }
 
 
