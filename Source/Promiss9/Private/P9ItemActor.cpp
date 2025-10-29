@@ -21,9 +21,45 @@ AP9ItemActor::AP9ItemActor()
 void AP9ItemActor::BeginPlay()
 {
 	Super::BeginPlay();
-
 	
 }
+void AP9ItemActor::CurrentFromRow(int32 RowNumber)
+{
+	SetRange(GetRange(RowNumber));
+	SetDamage(GetDamage(RowNumber));
+	SetFireSpeed(GetFireSpeed(RowNumber));
+}
+
+void AP9ItemActor::SetRange(int32 Range)
+{
+	CurrentRange = FMath::Max(0, Range);;
+}
+
+void AP9ItemActor::SetDamage(float Damage)
+{
+	CurrentDamage = FMath::Max(0.0f, Damage);
+}
+
+void AP9ItemActor::SetFireSpeed(float FireSpeed)
+{
+	CurrentFireSpeed = FMath::Max(0.0f, FireSpeed);
+}
+
+int32 AP9ItemActor::GetCurrentRange()const
+{
+	return CurrentRange;
+}
+
+float AP9ItemActor::GetCurrentDamage()const
+{
+	return CurrentDamage;
+}
+
+float AP9ItemActor::GetCurrentFireSpeed()const
+{
+	return CurrentFireSpeed;
+}
+
 
 // Called every frame
 void AP9ItemActor::Tick(float DeltaTime)
@@ -81,16 +117,22 @@ bool AP9ItemActor::bOnInventoryWeapon(AActor* Activator, const FP9WeaponData* Ro
 
 void AP9ItemActor::ActivateItem(AActor* Activator, int32 RowNumber)
 {
-	FP9WeaponData* SelectedRow = GetRowData(RowNumber);
+	CurrentFromRow(RowNumber);
+	Fire(RowNumber);
+	/*FP9WeaponData* SelectedRow = GetRowData(RowNumber);
 	if (!SelectedRow)
 	{
 		return;
 	}
-	if(!bOnInventoryWeapon(Activator, SelectedRow))
+	if(!bOnInventoryWeapon(Activator, SelectedRow))z
 	{
 		return;
 	}
-	Fire(RowNumber);
+	if (bOnInventoryWeapon && SelectedRow)
+	{
+		return Fire(RowNumber);
+	}
+	return;*/
 }	
 
 int32 AP9ItemActor::GetRange(int32 RowNumber) const
