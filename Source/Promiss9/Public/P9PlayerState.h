@@ -70,6 +70,12 @@ public:
 	AP9PlayerState();
 
 
+	float GetBonusHeadshotDamage() const;
+	float GetBonusHeadshotChance() const;
+	float GetBonusDamagePer() const;
+	float GetBonusReloadSpeed() const;
+	float GetBonusLuck() const;
+
 private:
 	void GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutValue, FString& OutDescription);
 
