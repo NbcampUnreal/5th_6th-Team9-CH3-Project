@@ -11,6 +11,7 @@
 #include "Components/ProgressBar.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/SphereComponent.h"
+#include "P9InventoryComponent.h"
 
 // Sets default values
 AP9Character::AP9Character()
@@ -33,6 +34,7 @@ AP9Character::AP9Character()
 	SphereCollision->SetCollisionProfileName(TEXT("OverlapAllDynamic")); // 충돌 설정
 	SphereCollision->SetGenerateOverlapEvents(true); // 오버랩 이벤트 활성화
 
+	// 시점 모드 변경 관련
 	bIsFreeLookMode = false;
 	SavedArmLength = 0.0f;
 

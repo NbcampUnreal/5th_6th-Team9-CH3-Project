@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "P9InventoryComponent.h"
 #include "P9Character.generated.h"
 
 class USpringArmComponent;
@@ -28,6 +29,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	// 인벤토리 컴포넌트
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
+	UP9InventoryComponent* InventoryComponent;
 
 	// Health
 	UFUNCTION(BlueprintPure, Category = "Health")
