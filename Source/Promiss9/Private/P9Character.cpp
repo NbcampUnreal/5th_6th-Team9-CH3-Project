@@ -33,6 +33,40 @@ AP9Character::AP9Character()
 	SphereCollision->SetCollisionProfileName(TEXT("OverlapAllDynamic")); // 충돌 설정
 	SphereCollision->SetGenerateOverlapEvents(true); // 오버랩 이벤트 활성화
 
+	WaeponSocket_fr = CreateDefaultSubobject<USceneComponent>(TEXT("Socket_fr"));
+	WaeponSocket_fr->SetupAttachment(GetMesh());
+	WaeponSocket_fl = CreateDefaultSubobject<USceneComponent>(TEXT("Socket_fl"));
+	WaeponSocket_fl->SetupAttachment(GetMesh());
+	WaeponSocket_rr = CreateDefaultSubobject<USceneComponent>(TEXT("Socket_rr"));
+	WaeponSocket_rr->SetupAttachment(GetMesh());
+	WaeponSocket_rl = CreateDefaultSubobject<USceneComponent>(TEXT("Socket_rl"));
+	WaeponSocket_rl->SetupAttachment(GetMesh());
+
+	// StaticMeshComponent 생성, 부착
+	WeaponMesh_fr = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh_fr"));
+	WeaponMesh_fr->SetupAttachment(WaeponSocket_fr);
+	WeaponMesh_fl = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh_fl"));
+	WeaponMesh_fl->SetupAttachment(WaeponSocket_fl);
+	WeaponMesh_rr = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh_rr"));
+	WeaponMesh_rr->SetupAttachment(WaeponSocket_rr);
+	WeaponMesh_rl = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh_rl"));
+	WeaponMesh_rl->SetupAttachment(WaeponSocket_rl);
+
+	// 위치, 회전 조정(캐릭터 Mesh를 중심으로 4방향
+	WeaponMesh_fr->SetRelativeLocation(FVector(80.f, 80.0f, 100.0f));
+	WeaponMesh_fr->SetRelativeRotation(FRotator(0.0f, 45.0f, 0.0f));
+
+	WeaponMesh_fl->SetRelativeLocation(FVector(-80.0f, 80.0f, 100.0f));
+	WeaponMesh_fl->SetRelativeRotation(FRotator(0.0f, 135.0f, 0.0f));
+
+	WeaponMesh_rr->SetRelativeLocation(FVector(80.0f, -80.0f, 100.0f));
+	WeaponMesh_rr->SetRelativeRotation(FRotator(0.0f, -135.0f, 0.0f));
+
+	WeaponMesh_rl->SetRelativeLocation(FVector(80.0f, -80.0f, 100.0f));
+	WeaponMesh_rl->SetRelativeRotation(FRotator(0.0f, -45.0f, 0.0f));
+
+	InventoryComponent = CreateDefaultSubobject<UP9InventoryComponent>(TEXT("InventoryComponent"));
+
 	bIsFreeLookMode = false;
 	SavedArmLength = 0.0f;
 
@@ -65,6 +99,16 @@ AP9Character::AP9Character()
 void AP9Character::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (InventoryComponent)
+	{
+		UE_LOG(LogTemp, Log, TEXT("인벤토리 컴포넌트 부착"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("인벤토리 컴포넌트가 부착되지 않음!"));
+	}
+
 
 	EquipWeaponToMultipleSockets();
 	EquipWeaponToRightHandSockets();
@@ -519,13 +563,35 @@ float AP9Character::GetHealth() const
 	return Health;
 }
 
+void AP9Character::SetHealth(float NewHealth)
+{
+	Health = FMath::Clamp(NewHealth, 0.0f, MaxHealth);
+}
+
+
 void AP9Character::AddHealth(float Amount)
 {
 	Health = FMath::Clamp(Health + Amount, 0.0f, MaxHealth);
 }
 
+float AP9Character::GetNormalSpeed() const
+{
+	return NormalSpeed;
+}
+
+void AP9Character::SetNormalSpeed(float NewNormalSpeed)
+{
+	NormalSpeed = NewNormalSpeed;
+}
+
+void AP9Character::AddNormalSpeed(float Amount)
+{
+	NormalSpeed += Amount;
+}
+
 void AP9Character::OnDeath()
 {
+	UE_LOG(LogTemp, Warning, TEXT("사망"));
 	if (bIsDead)
 	{
 		return;
