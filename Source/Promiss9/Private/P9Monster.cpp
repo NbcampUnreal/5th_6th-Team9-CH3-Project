@@ -1,4 +1,5 @@
 #include "P9Monster.h"
+#include "P9PlayerState.h"
 #include "TimerManager.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
@@ -121,7 +122,14 @@ void AP9Monster::Die()
         GetCharacterMovement()->DisableMovement();
     }
 
-    //(주의) 여기서는 isDead를 블루프린트에서 직접 세팅하므로 코드에서 할 필요 없음
+    //보상 증가
+    if (APlayerController* PC = Cast<APlayerController>(GetWorld()->GetFirstPlayerController()))
+    {
+        if (AP9PlayerState* PS = PC->GetPlayerState<AP9PlayerState>())
+        {
+            PS->AddXP(ExpReward);
+        }
+    }
 
     //1.33초 뒤에 디졸브 시작
     FTimerHandle DeathTimerHandle;
