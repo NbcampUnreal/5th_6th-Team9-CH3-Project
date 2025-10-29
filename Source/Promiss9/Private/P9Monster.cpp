@@ -55,7 +55,7 @@ void AP9Monster::Tick(float DeltaTime)
         CurrentDissolveValue += DeltaTime / DissolveDuration;
         HitFlashMatInstance->SetScalarParameterValue("DissolveAmount", CurrentDissolveValue);
 
-        if (CurrentDissolveValue >= 1.0f)
+        if (CurrentDissolveValue >= 0.5f)
         {
             UE_LOG(LogTemp, Warning, TEXT("투명화 끝남"));
             bIsDissolving = false;
@@ -133,39 +133,17 @@ void AP9Monster::Die()
         GetCharacterMovement()->DisableMovement();
     }
 
-    if (DeathAnimMontage && MonsterMesh && MonsterMesh->GetAnimInstance())
-    {
-        UE_LOG(LogTemp, Warning, TEXT("사망 애니메이션 호출됨"));
+    //(주의) 여기서는 isDead를 블루프린트에서 직접 세팅하므로 코드에서 할 필요 없음
 
-        UAnimInstance* AnimInstance = MonsterMesh->GetAnimInstance();
-
-        // 사망 애니메이션 재생
-        AnimInstance->Montage_Play(DeathAnimMontage);
-
-        // Montage 종료 시점 처리용 델리게이트
-        FOnMontageEnded MontageEndedDelegate;
-        MontageEndedDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted)
-            {
-                UE_LOG(LogTemp, Warning, TEXT("사망 몽타주 종료됨, 포즈 유지 및 디졸브 시작"));
-
-                if (MonsterMesh)
-                {
-                    // 현재 포즈 그대로 유지
-                    MonsterMesh->bPauseAnims = true;
-                }
-
-                // 디졸브 이펙트 시작
-                StartDissolveEffect();
-            });
-
-        // 델리게이트 등록
-        AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, DeathAnimMontage);
-    }
-    else
-    {
-        // 사망 몽타주가 없으면 바로 디졸브
-        StartDissolveEffect();
-    }
+    //1.33초 뒤에 디졸브 시작
+    FTimerHandle DeathTimerHandle;
+    GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, [this]()
+        {
+            UE_LOG(LogTemp, Warning, TEXT("사망 애니메이션 완료, 디졸브 시작"));
+            StartDissolveEffect();
+        },
+        1.33f, false
+    );
 }
 
 void AP9Monster::StartDissolveEffect()
