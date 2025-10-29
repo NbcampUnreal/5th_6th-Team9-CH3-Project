@@ -46,9 +46,6 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
 	float GetFireSpeed(int32 RowNumber) const;
 
-
-
-
 	//무기 데이터 테이블 행 가져오기
 	FP9WeaponData* GetRowData(int32 RowNumber) const;
 
@@ -73,26 +70,5 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void CurrentFromRow(int32 RowNumber);
 
-	void  SetRange(int32 Range);
-
-	void SetDamage(float Damage);
-
-	void SetFireSpeed(float FireSpeed);
-
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon|State")
-	int32 CurrentRange;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon|State")
-	float CurrentDamage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon|State")
-	float CurrentFireSpeed;
-
-	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
-	int32 GetCurrentRange() const;
-	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
-	float GetCurrentDamage() const;
-	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
-	float GetCurrentFireSpeed() const;
 };
