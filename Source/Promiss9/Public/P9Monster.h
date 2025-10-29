@@ -4,14 +4,14 @@
 #include "GameFramework/Character.h"
 #include "P9Monster.generated.h"
 
-//UENUM(BlueprintType)
-//enum class EMonsterState : uint8
-//{
-//    Idle        UMETA(DisplayName = "Idle"),
-//    Chase       UMETA(DisplayName = "Chase"),
-//    Attack      UMETA(DisplayName = "Attack"),
-//    Dead        UMETA(DisplayName = "Dead")
-//};
+UENUM(BlueprintType)
+enum class EMonsterState : uint8
+{
+    Idle        UMETA(DisplayName = "Idle"),
+    Chase       UMETA(DisplayName = "Chase"),
+    Attack      UMETA(DisplayName = "Attack"),
+    Dead        UMETA(DisplayName = "Dead")
+};
 
 UCLASS()
 class PROMISS9_API AP9Monster : public ACharacter
@@ -80,12 +80,29 @@ protected:
     void OnAttackRangeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	// 사망 애니메이션 몽타주
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+    UAnimMontage* DeathAnimMontage;
+
+
+	// Dissolve 효과 관련 변수
+
+    float CurrentDissolveValue = 0.0f;
+
+    // Dissolve 활성화 여부
+    bool bIsDissolving = false;
+
+    // Dissolve 총 시간 (초)
+    float DissolveDuration = 2.0f;
+
+
+
 
 public:
     virtual void Tick(float DeltaTime) override;
 
-    //UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster")
-    //EMonsterState CurrentState;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster")
+    EMonsterState CurrentState;
 
     // 몬스터가 데미지를 입는 함수
     UFUNCTION(BlueprintCallable, Category = "Combat")
@@ -103,8 +120,12 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Combat")
     void StopDamagePlayer();
 
-	//UFUNCTION(BlueprintCallable, Category = "Combat")
-	//void Die();
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void Die();
+
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    void StartDissolveEffect();
+
 
 
 private:
