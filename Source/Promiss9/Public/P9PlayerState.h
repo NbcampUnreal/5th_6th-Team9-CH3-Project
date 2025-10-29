@@ -68,7 +68,10 @@ class PROMISS9_API AP9PlayerState : public APlayerState
 	
 public:
 	AP9PlayerState();
-
+	UFUNCTION(BlueprintCallable)
+	void AddXP(int32 XPAmount);
+	UFUNCTION(BlueprintCallable)
+	void AddGold(int32 GoldAmount);
 
 private:
 	void GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutValue, FString& OutDescription);
@@ -80,6 +83,9 @@ protected:
 	int32 CurrentXP;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
 	int32 XPForNextLevel;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gold")
+	int32 CurrentGold;
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
 	float BonusHeadshotChance;
@@ -95,8 +101,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = " Level")
 	TObjectPtr<UDataTable> RewardStatTable;
 
-	UFUNCTION(BlueprintCallable)
-	void AddXP(int32 XPAmount);
+	
 	void LevelUp();
 	TArray<FP9LevelUpReward> GenerateReward();
 	UFUNCTION(BlueprintCallable)
