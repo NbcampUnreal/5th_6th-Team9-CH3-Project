@@ -11,7 +11,8 @@ UENUM(BlueprintType)
 enum class EItemType : uint8
 {
 	Equipment UMETA(DisplayName = "Equipment"),
-	collect UMETA(DisplayName = "Collect")
+	collect UMETA(DisplayName = "Collect"),
+	Rarity UMETA(DisplayName = "Rarity")
 };
 
 USTRUCT(BlueprintType)

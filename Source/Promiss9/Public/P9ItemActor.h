@@ -20,24 +20,49 @@ public:
 	AP9ItemActor();
 
 protected:
-	// Called when the game starts or when spawned
+	
 	virtual void BeginPlay() override;
-
+	//무기 데이터 테이블 가져오는 핸들
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Data")
 	FDataTableRowHandle P9WeaponRow;
 
-	FP9WeaponData* GetRowData() const;
+	// 무기 사거리 열값 가져오기
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	int32 GetRange(int32 RowNumber) const;
+
+	// 무기 데미지 열값 가져오기
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	float GetDamage(int32 RowNumber) const;
+
+	// 무기 가격 열값 가져오기
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	int32 GetPrice(int32 RowNumber) const;
+
+	// 무기 카운트 열값 가져오기
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	int32 GetCount(int32 RowNumber) const;
+
+	//무기 사속 열값 가져오기
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	float GetFireSpeed(int32 RowNumber) const;
+
+	//무기 데이터 테이블 행 가져오기
+	FP9WeaponData* GetRowData(int32 RowNumber) const;
+
+	bool bOnInventoryWeapon(AActor* Activator, const FP9WeaponData* Row) const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Root")
 	USceneComponent* SceneRoot;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Mesh")
 	UStaticMeshComponent* StaticMesh;
 	
 	
-	void Fire() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Action")
+	void Fire(int32 RowNumber) const;
 	virtual void OnItemOverlap(AActor* OverlapActor) override;
 	virtual void OnItemEndOverlap(AActor* OverlapActor) override;
-	virtual void ActivateItem(AActor* Activator) override;
-	virtual FName GetItemType() const override;
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Action")
+	virtual void ActivateItem(AActor* Activator, int32 RowNumber) override;
+	virtual FName GetItemType(int32 RowNumber) const override;
 
 	virtual void DestroyIterm();
 
