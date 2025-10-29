@@ -1,4 +1,5 @@
 ﻿#include "P9PlayerState.h"
+#include "P9Character.h"
 #include "Algo/RandomShuffle.h"
 
 
@@ -119,7 +120,7 @@ void AP9PlayerState::GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutV
 	}
 	}
 
-	OutDescription = FString::Printf(TEXT("[%s] %s : +%.0f증가"), *RarityString, *RowData->StatName, OutValue);
+	OutDescription = FString::Printf(TEXT("[%s] %s : +%.0f%% 증가"), *RarityString, *RowData->StatName, OutValue);
 }
 
 
@@ -181,14 +182,24 @@ void AP9PlayerState::ApplyReward(const FP9LevelUpReward& Selected)
 	GetRewardDetail(Selected.Stat, Selected.Rarity, ValueToApply, IgnoredDesc);
 	switch (Selected.Stat)
 	{
-	//case EP9Stat::MoveSpeed:
-	//{
-	//	break;
-	//}
-	//case EP9Stat::Health:
-	//{
-	//	break;
-	//}
+	case EP9Stat::MoveSpeed:
+	{
+		AP9Character* Player = Cast<AP9Character>(GetPawn());
+		if (Player != nullptr)
+		{
+			Player->AddNormalSpeed(ValueToApply);
+		}
+		break;
+	}
+	case EP9Stat::Health:
+	{
+		AP9Character* Player = Cast<AP9Character>(GetPawn());
+		if (Player != nullptr)
+		{
+			
+		}
+		break;
+	}
 	case EP9Stat::HeadshotChance:
 	{
 		BonusHeadshotChance += ValueToApply;
@@ -221,6 +232,31 @@ void AP9PlayerState::ApplyReward(const FP9LevelUpReward& Selected)
 void AP9PlayerState::AddGold(int32 GoldAmount)
 {
 	CurrentGold += GoldAmount;
+}
+
+float AP9PlayerState::GetBonusHeadshotDamage() const
+{
+	return BonusHeadshotDamage;
+}
+
+float AP9PlayerState::GetBonusHeadshotChance() const
+{
+	return BonusHeadshotChance;
+}
+
+float AP9PlayerState::GetBonusDamagePer() const
+{
+	return BonusDamagePer;
+}
+
+float AP9PlayerState::GetBonusReloadSpeed() const
+{
+	return BonusReloadSpeed;
+}
+
+float AP9PlayerState::GetBonusLuck() const
+{
+	return BonusLuck;
 }
 
 
