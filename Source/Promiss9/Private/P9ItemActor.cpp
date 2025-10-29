@@ -42,37 +42,110 @@ void AP9ItemActor::OnItemEndOverlap(AActor* OverlapActor)
 
 }
 
-FP9WeaponData* AP9ItemActor::GetRowData() const
+FP9WeaponData* AP9ItemActor::GetRowData(int32 RowNumber) const
 {
 	if (!P9WeaponRow.DataTable)
 	{
 		return nullptr;
 	}
-		return P9WeaponRow.DataTable->FindRow<FP9WeaponData>(P9WeaponRow.RowName, TEXT("AP9ItemActor::GetRowData"));
+	else
+	{
+		return P9WeaponRow.DataTable->FindRow<FP9WeaponData>(FName(*FString::FromInt(RowNumber)), TEXT("AP9ItemActor::GetRowData"));
+	}
+}
+
+void AP9ItemActor::Fire(int32 RowNumber) const
+{
+	FP9WeaponData* Row = GetRowData(RowNumber);
+	if (Row)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Firing weapon: %s, Damage: %f, Range: %d, FireSpeed: %f"), *Row->ItemID.ToString(), Row->Damage, Row->Range, Row->FireSpeed);
+	}
+
+}
+
+bool AP9ItemActor::bOnInventoryWeapon(AActor* Activator, const FP9WeaponData* Row) const
+{
+	if (!Activator && !Row)
+	{
+		return false;
+	}
 	
+	UP9InventoryComponent* InventoryComp = Activator->FindComponentByClass<UP9InventoryComponent>();
+	if (!InventoryComp)
+	{
+		return false;
+	}
+	return InventoryComp->HasWeaponId(Row->ItemID);
 }
 
-void AP9ItemActor::Fire() const
+void AP9ItemActor::ActivateItem(AActor* Activator, int32 RowNumber)
 {
-	FP9WeaponData* Row = GetRowData();
-
-}
-
-void AP9ItemActor::ActivateItem(AActor* Activator)
-{
-	FP9WeaponData* SelectedRow = GetRowData();
+	FP9WeaponData* SelectedRow = GetRowData(RowNumber);
 	if (!SelectedRow)
 	{
 		return;
 	}
-	Fire();
+	if(!bOnInventoryWeapon(Activator, SelectedRow))
+	{
+		return;
+	}
+	Fire(RowNumber);
 }	
 
-
-
-FName AP9ItemActor::GetItemType() const
+int32 AP9ItemActor::GetRange(int32 RowNumber) const
 {
-	return FName();
+	FP9WeaponData* Row = GetRowData(RowNumber);
+	if (Row)
+	{
+		return Row->Range;
+	}
+	return 0;
+}
+
+float AP9ItemActor::GetDamage(int32 RowNumber) const
+{
+	FP9WeaponData* Row = GetRowData(RowNumber);
+	if (Row)
+	{
+		return Row->Damage;
+	}
+	return 0.f;
+}
+
+int32 AP9ItemActor::GetPrice(int32 RowNumber) const
+{
+	FP9WeaponData* Row = GetRowData(RowNumber);
+	if (Row)
+	{
+		return Row->Price;
+	}
+	return 0;
+}
+
+int32 AP9ItemActor::GetCount(int32 RowNumber) const
+{
+	FP9WeaponData* Row = GetRowData(RowNumber);
+	if (Row)
+	{
+		return Row->Count;
+	}
+	return 0;
+}
+
+float AP9ItemActor::GetFireSpeed(int32 RowNumber) const
+{
+	FP9WeaponData* Row = GetRowData(RowNumber);
+	if (Row)
+	{
+		return Row->FireSpeed;
+	}
+	return 0.f;
+}
+
+FName AP9ItemActor::GetItemType(int32 RowNumber) const
+{
+	return FName(FString::FromInt(RowNumber));
 }
 
 void AP9ItemActor::DestroyIterm()

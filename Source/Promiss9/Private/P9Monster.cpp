@@ -49,6 +49,19 @@ void AP9Monster::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
+    // Dissolve 진행
+    if (bIsDissolving && HitFlashMatInstance)
+    {
+        CurrentDissolveValue += DeltaTime / DissolveDuration;
+        HitFlashMatInstance->SetScalarParameterValue("DissolveAmount", CurrentDissolveValue);
+
+        if (CurrentDissolveValue >= 0.5f)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("투명화 끝남"));
+            bIsDissolving = false;
+            Destroy();
+        }
+    }
 }
 
 void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
@@ -65,7 +78,7 @@ void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
     if (HP <= 0.0f)
     {
         HP = 0.0f;
-        Destroy(); 
+		Die();
     }
 }
 
@@ -105,30 +118,46 @@ void AP9Monster::ApplyKnockback()
     GetCharacterMovement()->StopMovementImmediately();
 }
 
-//void AP9Monster::Die()
-//{
-//    if (CurrentState == EMonsterState::Dead) return;
-//
-//    CurrentState = EMonsterState::Dead;
-//
-//    // 움직임 정지
-//    GetCharacterMovement()->DisableMovement();
-//
-//    // 비헤이비어 트리 AI 정지
-//    if (AAIController* AICon = Cast<AAIController>(GetController()))
-//    {
-//        AICon->BrainComponent->StopLogic("Dead");
-//    }
-//
-//    // 사망 애니메이션 재생
-//    if (DeathAnimMontage)
-//    {
-//        PlayAnimMontage(DeathAnimMontage);
-//    }
-//
-//    // 점점 투명화 시작
-//    StartDissolveEffect();
-//}
+void AP9Monster::Die()
+{
+    if (CurrentState == EMonsterState::Dead)
+        return;
+
+    CurrentState = EMonsterState::Dead;
+
+    UE_LOG(LogTemp, Warning, TEXT("Die() 호출됨"));
+
+    // 움직임 정지
+    if (GetCharacterMovement())
+    {
+        GetCharacterMovement()->DisableMovement();
+    }
+
+    //(주의) 여기서는 isDead를 블루프린트에서 직접 세팅하므로 코드에서 할 필요 없음
+
+    //1.33초 뒤에 디졸브 시작
+    FTimerHandle DeathTimerHandle;
+    GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, [this]()
+        {
+            UE_LOG(LogTemp, Warning, TEXT("사망 애니메이션 완료, 디졸브 시작"));
+            StartDissolveEffect();
+        },
+        1.33f, false
+    );
+}
+
+void AP9Monster::StartDissolveEffect()
+{
+    if (HitFlashMatInstance)
+    {
+        CurrentDissolveValue = 0.0f;
+        HitFlashMatInstance->SetScalarParameterValue("DissolveAmount", 0.0f);
+
+        bIsDissolving = true;
+
+        UE_LOG(LogTemp, Warning, TEXT("투명화 시작"));
+    }
+}
 
 void AP9Monster::StartDamagePlayer(AActor* PlayerActor)
 {
