@@ -119,7 +119,7 @@ void AP9PlayerState::GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutV
 	}
 	}
 
-	OutDescription = FString::Printf(TEXT("[%s] %s : +%.0f증가"), *RarityString, *RowData->StatName, OutValue);
+	OutDescription = FString::Printf(TEXT("[%s] %s : +%.0f%증가"), *RarityString, *RowData->StatName, OutValue);
 }
 
 
