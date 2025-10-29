@@ -49,6 +49,19 @@ void AP9Monster::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
+    // Dissolve 진행
+    if (bIsDissolving && HitFlashMatInstance)
+    {
+        CurrentDissolveValue += DeltaTime / DissolveDuration;
+        HitFlashMatInstance->SetScalarParameterValue("DissolveAmount", CurrentDissolveValue);
+
+        if (CurrentDissolveValue >= 1.0f)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("투명화 끝남"));
+            bIsDissolving = false;
+            Destroy();
+        }
+    }
 }
 
 void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
@@ -65,7 +78,7 @@ void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
     if (HP <= 0.0f)
     {
         HP = 0.0f;
-        Destroy(); 
+		Die();
     }
 }
 
@@ -105,30 +118,57 @@ void AP9Monster::ApplyKnockback()
     GetCharacterMovement()->StopMovementImmediately();
 }
 
-//void AP9Monster::Die()
-//{
-//    if (CurrentState == EMonsterState::Dead) return;
-//
-//    CurrentState = EMonsterState::Dead;
-//
-//    // 움직임 정지
-//    GetCharacterMovement()->DisableMovement();
-//
-//    // 비헤이비어 트리 AI 정지
-//    if (AAIController* AICon = Cast<AAIController>(GetController()))
-//    {
-//        AICon->BrainComponent->StopLogic("Dead");
-//    }
-//
-//    // 사망 애니메이션 재생
-//    if (DeathAnimMontage)
-//    {
-//        PlayAnimMontage(DeathAnimMontage);
-//    }
-//
-//    // 점점 투명화 시작
-//    StartDissolveEffect();
-//}
+void AP9Monster::Die()
+{
+    if (CurrentState == EMonsterState::Dead) return;
+
+    CurrentState = EMonsterState::Dead;
+
+    UE_LOG(LogTemp, Warning, TEXT("Die() 호출됨"));
+
+    // 움직임 정지
+    GetCharacterMovement()->DisableMovement();
+
+    if (DeathAnimMontage && MonsterMesh && MonsterMesh->GetAnimInstance())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("사망 애니메이션 호출됨"));
+
+        // 사망 애니메이션 재생
+        MonsterMesh->GetAnimInstance()->Montage_Play(DeathAnimMontage);
+
+        // Montage가 끝난 뒤 Dissolve 시작 + 포즈 유지
+        float AnimDuration = DeathAnimMontage->GetPlayLength();
+        FTimerHandle TempHandle;
+        GetWorldTimerManager().SetTimer(TempHandle, [this]()
+            {
+                // Montage 끝나면 현재 포즈 그대로 유지
+                if (MonsterMesh && MonsterMesh->GetAnimInstance())
+                {
+                    MonsterMesh->bPauseAnims = true;  // 애니메이션 정지
+                }
+
+                StartDissolveEffect();
+            }, AnimDuration, false);
+    }
+    else
+    {
+        // Montage가 없으면 바로 Dissolve
+        StartDissolveEffect();
+    }
+}
+
+void AP9Monster::StartDissolveEffect()
+{
+    if (HitFlashMatInstance)
+    {
+        CurrentDissolveValue = 0.0f;
+        HitFlashMatInstance->SetScalarParameterValue("DissolveAmount", 0.0f);
+
+        bIsDissolving = true;
+
+        UE_LOG(LogTemp, Warning, TEXT("투명화 시작"));
+    }
+}
 
 void AP9Monster::StartDamagePlayer(AActor* PlayerActor)
 {
