@@ -1,4 +1,5 @@
 #include "P9Monster.h"
+#include "P9PlayerState.h"
 #include "TimerManager.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
@@ -16,18 +17,6 @@ AP9Monster::AP9Monster()
     AttackPower = 10.0f;
     ExpReward = 10;
     GoldReward = 5;
-    DamageInterval = 1.0f;
-    bIsPlayerInRange = false;
-    TargetPlayer = nullptr;
-
-    AttackRangeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AttackRangeSphere"));
-    AttackRangeSphere->SetupAttachment(RootComponent);
-
-    AttackRangeRadius = 40.f;
-    AttackRangeSphere->InitSphereRadius(AttackRangeRadius);
-
-    AttackRangeSphere->SetCollisionProfileName(TEXT("Trigger"));
-    AttackRangeSphere->SetGenerateOverlapEvents(true);
 
 }
 
@@ -133,7 +122,14 @@ void AP9Monster::Die()
         GetCharacterMovement()->DisableMovement();
     }
 
-    //(주의) 여기서는 isDead를 블루프린트에서 직접 세팅하므로 코드에서 할 필요 없음
+    //보상 증가
+    if (APlayerController* PC = Cast<APlayerController>(GetWorld()->GetFirstPlayerController()))
+    {
+        if (AP9PlayerState* PS = PC->GetPlayerState<AP9PlayerState>())
+        {
+            PS->AddXP(ExpReward);
+        }
+    }
 
     //1.33초 뒤에 디졸브 시작
     FTimerHandle DeathTimerHandle;
@@ -159,55 +155,3 @@ void AP9Monster::StartDissolveEffect()
     }
 }
 
-void AP9Monster::StartDamagePlayer(AActor* PlayerActor)
-{
-    if (!PlayerActor) return;
-
-    TargetPlayer = PlayerActor;
-    bIsPlayerInRange = true;
-
-    // 일정 간격으로 데미지 적용
-    GetWorldTimerManager().SetTimer(
-        DamageTimerHandle,
-        this,
-        &AP9Monster::DealDamageToPlayer,
-        DamageInterval,
-        true
-    );
-}
-
-void AP9Monster::StopDamagePlayer()
-{
-    bIsPlayerInRange = false;
-    TargetPlayer = nullptr;
-    GetWorldTimerManager().ClearTimer(DamageTimerHandle);
-}
-
-void AP9Monster::DealDamageToPlayer()
-{
-    if (!bIsPlayerInRange || !TargetPlayer) return;
-
-    // 실제 데미지 전달은 블루프린트에서 구현 가능 (예: 플레이어의 BP 함수 호출)
-    // 여기선 예시로 출력만
-    UE_LOG(LogTemp, Warning, TEXT("%s attacks %s for %.1f damage!"),
-        *GetName(), *TargetPlayer->GetName(), AttackPower);
-}
-
-void AP9Monster::OnAttackRangeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-    bool bFromSweep, const FHitResult& SweepResult)
-{
-    if (OtherActor && OtherActor != this)
-    {
-        StartDamagePlayer(OtherActor);
-    }
-}
-
-void AP9Monster::OnAttackRangeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-    if (OtherActor && OtherActor == TargetPlayer)
-    {
-        StopDamagePlayer();
-    }
-}
