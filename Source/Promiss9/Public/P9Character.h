@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "P9InventoryComponent.h"
 #include "P9Character.generated.h"
 
 class USpringArmComponent;
@@ -29,13 +30,26 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	// Inventory Component
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
+	UP9InventoryComponent* InventoryComponent;
+
 	// Health
 	UFUNCTION(BlueprintPure, Category = "Health")
 	float GetHealth() const;
 	UFUNCTION(BlueprintCallable, Category = "Health")
+	void SetHealth(float NewHealth);
+	UFUNCTION(BlueprintCallable, Category = "Health")
 	void AddHealth(float Amount);
 
 	// 이동 속도
+	UFUNCTION(BlueprintCallable, Category = "Speed")
+	float GetNormalSpeed() const;
+	UFUNCTION(BlueprintCallable, Category = "Speed")
+	void SetNormalSpeed(float NewNormalSpeed);
+	UFUNCTION(BlueprintCallable, Category = "Speed")
+	void AddNormalSpeed(float Amount);
+
 	void UpdateMoveSpeed();
 
 	// 앞구르기 관련
@@ -45,6 +59,7 @@ public:
 	void OnDeath();
 
 	// Damage
+	UFUNCTION(BlueprintCallable)
 	virtual float TakeDamage(
 		float DamageAmount,
 		struct FDamageEvent const& DamageEvent,
@@ -92,6 +107,26 @@ public:
 	void HideAllWeapons(bool bHide);
 
 protected:
+
+	// 무기 장착 관련 컴포넌트
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Socket")
+	USceneComponent* WaeponSocket_fr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Socket")
+	USceneComponent* WaeponSocket_fl;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Socket")
+	USceneComponent* WaeponSocket_rr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Socket")
+	USceneComponent* WaeponSocket_rl;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon|Mesh")
+	UStaticMeshComponent* WeaponMesh_fr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Mesh")
+	UStaticMeshComponent* WeaponMesh_fl;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Mesh")
+	UStaticMeshComponent* WeaponMesh_rr;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Mesh")
+	UStaticMeshComponent* WeaponMesh_rl;
+
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	USpringArmComponent* SpringArmComp;
@@ -155,9 +190,6 @@ protected:
 	TSubclassOf<AActor> MultiWeaponClass;
 	UPROPERTY()
 	TArray<AActor*> EquippedWeapons;
-
-
-
 
 	FOnMontageEnded RollMontageEndedDelegate;
 	FTimerHandle RollCooldownTimerHandle;
