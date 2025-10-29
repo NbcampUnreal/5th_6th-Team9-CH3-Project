@@ -120,39 +120,50 @@ void AP9Monster::ApplyKnockback()
 
 void AP9Monster::Die()
 {
-    if (CurrentState == EMonsterState::Dead) return;
+    if (CurrentState == EMonsterState::Dead)
+        return;
 
     CurrentState = EMonsterState::Dead;
 
     UE_LOG(LogTemp, Warning, TEXT("Die() 호출됨"));
 
     // 움직임 정지
-    GetCharacterMovement()->DisableMovement();
+    if (GetCharacterMovement())
+    {
+        GetCharacterMovement()->DisableMovement();
+    }
 
     if (DeathAnimMontage && MonsterMesh && MonsterMesh->GetAnimInstance())
     {
         UE_LOG(LogTemp, Warning, TEXT("사망 애니메이션 호출됨"));
 
-        // 사망 애니메이션 재생
-        MonsterMesh->GetAnimInstance()->Montage_Play(DeathAnimMontage);
+        UAnimInstance* AnimInstance = MonsterMesh->GetAnimInstance();
 
-        // Montage가 끝난 뒤 Dissolve 시작 + 포즈 유지
-        float AnimDuration = DeathAnimMontage->GetPlayLength();
-        FTimerHandle TempHandle;
-        GetWorldTimerManager().SetTimer(TempHandle, [this]()
+        // 사망 애니메이션 재생
+        AnimInstance->Montage_Play(DeathAnimMontage);
+
+        // Montage 종료 시점 처리용 델리게이트
+        FOnMontageEnded MontageEndedDelegate;
+        MontageEndedDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted)
             {
-                // Montage 끝나면 현재 포즈 그대로 유지
-                if (MonsterMesh && MonsterMesh->GetAnimInstance())
+                UE_LOG(LogTemp, Warning, TEXT("사망 몽타주 종료됨, 포즈 유지 및 디졸브 시작"));
+
+                if (MonsterMesh)
                 {
-                    MonsterMesh->bPauseAnims = true;  // 애니메이션 정지
+                    // 현재 포즈 그대로 유지
+                    MonsterMesh->bPauseAnims = true;
                 }
 
+                // 디졸브 이펙트 시작
                 StartDissolveEffect();
-            }, AnimDuration, false);
+            });
+
+        // 델리게이트 등록
+        AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, DeathAnimMontage);
     }
     else
     {
-        // Montage가 없으면 바로 Dissolve
+        // 사망 몽타주가 없으면 바로 디졸브
         StartDissolveEffect();
     }
 }
