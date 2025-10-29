@@ -4,14 +4,14 @@
 #include "GameFramework/Character.h"
 #include "P9Monster.generated.h"
 
-//UENUM(BlueprintType)
-//enum class EMonsterState : uint8
-//{
-//    Idle        UMETA(DisplayName = "Idle"),
-//    Chase       UMETA(DisplayName = "Chase"),
-//    Attack      UMETA(DisplayName = "Attack"),
-//    Dead        UMETA(DisplayName = "Dead")
-//};
+UENUM(BlueprintType)
+enum class EMonsterState : uint8
+{
+    Idle        UMETA(DisplayName = "Idle"),
+    Chase       UMETA(DisplayName = "Chase"),
+    Attack      UMETA(DisplayName = "Attack"),
+    Dead        UMETA(DisplayName = "Dead")
+};
 
 UCLASS()
 class PROMISS9_API AP9Monster : public ACharacter
@@ -48,44 +48,30 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Stats")
     int32 GoldReward;
 
-    // 데미지 간격 (초당 1회 등)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-    float DamageInterval;
 
-    // 공격 딜레이용 타이머
-    FTimerHandle DamageTimerHandle;
-
-    // 현재 플레이어가 범위 내에 있는지
-    bool bIsPlayerInRange;
-
-    // 플레이어 참조
-    UPROPERTY()
-    AActor* TargetPlayer;
+	// 사망 애니메이션 몽타주
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+    UAnimMontage* DeathAnimMontage;
 
 
-    //스피어 콜리전
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
-    class USphereComponent* AttackRangeSphere;
+	// Dissolve 효과 관련 변수
 
-    //공격 범위
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-    float AttackRangeRadius;
+    float CurrentDissolveValue = 0.0f;
 
-    //오버렙 
-    UFUNCTION()
-    void OnAttackRangeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+    // Dissolve 활성화 여부
+    bool bIsDissolving = false;
 
-    UFUNCTION()
-    void OnAttackRangeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+    // Dissolve 총 시간 (초)
+    float DissolveDuration = 2.0f;
+
+
 
 
 public:
     virtual void Tick(float DeltaTime) override;
 
-    //UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster")
-    //EMonsterState CurrentState;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster")
+    EMonsterState CurrentState;
 
     // 몬스터가 데미지를 입는 함수
     UFUNCTION(BlueprintCallable, Category = "Combat")
@@ -97,17 +83,12 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Combat")
     void ApplyKnockback();
 
-    UFUNCTION(BlueprintCallable, Category = "Combat")
-    void StartDamagePlayer(AActor* PlayerActor);
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void Die();
 
     UFUNCTION(BlueprintCallable, Category = "Combat")
-    void StopDamagePlayer();
-
-	//UFUNCTION(BlueprintCallable, Category = "Combat")
-	//void Die();
+    void StartDissolveEffect();
 
 
-private:
-    // 플레이어에게 일정 주기로 데미지를 주는 내부 함수
-    void DealDamageToPlayer();
+
 };

@@ -1,4 +1,5 @@
 #include "P9Monster.h"
+#include "P9PlayerState.h"
 #include "TimerManager.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
@@ -16,18 +17,6 @@ AP9Monster::AP9Monster()
     AttackPower = 10.0f;
     ExpReward = 10;
     GoldReward = 5;
-    DamageInterval = 1.0f;
-    bIsPlayerInRange = false;
-    TargetPlayer = nullptr;
-
-    AttackRangeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AttackRangeSphere"));
-    AttackRangeSphere->SetupAttachment(RootComponent);
-
-    AttackRangeRadius = 40.f;
-    AttackRangeSphere->InitSphereRadius(AttackRangeRadius);
-
-    AttackRangeSphere->SetCollisionProfileName(TEXT("Trigger"));
-    AttackRangeSphere->SetGenerateOverlapEvents(true);
 
 }
 
@@ -49,6 +38,19 @@ void AP9Monster::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
+    // Dissolve 진행
+    if (bIsDissolving && HitFlashMatInstance)
+    {
+        CurrentDissolveValue += DeltaTime / DissolveDuration;
+        HitFlashMatInstance->SetScalarParameterValue("DissolveAmount", CurrentDissolveValue);
+
+        if (CurrentDissolveValue >= 0.5f)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("투명화 끝남"));
+            bIsDissolving = false;
+            Destroy();
+        }
+    }
 }
 
 void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
@@ -65,7 +67,7 @@ void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
     if (HP <= 0.0f)
     {
         HP = 0.0f;
-        Destroy(); 
+		Die();
     }
 }
 
@@ -105,80 +107,51 @@ void AP9Monster::ApplyKnockback()
     GetCharacterMovement()->StopMovementImmediately();
 }
 
-//void AP9Monster::Die()
-//{
-//    if (CurrentState == EMonsterState::Dead) return;
-//
-//    CurrentState = EMonsterState::Dead;
-//
-//    // 움직임 정지
-//    GetCharacterMovement()->DisableMovement();
-//
-//    // 비헤이비어 트리 AI 정지
-//    if (AAIController* AICon = Cast<AAIController>(GetController()))
-//    {
-//        AICon->BrainComponent->StopLogic("Dead");
-//    }
-//
-//    // 사망 애니메이션 재생
-//    if (DeathAnimMontage)
-//    {
-//        PlayAnimMontage(DeathAnimMontage);
-//    }
-//
-//    // 점점 투명화 시작
-//    StartDissolveEffect();
-//}
-
-void AP9Monster::StartDamagePlayer(AActor* PlayerActor)
+void AP9Monster::Die()
 {
-    if (!PlayerActor) return;
+    if (CurrentState == EMonsterState::Dead)
+        return;
 
-    TargetPlayer = PlayerActor;
-    bIsPlayerInRange = true;
+    CurrentState = EMonsterState::Dead;
 
-    // 일정 간격으로 데미지 적용
-    GetWorldTimerManager().SetTimer(
-        DamageTimerHandle,
-        this,
-        &AP9Monster::DealDamageToPlayer,
-        DamageInterval,
-        true
+    UE_LOG(LogTemp, Warning, TEXT("Die() 호출됨"));
+
+    // 움직임 정지
+    if (GetCharacterMovement())
+    {
+        GetCharacterMovement()->DisableMovement();
+    }
+
+    //보상 증가
+    if (APlayerController* PC = Cast<APlayerController>(GetWorld()->GetFirstPlayerController()))
+    {
+        if (AP9PlayerState* PS = PC->GetPlayerState<AP9PlayerState>())
+        {
+            PS->AddXP(ExpReward);
+        }
+    }
+
+    //1.33초 뒤에 디졸브 시작
+    FTimerHandle DeathTimerHandle;
+    GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, [this]()
+        {
+            UE_LOG(LogTemp, Warning, TEXT("사망 애니메이션 완료, 디졸브 시작"));
+            StartDissolveEffect();
+        },
+        1.33f, false
     );
 }
 
-void AP9Monster::StopDamagePlayer()
+void AP9Monster::StartDissolveEffect()
 {
-    bIsPlayerInRange = false;
-    TargetPlayer = nullptr;
-    GetWorldTimerManager().ClearTimer(DamageTimerHandle);
-}
-
-void AP9Monster::DealDamageToPlayer()
-{
-    if (!bIsPlayerInRange || !TargetPlayer) return;
-
-    // 실제 데미지 전달은 블루프린트에서 구현 가능 (예: 플레이어의 BP 함수 호출)
-    // 여기선 예시로 출력만
-    UE_LOG(LogTemp, Warning, TEXT("%s attacks %s for %.1f damage!"),
-        *GetName(), *TargetPlayer->GetName(), AttackPower);
-}
-
-void AP9Monster::OnAttackRangeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-    bool bFromSweep, const FHitResult& SweepResult)
-{
-    if (OtherActor && OtherActor != this)
+    if (HitFlashMatInstance)
     {
-        StartDamagePlayer(OtherActor);
+        CurrentDissolveValue = 0.0f;
+        HitFlashMatInstance->SetScalarParameterValue("DissolveAmount", 0.0f);
+
+        bIsDissolving = true;
+
+        UE_LOG(LogTemp, Warning, TEXT("투명화 시작"));
     }
 }
 
-void AP9Monster::OnAttackRangeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-    if (OtherActor && OtherActor == TargetPlayer)
-    {
-        StopDamagePlayer();
-    }
-}
