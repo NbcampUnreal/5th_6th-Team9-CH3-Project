@@ -48,6 +48,37 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Stats")
     int32 GoldReward;
 
+    // 데미지 간격 (초당 1회 등)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+    float DamageInterval;
+
+    // 공격 딜레이용 타이머
+    FTimerHandle DamageTimerHandle;
+
+    // 현재 플레이어가 범위 내에 있는지
+    bool bIsPlayerInRange;
+
+    // 플레이어 참조
+    UPROPERTY()
+    AActor* TargetPlayer;
+
+
+    //스피어 콜리전
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
+    class USphereComponent* AttackRangeSphere;
+
+    //공격 범위
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+    float AttackRangeRadius;
+
+    //오버렙 
+    UFUNCTION()
+    void OnAttackRangeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+    UFUNCTION()
+    void OnAttackRangeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	// 사망 애니메이션 몽타주
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
@@ -83,6 +114,12 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Combat")
     void ApplyKnockback();
 
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    void StartDamagePlayer(AActor* PlayerActor);
+
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    void StopDamagePlayer();
+
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void Die();
 
@@ -91,4 +128,7 @@ public:
 
 
 
+private:
+    // 플레이어에게 일정 주기로 데미지를 주는 내부 함수
+    void DealDamageToPlayer();
 };
