@@ -28,6 +28,8 @@ public:
 	FString WaveName;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<FSpawnData> SpawnList;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave|Boss")
+	TSubclassOf<AP9Monster> MidBoss;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWaveChangedSignature, int32, NewWaveIndex, FString, NewWaveName);
