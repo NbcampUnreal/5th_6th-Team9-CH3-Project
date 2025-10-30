@@ -42,6 +42,19 @@ AP9Character::AP9Character()
 	WaeponSocket_rl = CreateDefaultSubobject<USceneComponent>(TEXT("Socket_rl"));
 	WaeponSocket_rl->SetupAttachment(GetMesh());
 
+	// 신 컴포넌트 위치, 회전 조정(캐릭터 Mesh를 중심으로 4방향)
+	WaeponSocket_fr->SetRelativeLocation(FVector(-80.f, 80.0f, 210.0f));
+	WaeponSocket_fr->SetRelativeRotation(FRotator(0.0f, 135.0f, 0.0f));
+
+	WaeponSocket_fl->SetRelativeLocation(FVector(80.0f, 80.0f, 210.0f));
+	WaeponSocket_fl->SetRelativeRotation(FRotator(0.0f, 45.0f, 0.0f));
+
+	WaeponSocket_rr->SetRelativeLocation(FVector(-80.0f, -80.0f, 210.0f));
+	WaeponSocket_rr->SetRelativeRotation(FRotator(0.0f, -135.0f, 0.0f));
+
+	WaeponSocket_rl->SetRelativeLocation(FVector(80.0f, -80.0f, 210.0f));
+	WaeponSocket_rl->SetRelativeRotation(FRotator(0.0f, -45.0f, 0.0f));
+
 	// StaticMeshComponent 생성, 부착
 	WeaponMesh_fr = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh_fr"));
 	WeaponMesh_fr->SetupAttachment(WaeponSocket_fr);
@@ -52,18 +65,7 @@ AP9Character::AP9Character()
 	WeaponMesh_rl = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh_rl"));
 	WeaponMesh_rl->SetupAttachment(WaeponSocket_rl);
 
-	// 위치, 회전 조정(캐릭터 Mesh를 중심으로 4방향
-	WeaponMesh_fr->SetRelativeLocation(FVector(80.f, 80.0f, 100.0f));
-	WeaponMesh_fr->SetRelativeRotation(FRotator(0.0f, 45.0f, 0.0f));
 
-	WeaponMesh_fl->SetRelativeLocation(FVector(-80.0f, 80.0f, 100.0f));
-	WeaponMesh_fl->SetRelativeRotation(FRotator(0.0f, 135.0f, 0.0f));
-
-	WeaponMesh_rr->SetRelativeLocation(FVector(80.0f, -80.0f, 100.0f));
-	WeaponMesh_rr->SetRelativeRotation(FRotator(0.0f, -135.0f, 0.0f));
-
-	WeaponMesh_rl->SetRelativeLocation(FVector(80.0f, -80.0f, 100.0f));
-	WeaponMesh_rl->SetRelativeRotation(FRotator(0.0f, -45.0f, 0.0f));
 
 	InventoryComponent = CreateDefaultSubobject<UP9InventoryComponent>(TEXT("InventoryComponent"));
 
@@ -71,7 +73,7 @@ AP9Character::AP9Character()
 	SavedArmLength = 0.0f;
 
 	// 이동 관련
-	NormalSpeed = 600.0f;
+	NormalSpeed = 300.0f;
 	SprintSpeedMultiplier = 1.5f;
 	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
@@ -109,7 +111,10 @@ void AP9Character::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("인벤토리 컴포넌트가 부착되지 않음!"));
 	}
 
-
+	if (TargetActor)
+	{
+		RotateMeshToTarget(TargetActor);
+	}
 	EquipWeaponToMultipleSockets();
 	EquipWeaponToRightHandSockets();
 }
@@ -574,6 +579,24 @@ void AP9Character::AddHealth(float Amount)
 	Health = FMath::Clamp(Health + Amount, 0.0f, MaxHealth);
 }
 
+
+float AP9Character:: GetMaxHealth() const
+{
+	return MaxHealth;
+}
+
+void AP9Character::SetMaxHealth(float NewMaxHealth)
+{
+	MaxHealth = FMath::Max(NewMaxHealth, 0.0f);
+}
+
+void AP9Character::AddMaxHealth(float Amount)
+{
+	MaxHealth += Amount;
+	MaxHealth = FMath::Max(MaxHealth, 0.0f);
+}
+
+
 float AP9Character::GetNormalSpeed() const
 {
 	return NormalSpeed;
@@ -742,4 +765,19 @@ void AP9Character::HideAllWeapons(bool bHide)
 			}
 		}
 	}
+}
+
+void AP9Character::RotateMeshToTarget(AActor* InTargetActor)
+{
+	if (!InTargetActor || !WeaponMesh_rl) return;
+
+	FVector TargetLocation = InTargetActor->GetActorLocation();
+	FVector MyLocation = WeaponMesh_rl->GetComponentLocation();
+
+	FVector Direction = TargetLocation - MyLocation;
+	Direction.Z = 0.0f; // 수평 회전만 고려
+	Direction.Normalize();
+
+	FRotator TargetRotation = Direction.Rotation();
+	WeaponMesh_rl->SetWorldRotation(TargetRotation);
 }
