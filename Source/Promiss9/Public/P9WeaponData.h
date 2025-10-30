@@ -32,7 +32,7 @@ struct FP9WeaponData : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float Damage;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	int32 Range;
+	float Range;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int32 Count;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
