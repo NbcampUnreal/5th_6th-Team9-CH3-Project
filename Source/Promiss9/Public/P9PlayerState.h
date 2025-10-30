@@ -36,6 +36,12 @@ struct FP9LevelUpReward
 {
 	GENERATED_BODY()
 
+	FP9LevelUpReward()
+	{
+		Stat = EP9Stat::MAX;
+		Rarity = EP9Rarity::MAX;
+	}
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Reward")
 	EP9Stat Stat;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Reward")
@@ -48,6 +54,14 @@ USTRUCT(BlueprintType)
 struct FP9RewardStatData : public FTableRowBase
 {
 	GENERATED_BODY()
+
+	FP9RewardStatData()
+	{
+		Common = 0.0f;
+		Uncommon = 0.0f;
+		Rare = 0.0f;
+		Legendary = 0.0f;
+	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FString StatName;
@@ -105,7 +119,7 @@ protected:
 	float BonusLuck;
 
 	UPROPERTY(EditDefaultsOnly, Category = " Level")
-	TObjectPtr<UDataTable> RewardStatTable;
+	TObjectPtr<UDataTable> RewardStatTable=nullptr;
 
 	
 	void LevelUp();
