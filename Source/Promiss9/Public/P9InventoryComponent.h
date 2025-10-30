@@ -1,21 +1,20 @@
-// P9InventoryComponent.h
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "P9InventoryComponent.generated.h"
 
-//  슬롯:WeaponId(FName) 
+// 슬롯: WeaponId(FName)
 USTRUCT(BlueprintType)
 struct FInventorySlot
 {
     GENERATED_BODY()
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
-    FName WeaponId = NAME_None;   // 비어있으면 NAME_None
+    FName WeaponId = NAME_None; // 비어있으면 NAME_None
 };
 
-//  전방 선언
+// 전방 선언
 struct FP9WeaponData;
 class UDataTable;
 
@@ -39,7 +38,7 @@ public:
     UFUNCTION(BlueprintPure, Category = "Inventory")
     const TArray<FInventorySlot>& GetSlots() const { return Slots; }
 
-    /** 무기 추가 */
+    /** 무기 추가 (권총 제외, 2~4번 슬롯에만 삽입) */
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     bool AddWeaponById(FName WeaponId);
 
@@ -47,18 +46,18 @@ public:
     UFUNCTION(BlueprintPure, Category = "Inventory")
     bool HasWeaponId(FName WeaponId) const;
 
-    /** 슬롯 개수 조정 */
+    /** 슬롯 개수 조정 (최소 4칸; 1번은 권총 고정) */
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     bool SetMaxSlots(int32 NewMaxSlots);
 
-    /** 전체 초기화(사망/재시작) */
+    /** 전체 초기화(사망/재시작) — 권총 자동 복구 */
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     void ResetAll();
 
     // ── DataTable 연동
 public:
     UFUNCTION(BlueprintPure, Category = "Inventory|Data")
-    bool  GetWeaponData(FName WeaponId, FP9WeaponData& OutRow) const;
+    bool GetWeaponData(FName WeaponId, FP9WeaponData& OutRow) const;
 
     /** DataTable에 존재하는 무기만 추가 */
     UFUNCTION(BlueprintCallable, Category = "Inventory|Data")
@@ -68,24 +67,29 @@ public:
     UFUNCTION(BlueprintPure, Category = "Inventory|Data")
     bool GetSlotWeaponData(int32 SlotIndex, FP9WeaponData& OutRow) const;
 
-    /** 에디터에서 할당할 무기 */
+    /** 에디터에서 할당할 무기 DataTable */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory|Data",
         meta = (AllowPrivateAccess = "true"))
     UDataTable* WeaponDataTable = nullptr;
 
-    //  내부 구현
 private:
-    /** 슬롯 최대 개수 */
+    /** 슬롯 최대 개수 (최소 4칸 보장; 1번=권총, 2~4=추가 무기) */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory",
-        meta = (ClampMin = "0", AllowPrivateAccess = "true"))
+        meta = (ClampMin = "4", AllowPrivateAccess = "true"))
     int32 MaxSlots = 4;
 
     /** 실제 슬롯 배열 */
     UPROPERTY(VisibleAnywhere, Category = "Inventory")
     TArray<FInventorySlot> Slots;
 
+    /** 1번 슬롯(인덱스 0)에 들어갈 기본 권총 ID */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory|Rule",
+        meta = (AllowPrivateAccess = "true"))
+    FName DefaultHandgunId = FName("HG");
+
 private:
-    void   NormalizeLength();                 // 배열 길이/값 보정
-    int32  FindEmptySlotIndex() const;        // 첫 빈칸
-    int32  FindSlotIndexById(FName WeaponId) const; //무기 위치
+    void NormalizeLength();                 // 배열 길이/값 보정
+    int32 FindEmptySlotIndex_From1() const; // 2~4번(인덱스 1~) 첫 빈칸
+    int32 FindSlotIndexById(FName WeaponId) const; // 무기 위치
+    void EnsureDefaultHandgun();            // 1번 권총 보장
 };
