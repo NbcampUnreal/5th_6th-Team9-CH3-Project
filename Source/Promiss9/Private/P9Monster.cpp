@@ -128,6 +128,7 @@ void AP9Monster::Die()
         if (AP9PlayerState* PS = PC->GetPlayerState<AP9PlayerState>())
         {
             PS->AddXP(ExpReward);
+			PS->AddGold(GoldReward);
         }
     }
 
