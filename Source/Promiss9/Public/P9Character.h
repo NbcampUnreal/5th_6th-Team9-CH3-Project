@@ -42,6 +42,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void AddHealth(float Amount);
 
+	// MaxHealth
+	UFUNCTION(BlueprintPure, Category = "Health")
+	float GetMaxHealth() const;
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void SetMaxHealth(float NewMaxHealth);
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void AddMaxHealth(float Amount);
+
 	// 이동 속도
 	UFUNCTION(BlueprintCallable, Category = "Speed")
 	float GetNormalSpeed() const;
@@ -103,6 +111,10 @@ public:
 	void EquipWeaponToMultipleSockets();
 	void EquipWeaponToRightHandSockets();
 
+	// 라인트레이스 가장 가까운 적 추적
+	UFUNCTION(BlueprintCallable, Category = "Targeting")
+	void RotateMeshToTarget(AActor* TargetActor);
+
 	// 몽타주 실행 중 무기 숨기기
 	void HideAllWeapons(bool bHide);
 
@@ -125,8 +137,6 @@ protected:
 	UStaticMeshComponent* WeaponMesh_rr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Mesh")
 	UStaticMeshComponent* WeaponMesh_rl;
-
-
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	USpringArmComponent* SpringArmComp;
@@ -190,6 +200,10 @@ protected:
 	TSubclassOf<AActor> MultiWeaponClass;
 	UPROPERTY()
 	TArray<AActor*> EquippedWeapons;
+
+	// 무기 적 추적 관련
+	UPROPERTY(BlueprintReadWrite, Category = "Targeting")
+	AActor* TargetActor;
 
 	FOnMontageEnded RollMontageEndedDelegate;
 	FTimerHandle RollCooldownTimerHandle;
