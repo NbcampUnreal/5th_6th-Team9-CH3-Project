@@ -196,7 +196,8 @@ void AP9PlayerState::ApplyReward(const FP9LevelUpReward& Selected)
 		AP9Character* Player = Cast<AP9Character>(GetPawn());
 		if (Player != nullptr)
 		{
-			
+			Player->AddMaxHealth(ValueToApply);
+			Player->AddHealth(ValueToApply);
 		}
 		break;
 	}
