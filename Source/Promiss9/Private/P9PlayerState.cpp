@@ -8,7 +8,7 @@ AP9PlayerState::AP9PlayerState()
 	
 	CurrentLevel = 1;
 	
-	CurrentXP=0;
+	CurrentXP=0.0f;
 	
 	CurrentGold = 0;
 
@@ -125,7 +125,7 @@ void AP9PlayerState::GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutV
 
 
 
-	void AP9PlayerState::AddXP(int32 XPAmount)
+	void AP9PlayerState::AddXP(float XPAmount)
 {
 	if (CurrentXP < XPForNextLevel)
 	{

@@ -69,7 +69,7 @@ class PROMISS9_API AP9PlayerState : public APlayerState
 public:
 	AP9PlayerState();
 	UFUNCTION(BlueprintCallable)
-	void AddXP(int32 XPAmount);
+	void AddXP(float XPAmount);
 	UFUNCTION(BlueprintCallable)
 	void AddGold(int32 GoldAmount);
 
@@ -86,7 +86,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
 	int32 CurrentLevel;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
-	int32 CurrentXP;
+	float CurrentXP;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
 	int32 XPForNextLevel;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gold")
