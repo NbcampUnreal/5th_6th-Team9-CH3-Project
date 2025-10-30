@@ -20,6 +20,21 @@ struct FP9WeaponData : public FTableRowBase
 {
 	GENERATED_BODY()
 
+	FP9WeaponData()
+		: ItemType(EItemType::Equipment)
+		, ItemID(NAME_None)
+		, Description(FText::FromString("Default Description"))
+		, ItemIcon(nullptr)
+		, Damage(0.0f)
+		, Range(0.0f)
+		, Count(0)
+		, Price(000)
+		, ItemMesh(nullptr)
+		, FireSpeed(0.0f)
+		, WeaponActorClass(nullptr)
+	{
+	}
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	EItemType ItemType;
 

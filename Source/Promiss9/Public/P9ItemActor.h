@@ -27,31 +27,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Data")
 	FDataTableRowHandle P9WeaponRow;
 
-	
-	/*UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
-	float GetRange(int32 RowNumber) const;
-
-	
-	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
-	float GetDamage(int32 RowNumber) const;
-
-	
-	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
-	int32 GetPrice(int32 RowNumber) const;
-
-	
-	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
-	int32 GetCount(int32 RowNumber) const;
-
-	
-	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
-	float GetFireSpeed(int32 RowNumber) const;
-
-
 
 
 	
-	FP9WeaponData* GetRowData(int32 RowNumber) const;*/
+	//FP9WeaponData* GetRowData(int32 RowNumber) const;
 
 	bool bOnInventoryWeapon(AActor* Activator, const FP9WeaponData* Row) const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Root")
@@ -74,32 +53,56 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
 	float Damage;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
 	float Range;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
 	float FireSpeed;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	int32 Price;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	int32 Count;
 
 
+	
 
-	/*
+	//void  SetRange(float Range);
 
-	void  SetRange(float Range);
+	//void SetDamage(float Damage);
 
-	void SetDamage(float Damage);
-
-	void SetFireSpeed(float FireSpeed);
+	//void SetFireSpeed(float FireSpeed);
 
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon|State")
-	int32 CurrentRange;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon|State")
-	float CurrentDamage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon|State")
-	float CurrentFireSpeed;
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	float GetRange() const;
+
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	float GetDamage() const;
+
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	int32 GetPrice() const;
+
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	int32 GetCount() const;
+
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	float GetFireSpeed() const;
+
+
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float CurrentRange() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float CurrentDamage() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float CurrentFireSpeed () const;
+
+	/*UFUNCTION(BlueprintCallable, Category = "Weapon|State")
 	float GetCurrentRange() const;
 	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
 	float GetCurrentDamage() const;

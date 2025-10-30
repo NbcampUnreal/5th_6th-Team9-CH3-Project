@@ -30,6 +30,8 @@ void AP9ItemActor::BeginPlay()
 			Damage = WeaponData.Damage;
 			Range = WeaponData.Range;
 			FireSpeed = WeaponData.FireSpeed;
+			Price = WeaponData.Price;
+			Count = WeaponData.Count;
 		}
 		
 	}
@@ -142,55 +144,45 @@ bool AP9ItemActor::bOnInventoryWeapon(AActor* Activator, const FP9WeaponData* Ro
 	return;
 }*/
 
-/*float AP9ItemActor::GetRange(int32 RowNumber) const
+float AP9ItemActor::GetRange() const
 {
-	FP9WeaponData* Row = GetRowData(RowNumber);
-	if (Row)
-	{
-		return Row->Range;
-	}
-	return 0;
+	return Range;
 }
 
-float AP9ItemActor::GetDamage(int32 RowNumber) const
+float AP9ItemActor::GetDamage() const
 {
-	FP9WeaponData* Row = GetRowData(RowNumber);
-	if (Row)
-	{
-		return Row->Damage;
-	}
-	return 0.f;
+	return Damage;
 }
 
-int32 AP9ItemActor::GetPrice(int32 RowNumber) const
+int32 AP9ItemActor::GetPrice() const
 {
-	FP9WeaponData* Row = GetRowData(RowNumber);
-	if (Row)
-	{
-		return Row->Price;
-	}
-	return 0;
+	return Price;
 }
 
-int32 AP9ItemActor::GetCount(int32 RowNumber) const
+int32 AP9ItemActor::GetCount() const
 {
-	FP9WeaponData* Row = GetRowData(RowNumber);
-	if (Row)
-	{
-		return Row->Count;
-	}
-	return 0;
+	return Count;
 }
 
-float AP9ItemActor::GetFireSpeed(int32 RowNumber) const
+float AP9ItemActor::GetFireSpeed() const
 {
-	FP9WeaponData* Row = GetRowData(RowNumber);
-	if (Row)
-	{
-		return Row->FireSpeed;
-	}
-	return 0.f;
-}*/
+	return FireSpeed;
+}
+
+float AP9ItemActor::CurrentRange() const
+{
+	return GetRange();
+}
+
+float AP9ItemActor::CurrentDamage() const
+{
+	return GetDamage();
+}
+
+float AP9ItemActor::CurrentFireSpeed() const
+{
+	return GetFireSpeed();
+}
 
 FName AP9ItemActor::GetItemType(int32 RowNumber) const
 {
