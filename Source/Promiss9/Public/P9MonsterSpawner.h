@@ -26,7 +26,7 @@ protected:
 
 private:
 	UPROPERTY()
-	TObjectPtr<AP9GameState> GameState;
+	TObjectPtr<AP9GameState> GameState=nullptr;
 
 	FTimerHandle SpawnTimer;
 
