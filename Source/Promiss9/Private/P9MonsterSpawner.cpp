@@ -31,7 +31,7 @@ void AP9MonsterSpawner::WaveStarted(int32 NewWaveIndex, FString NewWaveName)
 	const int32 PreWaveIndex = NewWaveIndex - 1;
 	if (GameState->WaveSettings.IsValidIndex(PreWaveIndex))
 	{
-		const FP9WaveData& PreWaveData = GameState->WaveSettings[PreWaveIndex];
+		const FP9WaveData PreWaveData = GameState->WaveSettings[PreWaveIndex];
 
 		if (PreWaveData.MidBoss != nullptr)
 		{
