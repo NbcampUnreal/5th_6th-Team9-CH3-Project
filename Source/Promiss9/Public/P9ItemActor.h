@@ -7,6 +7,7 @@
 #include "P9ItemInterface.h"
 #include "P9WeaponData.h"
 #include "P9InventoryComponent.h"
+#include "P9ItemGameInstanceSubsystem.h"
 #include "P9ItemActor.generated.h"
 
 
@@ -22,35 +23,14 @@ public:
 protected:
 	
 	virtual void BeginPlay() override;
-	//무기 데이터 테이블 가져오는 핸들
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Data")
 	FDataTableRowHandle P9WeaponRow;
 
-	// 무기 사거리 열값 가져오기
-	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
-	int32 GetRange(int32 RowNumber) const;
-
-	// 무기 데미지 열값 가져오기
-	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
-	float GetDamage(int32 RowNumber) const;
-
-	// 무기 가격 열값 가져오기
-	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
-	int32 GetPrice(int32 RowNumber) const;
-
-	// 무기 카운트 열값 가져오기
-	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
-	int32 GetCount(int32 RowNumber) const;
-
-	//무기 사속 열값 가져오기
-	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
-	float GetFireSpeed(int32 RowNumber) const;
 
 
-
-
-	//무기 데이터 테이블 행 가져오기
-	FP9WeaponData* GetRowData(int32 RowNumber) const;
+	
+	//FP9WeaponData* GetRowData(int32 RowNumber) const;
 
 	bool bOnInventoryWeapon(AActor* Activator, const FP9WeaponData* Row) const;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Root")
@@ -59,40 +39,73 @@ protected:
 	UStaticMeshComponent* StaticMesh;
 	
 	
-	UFUNCTION(BlueprintCallable, Category = "Weapon|Action")
-	void Fire(int32 RowNumber) const;
+	//UFUNCTION(BlueprintCallable, Category = "Weapon|Action")
+	//void Fire(int32 RowNumber) const;
 	virtual void OnItemOverlap(AActor* OverlapActor) override;
 	virtual void OnItemEndOverlap(AActor* OverlapActor) override;
 	UFUNCTION(BlueprintCallable, Category = "Weapon|Action")
-	virtual void ActivateItem(AActor* Activator, int32 RowNumber) override;
+	//virtual void ActivateItem(AActor* Activator, int32 RowNumber) override;
 	virtual FName GetItemType(int32 RowNumber) const override;
 
-	virtual void DestroyIterm();
+	virtual void DestroyItem();
 
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void CurrentFromRow(int32 RowNumber);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	float Damage;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	float Range;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	float FireSpeed;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	int32 Price;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	int32 Count;
 
-	void  SetRange(int32 Range);
 
-	void SetDamage(float Damage);
+	
 
-	void SetFireSpeed(float FireSpeed);
+	//void  SetRange(float Range);
+
+	//void SetDamage(float Damage);
+
+	//void SetFireSpeed(float FireSpeed);
 
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon|State")
-	int32 CurrentRange;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon|State")
-	float CurrentDamage;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon|State")
-	float CurrentFireSpeed;
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	float GetRange() const;
+
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	float GetDamage() const;
+
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	int32 GetPrice() const;
+
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	int32 GetCount() const;
+
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	float GetFireSpeed() const;
+
+
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
-	int32 GetCurrentRange() const;
+	float CurrentRange() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float CurrentDamage() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float CurrentFireSpeed () const;
+
+	/*UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float GetCurrentRange() const;
 	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
 	float GetCurrentDamage() const;
 	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
-	float GetCurrentFireSpeed() const;
+	float GetCurrentFireSpeed() const;*/
 };

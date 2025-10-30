@@ -21,16 +21,25 @@ AP9ItemActor::AP9ItemActor()
 void AP9ItemActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (UGameInstance* GameInstance = GetGameInstance())
+	{
+		if (UP9ItemGameInstanceSubsystem* ItemSubsystem = GameInstance->GetSubsystem<UP9ItemGameInstanceSubsystem>())
+		{
+			FP9WeaponData WeaponData = ItemSubsystem->GetWeaponDataByID(P9WeaponRow.RowName);
+			Damage = WeaponData.Damage;
+			Range = WeaponData.Range;
+			FireSpeed = WeaponData.FireSpeed;
+			Price = WeaponData.Price;
+			Count = WeaponData.Count;
+		}
+		
+	}
 	
 }
-void AP9ItemActor::CurrentFromRow(int32 RowNumber)
-{
-	SetRange(GetRange(RowNumber));
-	SetDamage(GetDamage(RowNumber));
-	SetFireSpeed(GetFireSpeed(RowNumber));
-}
+/*
 
-void AP9ItemActor::SetRange(int32 Range)
+void AP9ItemActor::SetRange(float Range)
 {
 	CurrentRange = FMath::Max(0, Range);;
 }
@@ -45,7 +54,7 @@ void AP9ItemActor::SetFireSpeed(float FireSpeed)
 	CurrentFireSpeed = FMath::Max(0.0f, FireSpeed);
 }
 
-int32 AP9ItemActor::GetCurrentRange()const
+float AP9ItemActor::GetCurrentRange()const
 {
 	return CurrentRange;
 }
@@ -58,7 +67,7 @@ float AP9ItemActor::GetCurrentDamage()const
 float AP9ItemActor::GetCurrentFireSpeed()const
 {
 	return CurrentFireSpeed;
-}
+}*/
 
 
 // Called every frame
@@ -78,7 +87,7 @@ void AP9ItemActor::OnItemEndOverlap(AActor* OverlapActor)
 
 }
 
-FP9WeaponData* AP9ItemActor::GetRowData(int32 RowNumber) const
+/*FP9WeaponData* AP9ItemActor::GetRowData(int32 RowNumber) const
 {
 	if (!P9WeaponRow.DataTable)
 	{
@@ -88,9 +97,9 @@ FP9WeaponData* AP9ItemActor::GetRowData(int32 RowNumber) const
 	{
 		return P9WeaponRow.DataTable->FindRow<FP9WeaponData>(FName(*FString::FromInt(RowNumber)), TEXT("AP9ItemActor::GetRowData"));
 	}
-}
+}*/
 
-void AP9ItemActor::Fire(int32 RowNumber) const
+/*void AP9ItemActor::Fire(int32 RowNumber) const
 {
 	FP9WeaponData* Row = GetRowData(RowNumber);
 	if (Row)
@@ -98,7 +107,7 @@ void AP9ItemActor::Fire(int32 RowNumber) const
 		UE_LOG(LogTemp, Warning, TEXT("Firing weapon: %s, Damage: %f, Range: %d, FireSpeed: %f"), *Row->ItemID.ToString(), Row->Damage, Row->Range, Row->FireSpeed);
 	}
 
-}
+}*/
 
 bool AP9ItemActor::bOnInventoryWeapon(AActor* Activator, const FP9WeaponData* Row) const
 {
@@ -115,7 +124,7 @@ bool AP9ItemActor::bOnInventoryWeapon(AActor* Activator, const FP9WeaponData* Ro
 	return InventoryComp->HasWeaponId(Row->ItemID);
 }
 
-void AP9ItemActor::ActivateItem(AActor* Activator, int32 RowNumber)
+/*void AP9ItemActor::ActivateItem(AActor* Activator, int32 RowNumber)
 {
 	CurrentFromRow(RowNumber);
 	Fire(RowNumber);
@@ -132,57 +141,47 @@ void AP9ItemActor::ActivateItem(AActor* Activator, int32 RowNumber)
 	{
 		return Fire(RowNumber);
 	}
-	return;*/
-}	
+	return;
+}*/
 
-int32 AP9ItemActor::GetRange(int32 RowNumber) const
+float AP9ItemActor::GetRange() const
 {
-	FP9WeaponData* Row = GetRowData(RowNumber);
-	if (Row)
-	{
-		return Row->Range;
-	}
-	return 0;
+	return Range;
 }
 
-float AP9ItemActor::GetDamage(int32 RowNumber) const
+float AP9ItemActor::GetDamage() const
 {
-	FP9WeaponData* Row = GetRowData(RowNumber);
-	if (Row)
-	{
-		return Row->Damage;
-	}
-	return 0.f;
+	return Damage;
 }
 
-int32 AP9ItemActor::GetPrice(int32 RowNumber) const
+int32 AP9ItemActor::GetPrice() const
 {
-	FP9WeaponData* Row = GetRowData(RowNumber);
-	if (Row)
-	{
-		return Row->Price;
-	}
-	return 0;
+	return Price;
 }
 
-int32 AP9ItemActor::GetCount(int32 RowNumber) const
+int32 AP9ItemActor::GetCount() const
 {
-	FP9WeaponData* Row = GetRowData(RowNumber);
-	if (Row)
-	{
-		return Row->Count;
-	}
-	return 0;
+	return Count;
 }
 
-float AP9ItemActor::GetFireSpeed(int32 RowNumber) const
+float AP9ItemActor::GetFireSpeed() const
 {
-	FP9WeaponData* Row = GetRowData(RowNumber);
-	if (Row)
-	{
-		return Row->FireSpeed;
-	}
-	return 0.f;
+	return FireSpeed;
+}
+
+float AP9ItemActor::CurrentRange() const
+{
+	return GetRange();
+}
+
+float AP9ItemActor::CurrentDamage() const
+{
+	return GetDamage();
+}
+
+float AP9ItemActor::CurrentFireSpeed() const
+{
+	return GetFireSpeed();
 }
 
 FName AP9ItemActor::GetItemType(int32 RowNumber) const
@@ -190,7 +189,7 @@ FName AP9ItemActor::GetItemType(int32 RowNumber) const
 	return FName(FString::FromInt(RowNumber));
 }
 
-void AP9ItemActor::DestroyIterm()
+void AP9ItemActor::DestroyItem()
 {
 	Destroy();
 }
