@@ -42,7 +42,7 @@ protected:
 
     // 경험치 드랍량
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Stats")
-    int32 ExpReward;
+    float ExpReward;
 
     // 골드 드랍량
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Stats")
