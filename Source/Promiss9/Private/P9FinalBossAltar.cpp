@@ -7,8 +7,11 @@ AP9FinalBossAltar::AP9FinalBossAltar()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
+	RootComponent = RootScene;
+
 	BossSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("BossSpawnPoint"));
-	RootComponent = BossSpawnPoint;
+	BossSpawnPoint->SetupAttachment(RootComponent);
 
 	Trigger = CreateDefaultSubobject<USphereComponent>(TEXT("TriggerZone"));
 

@@ -22,6 +22,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Altar")
 	TObjectPtr<USceneComponent> BossSpawnPoint=nullptr;
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<USceneComponent> RootScene = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Altar")
 	TSubclassOf<AP9Monster> FinalBoss;
