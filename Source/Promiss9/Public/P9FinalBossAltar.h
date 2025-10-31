@@ -26,11 +26,8 @@ protected:
 	TObjectPtr<USceneComponent> RootScene = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Altar")
-	TSubclassOf<AP9Monster> FinalBoss;
+	TSubclassOf<AP9Monster> FinalBoss=nullptr;
 
-
-
-	FTimerHandle InterActionTimerHandle;
 
 	virtual void BeginPlay() override;
 
@@ -43,7 +40,7 @@ public:
 	float InteractionDuration = 3.0f;
 
 	UFUNCTION()
-	void OverlapBegin(UPrimitiveComponent* OverlappedCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
 	void OverlapEnd(UPrimitiveComponent* OvelappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	
