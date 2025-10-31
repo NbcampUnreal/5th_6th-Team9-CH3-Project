@@ -1,18 +1,18 @@
+// P9InventoryComponent.cpp
 #include "P9InventoryComponent.h"
 #include "Engine/DataTable.h"
 #include "P9WeaponData.h"
 
-// Sets default values for this component's properties
 UP9InventoryComponent::UP9InventoryComponent()
 {
     PrimaryComponentTick.bCanEverTick = false;
-    NormalizeLength();     // 배열 크기/초기값 보정
+    NormalizeLength(); // 배열/초기값 보정
 }
 
 void UP9InventoryComponent::BeginPlay()
 {
     Super::BeginPlay();
-    EnsureDefaultHandgun(); // 시작 시 1번 권총 보장
+    EnsureDefaultHandgun(); // 시작 시 0번 권총 보장
 }
 
 void UP9InventoryComponent::TickComponent(
@@ -21,12 +21,10 @@ void UP9InventoryComponent::TickComponent(
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-// ─────────────────────────────────────
-// 내부: 배열 길이/값 보정 + 1번(인덱스0) 권총 보장 호출
-// ─────────────────────────────────────
+/** 배열 보정 + 권총 보장 */
 void UP9InventoryComponent::NormalizeLength()
 {
-    if (MaxSlots < 4) MaxSlots = 4; // 최소 4칸 보장 (1:권총, 2~4:추가)
+    if (MaxSlots < 4) MaxSlots = 4; // 0=권총, 1~=추가
     const int32 OldNum = Slots.Num();
     Slots.SetNum(MaxSlots);
 
@@ -34,124 +32,156 @@ void UP9InventoryComponent::NormalizeLength()
     for (int32 i = OldNum; i < MaxSlots; ++i)
     {
         Slots[i].WeaponId = NAME_None;
+        Slots[i].Count = 0;
     }
-    // 권총 보장(헤더/리셋에서도 호출)
+
+    // 기존 칸 보정
+    for (int32 i = 0; i < OldNum && i < Slots.Num(); ++i)
+    {
+        if (!Slots[i].WeaponId.IsNone() && Slots[i].Count <= 0)
+        {
+            Slots[i].Count = 1;
+        }
+        if (Slots[i].WeaponId.IsNone())
+        {
+            Slots[i].Count = 0;
+        }
+    }
+
     EnsureDefaultHandgun();
 }
 
-// ─────────────────────────────────────
-// 내부: 2~4번(인덱스 1~) 범위에서 첫 빈칸 찾기
-// ─────────────────────────────────────
+/** 1번 인덱스부터 첫 빈칸 */
 int32 UP9InventoryComponent::FindEmptySlotIndex_From1() const
 {
-    for (int32 i = 1; i < Slots.Num(); ++i) // 인덱스 1부터
+    for (int32 i = 1; i < Slots.Num(); ++i) // 0은 권총, 1부터만 검색
     {
-        if (Slots[i].WeaponId.IsNone())
-            return i;
+        if (Slots[i].Count == 0) return i;
     }
     return INDEX_NONE;
 }
 
-// ─────────────────────────────────────
-// 내부: 특정 무기 ID가 담긴 슬롯 인덱스
-// ─────────────────────────────────────
+/**  무기 위치 */
 int32 UP9InventoryComponent::FindSlotIndexById(FName WeaponId) const
 {
     if (WeaponId.IsNone()) return INDEX_NONE;
 
     for (int32 i = 0; i < Slots.Num(); ++i)
     {
-        if (Slots[i].WeaponId == WeaponId)
+        if (Slots[i].WeaponId == WeaponId && Slots[i].Count > 0)
             return i;
     }
     return INDEX_NONE;
 }
 
-// ─────────────────────────────────────
-// 보유 여부 확인
-// ─────────────────────────────────────
 bool UP9InventoryComponent::HasWeaponId(FName WeaponId) const
 {
     return FindSlotIndexById(WeaponId) != INDEX_NONE;
 }
 
-// ─────────────────────────────────────
-// 내부: 1번 슬롯 권총 기본 보장
-//  - 비어 있거나 다른 무기가 있으면 권총으로 세팅
-// ─────────────────────────────────────
+int32 UP9InventoryComponent::GetWeaponCount(FName WeaponId) const
+{
+    const int32 Idx = FindSlotIndexById(WeaponId);
+    return (Idx != INDEX_NONE) ? Slots[Idx].Count : 0;
+}
+
+/** 0번 권총  */
 void UP9InventoryComponent::EnsureDefaultHandgun()
 {
     if (!Slots.IsValidIndex(0)) return;
 
     if (DefaultHandgunId.IsNone())
     {
-        // 권총 ID가 비어 있으면 그냥 비워둠
         Slots[0].WeaponId = NAME_None;
+        Slots[0].Count = 0;
         return;
     }
 
-    if (Slots[0].WeaponId != DefaultHandgunId)
-    {
-        Slots[0].WeaponId = DefaultHandgunId;
-    }
+    // 권총 고정(없으면 넣고 Count=1)
+    Slots[0].WeaponId = DefaultHandgunId;
+    if (Slots[0].Count <= 0) Slots[0].Count = 1;
 }
 
-// ─────────────────────────────────────
-// 무기 추가 (권총 제외, 2~4번 슬롯에만 영구 추가)
-//  - 중복 무기 추가 불가
-// ─────────────────────────────────────
+/** 무기 추가: 이미 있으면 Count++(스택), 없으면 1~에서 빈칸에 신규(Count=1) */
 bool UP9InventoryComponent::AddWeaponById(FName WeaponId)
 {
     if (WeaponId.IsNone())
         return false;
 
-    // 1번 슬롯 권총은 수동 추가/변경 불가
+    // 0번 슬롯의 권총은 추가/변경 불가
     if (WeaponId == DefaultHandgunId)
+    {
+
+        return false;
+    }
+
+    // 이미 보유 → 슬롯 추가 없이 Count++
+    if (const int32 OwnedIdx = FindSlotIndexById(WeaponId); OwnedIdx != INDEX_NONE)
+    {
+        Slots[OwnedIdx].Count += 1;
+
+#if !(UE_BUILD_SHIPPING)
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(
+                -1, 2.0f, FColor::Green,
+                FString::Printf(TEXT("[인벤토리] %s 스택업 → x%d"),
+                    *WeaponId.ToString(), Slots[OwnedIdx].Count));
+        }
+#endif
+        return true;
+    }
+
+    // 처음 획득 → 1~(MaxSlots-1)에서 빈칸 찾기
+    const int32 EmptyIdx = FindEmptySlotIndex_From1();
+    if (EmptyIdx == INDEX_NONE)
     {
 #if !(UE_BUILD_SHIPPING)
         if (GEngine)
         {
-            GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan,
-                TEXT("[Inventory] 권총은 기본 소지이므로 AddWeaponById로 추가하지 않습니다."));
+            GEngine->AddOnScreenDebugMessage(
+                -1, 2.0f, FColor::Red, TEXT("[인벤토리] 빈 슬롯이 없습니다."));
         }
 #endif
         return false;
     }
 
-    if (HasWeaponId(WeaponId))
-        return false;
-
-    const int32 EmptyIdx = FindEmptySlotIndex_From1(); // 2~4번만 검색
-    if (EmptyIdx == INDEX_NONE)
-        return false;
-
     Slots[EmptyIdx].WeaponId = WeaponId;
+    Slots[EmptyIdx].Count = 1;
 
 #if !(UE_BUILD_SHIPPING)
     if (GEngine)
     {
-        FString Msg = FString::Printf(TEXT("[인벤토리] 무기 추가됨: %s (슬롯 %d)"),
-            *WeaponId.ToString(), EmptyIdx + 1);
-        GEngine->AddOnScreenDebugMessage(-1, 2.5f, FColor::Green, Msg);
+        GEngine->AddOnScreenDebugMessage(
+            -1, 2.0f, FColor::Green,
+            FString::Printf(TEXT("[인벤토리] %s 신규 획득 (슬롯 %d)"),
+                *WeaponId.ToString(), EmptyIdx));
     }
 #endif
     return true;
 }
 
-// ─────────────────────────────────────
-// 슬롯 개수 변경 (최소 4칸, 소지 수보다 작게 줄이면 실패)
-// ─────────────────────────────────────
+/** DataTable */
+bool UP9InventoryComponent::AddWeaponById_Validated(FName WeaponId)
+{
+    FP9WeaponData Row;
+    if (!GetWeaponData(WeaponId, Row))
+        return false; // 정의되지 않은 ID
+
+    return AddWeaponById(WeaponId);
+}
+
+/** 슬롯 개수 변경 */
 bool UP9InventoryComponent::SetMaxSlots(int32 NewMaxSlots)
 {
     if (NewMaxSlots < 4)
         return false;
 
-    // 현재 보유 수(빈칸 제외)
+    // 현재 보유 수(Count>0만 카운트)
     int32 Owned = 0;
     for (const FInventorySlot& S : Slots)
     {
-        if (!S.WeaponId.IsNone())
-            ++Owned;
+        if (S.Count > 0) ++Owned;
     }
 
     if (NewMaxSlots < Owned)
@@ -162,21 +192,18 @@ bool UP9InventoryComponent::SetMaxSlots(int32 NewMaxSlots)
     return true;
 }
 
-// ─────────────────────────────────────
-// 전체 초기화(사망/재시작)
-//  - 전체 비우고 권총 복구
-// ─────────────────────────────────────
+/** 전체 초기화 → 전부 비우고 권총 복구 */
 void UP9InventoryComponent::ResetAll()
 {
     for (FInventorySlot& S : Slots)
+    {
         S.WeaponId = NAME_None;
-
+        S.Count = 0;
+    }
     EnsureDefaultHandgun();
 }
 
-// ─────────────────────────────────────
-// DataTable 연동
-// ─────────────────────────────────────
+/** DataTable 연동 */
 bool UP9InventoryComponent::GetWeaponData(FName WeaponId, FP9WeaponData& OutRow) const
 {
     if (!WeaponId.IsNone() && WeaponDataTable)
@@ -185,20 +212,11 @@ bool UP9InventoryComponent::GetWeaponData(FName WeaponId, FP9WeaponData& OutRow)
         if (const FP9WeaponData* Found =
             WeaponDataTable->FindRow<FP9WeaponData>(WeaponId, Ctx, /*bWarnIfRowMissing*/ false))
         {
-            OutRow = *Found;
+            OutRow = *Found; // 값 복사
             return true;
         }
     }
     return false;
-}
-
-bool UP9InventoryComponent::AddWeaponById_Validated(FName WeaponId)
-{
-    FP9WeaponData Row;
-    if (!GetWeaponData(WeaponId, Row))
-        return false; // 정의되지 않은 ID
-
-    return AddWeaponById(WeaponId);
 }
 
 bool UP9InventoryComponent::GetSlotWeaponData(int32 SlotIndex, FP9WeaponData& OutRow) const
