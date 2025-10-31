@@ -93,6 +93,16 @@ public:
 	float GetBonusReloadSpeed() const;
 	float GetBonusLuck() const;
 
+	// 상점 연동용 골드 계산
+	UFUNCTION(BlueprintPure, Category = "Gold")
+	int32 GetGold() const;
+
+	UFUNCTION(BlueprintPure, Category = "Gold")
+	bool CanAfford(int32 Cost) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Gold")
+	bool SpendGold(int32 Cost);
+
 private:
 	void GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutValue, FString& OutDescription);
 
