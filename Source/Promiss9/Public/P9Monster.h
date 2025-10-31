@@ -70,7 +70,7 @@ protected:
 public:
     virtual void Tick(float DeltaTime) override;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster")
     EMonsterState CurrentState;
 
     // 몬스터가 데미지를 입는 함수
