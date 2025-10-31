@@ -87,11 +87,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddGold(int32 GoldAmount);
 
+	UFUNCTION(BlueprintCallable)
+	void AddKillCount();
+
 	float GetBonusHeadshotDamage() const;
 	float GetBonusHeadshotChance() const;
 	float GetBonusDamagePer() const;
 	float GetBonusReloadSpeed() const;
 	float GetBonusLuck() const;
+
 
 private:
 	void GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutValue, FString& OutDescription);
@@ -105,6 +109,9 @@ protected:
 	int32 XPForNextLevel;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gold")
 	int32 CurrentGold;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KillCount")
+	int32 Killcount;
+
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
