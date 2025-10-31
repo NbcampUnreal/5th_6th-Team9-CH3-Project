@@ -58,7 +58,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Speed")
 	void AddNormalSpeed(float Amount);
 
-	void UpdateMoveSpeed();
+	//void UpdateMoveSpeed();
 
 	// 앞구르기 관련
 	void ResetRollCooldown();
@@ -79,17 +79,9 @@ public:
 	UFUNCTION()
 	void MoveCompleted(const FInputActionValue& Value);
 	UFUNCTION()
-	void StartDiagonalMove(const FInputActionValue& Value);
-	UFUNCTION()
-	void StopDiagonalMove(const FInputActionValue& Value);
-	UFUNCTION()
 	void StartJump(const FInputActionValue& Value);
 	UFUNCTION()
 	void StopJump(const FInputActionValue& Value);
-	UFUNCTION()
-	void StartSprint(const FInputActionValue& Value);
-	UFUNCTION()
-	void StopSprint(const FInputActionValue& Value);
 	UFUNCTION()
 	void Look(const FInputActionValue& Value);
 	UFUNCTION()
@@ -153,12 +145,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Roll|Animation")
 	UAnimMontage* ForwardRollMontage;
 
-	// 기본 및 앞구르기 속도
+	// 기본 속도 및 앞구르기 거리
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Speed")
 	float NormalSpeed;
-	float SprintSpeedMultiplier;
-	float SprintSpeed;
-	float ForwardRollSpeed;
+	float RollDistance;
 
 	// 캐릭터 이동 관련
 	float DefaultYaw;
@@ -171,9 +161,6 @@ protected:
 	float SavedArmLength;
 	FRotator SavedControlRotation;
 	bool bIsFreeLookMode;
-
-	// 달리기 여부
-	bool bSprinting;
 
 	// Health
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
