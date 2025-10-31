@@ -106,15 +106,15 @@ public:
 	void OnFreeLookEnd(const FInputActionValue& Value);
 
 	// 무기 장착
-	void EquipWeaponToMultipleSockets();
 	void EquipWeaponToRightHandSockets();
 
 	// 라인트레이스 가장 가까운 적 추적
 	UFUNCTION(BlueprintCallable, Category = "Targeting")
 	void RotateMeshToTarget(AActor* TargetActor);
 
-	// 몽타주 실행 중 무기 숨기기
+	// 앞구르기 애니메이션 몽타주 실행 중 무기 숨기기
 	void HideAllWeapons(bool bHide);
+	void LaunchForwardRoll();
 
 protected:
 

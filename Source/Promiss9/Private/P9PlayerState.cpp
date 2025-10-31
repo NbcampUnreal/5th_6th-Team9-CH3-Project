@@ -263,4 +263,26 @@ float AP9PlayerState::GetBonusLuck() const
 	return BonusLuck;
 }
 
+//상점 연동용
+
+int32 AP9PlayerState::GetGold() const
+{
+	return CurrentGold;
+}
+
+bool AP9PlayerState::CanAfford(int32 Cost) const
+{
+	// 0원 이하라면 항상 가능, 그 외엔 보유 골드로 판단
+	return (Cost <= 0) || (CurrentGold >= Cost);
+}
+
+bool AP9PlayerState::SpendGold(int32 Cost)
+{
+	if (Cost <= 0) return true;
+	if (CurrentGold < Cost) return false;
+
+	CurrentGold -= Cost;
+	return true;
+}
+
 
