@@ -1,10 +1,11 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "P9InventoryComponent.h"
+#include "P9FinalBossAltar.h"
 #include "P9Character.generated.h"
 
 class USpringArmComponent;
@@ -73,6 +74,11 @@ public:
 		struct FDamageEvent const& DamageEvent,
 		AController* EventInstigator,
 		AActor* DamageCauser) override;
+
+	//FinalBoss
+	UPROPERTY(BlueprintReadOnly, Category = "Interaction")
+	TObjectPtr<AP9FinalBossAltar> CurrentOverlappingAltar=nullptr;
+
 
 	UFUNCTION()
 	void Move(const FInputActionValue& Value);
@@ -194,4 +200,15 @@ protected:
 
 	FOnMontageEnded RollMontageEndedDelegate;
 	FTimerHandle RollCooldownTimerHandle;
+
+	//FinalBoss
+
+	void InteractPressed();
+	void InteractReleased();
+
+private:
+	//FinalBoss
+	FTimerHandle InteractHoldTimer;
+
+	void InteractHoldSucceeded();
 };
