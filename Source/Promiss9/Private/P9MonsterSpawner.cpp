@@ -27,6 +27,21 @@ void AP9MonsterSpawner::BeginPlay()
 void AP9MonsterSpawner::WaveStarted(int32 NewWaveIndex, FString NewWaveName)
 {
 	if (GameState == nullptr) return;
+
+	const int32 PreWaveIndex = NewWaveIndex - 1;
+	if (GameState->WaveSettings.IsValidIndex(PreWaveIndex))
+	{
+		const FP9WaveData PreWaveData = GameState->WaveSettings[PreWaveIndex];
+
+		if (PreWaveData.MidBoss != nullptr)
+		{
+			FVector BossSpawnLocation;
+			if (FindSpawnLocation(BossSpawnLocation))
+			{
+				GetWorld()->SpawnActor<AP9Monster>(PreWaveData.MidBoss, BossSpawnLocation, FRotator::ZeroRotator);
+			}
+		}
+	}
 	CurrentWaveIndex = NewWaveIndex;
 
 	if (!GetWorld()->GetTimerManager().IsTimerActive(SpawnTimer))

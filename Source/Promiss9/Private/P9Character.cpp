@@ -42,6 +42,19 @@ AP9Character::AP9Character()
 	WaeponSocket_rl = CreateDefaultSubobject<USceneComponent>(TEXT("Socket_rl"));
 	WaeponSocket_rl->SetupAttachment(GetMesh());
 
+	// 신 컴포넌트 위치, 회전 조정(캐릭터 Mesh를 중심으로 4방향)
+	WaeponSocket_fr->SetRelativeLocation(FVector(-80.f, 80.0f, 210.0f));
+	WaeponSocket_fr->SetRelativeRotation(FRotator(0.0f, 135.0f, 0.0f));
+
+	WaeponSocket_fl->SetRelativeLocation(FVector(80.0f, 80.0f, 210.0f));
+	WaeponSocket_fl->SetRelativeRotation(FRotator(0.0f, 45.0f, 0.0f));
+
+	WaeponSocket_rr->SetRelativeLocation(FVector(-80.0f, -80.0f, 210.0f));
+	WaeponSocket_rr->SetRelativeRotation(FRotator(0.0f, -135.0f, 0.0f));
+
+	WaeponSocket_rl->SetRelativeLocation(FVector(80.0f, -80.0f, 210.0f));
+	WaeponSocket_rl->SetRelativeRotation(FRotator(0.0f, -45.0f, 0.0f));
+
 	// StaticMeshComponent 생성, 부착
 	WeaponMesh_fr = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh_fr"));
 	WeaponMesh_fr->SetupAttachment(WaeponSocket_fr);
@@ -52,18 +65,7 @@ AP9Character::AP9Character()
 	WeaponMesh_rl = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh_rl"));
 	WeaponMesh_rl->SetupAttachment(WaeponSocket_rl);
 
-	// 위치, 회전 조정(캐릭터 Mesh를 중심으로 4방향
-	WeaponMesh_fr->SetRelativeLocation(FVector(80.f, 80.0f, 100.0f));
-	WeaponMesh_fr->SetRelativeRotation(FRotator(0.0f, 45.0f, 0.0f));
 
-	WeaponMesh_fl->SetRelativeLocation(FVector(-80.0f, 80.0f, 100.0f));
-	WeaponMesh_fl->SetRelativeRotation(FRotator(0.0f, 135.0f, 0.0f));
-
-	WeaponMesh_rr->SetRelativeLocation(FVector(80.0f, -80.0f, 100.0f));
-	WeaponMesh_rr->SetRelativeRotation(FRotator(0.0f, -135.0f, 0.0f));
-
-	WeaponMesh_rl->SetRelativeLocation(FVector(80.0f, -80.0f, 100.0f));
-	WeaponMesh_rl->SetRelativeRotation(FRotator(0.0f, -45.0f, 0.0f));
 
 	InventoryComponent = CreateDefaultSubobject<UP9InventoryComponent>(TEXT("InventoryComponent"));
 
@@ -71,11 +73,8 @@ AP9Character::AP9Character()
 	SavedArmLength = 0.0f;
 
 	// 이동 관련
-	NormalSpeed = 600.0f;
-	SprintSpeedMultiplier = 1.5f;
-	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
+	NormalSpeed = 300.0f;
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
-	bSprinting = false;
 
 	// 회전 관련
 	GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -87,7 +86,7 @@ AP9Character::AP9Character()
 	bIsDiagonalMoving = false;
 
 	// 앞구르기 관련
-	ForwardRollSpeed = 900.0f;
+	RollDistance = 600.0f;
 	bForwardRolling = false;
 	bCanRoll = true;
 
@@ -100,16 +99,10 @@ void AP9Character::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (InventoryComponent)
+	if (TargetActor)
 	{
-		UE_LOG(LogTemp, Log, TEXT("인벤토리 컴포넌트 부착"));
+		RotateMeshToTarget(TargetActor);
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("인벤토리 컴포넌트가 부착되지 않음!"));
-	}
-
-
 	EquipWeaponToMultipleSockets();
 	EquipWeaponToRightHandSockets();
 }
@@ -121,6 +114,9 @@ void AP9Character::Tick(float DeltaTime)
 
 	if (!Controller) return;
 
+	// 앞구르기 중에 회전 X
+	if (bForwardRolling) return;
+
 	if (!bIsFreeLookMode)
 	{
 		// 컨트롤러(카메라) 방향 기준으로 몸 회전
@@ -128,10 +124,7 @@ void AP9Character::Tick(float DeltaTime)
 		ControlRot.Pitch = 0.f;
 		ControlRot.Roll = 0.f;
 
-		if (!bIsDiagonalMoving)
-		{
-			TargetYawOffset = FMath::FInterpTo(TargetYawOffset, 0.f, DeltaTime, RotationInterpSpeed);
-		}
+		TargetYawOffset = FMath::FInterpTo(TargetYawOffset, 0.f, DeltaTime, RotationInterpSpeed);
 
 		FRotator TargetRot = ControlRot;
 		TargetRot.Yaw += TargetYawOffset;
@@ -139,11 +132,6 @@ void AP9Character::Tick(float DeltaTime)
 		// 부드럽게 회전 보간
 		FRotator NewRot = FMath::RInterpTo(GetActorRotation(), TargetRot, DeltaTime, RotationInterpSpeed);
 		SetActorRotation(NewRot);
-	}
-	// 앞구르기
-	if (bForwardRolling)
-	{
-		AddMovementInput(GetActorForwardVector(), 1.0f);
 	}
 }
 
@@ -171,25 +159,6 @@ void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 					this,
 					&AP9Character::MoveCompleted
 				);
-
-			}
-
-			// 대각선 이동 바인딩
-			if (PlayerController->DiagonalAction)
-			{
-				EnhancedInput->BindAction(
-					PlayerController->DiagonalAction,
-					ETriggerEvent::Triggered,
-					this,
-					&AP9Character::StartDiagonalMove
-				);
-
-				EnhancedInput->BindAction(
-					PlayerController->DiagonalAction,
-					ETriggerEvent::Completed,
-					this,
-					&AP9Character::StopDiagonalMove
-				);
 			}
 
 			// 점프 입력 바인딩
@@ -207,24 +176,6 @@ void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 					ETriggerEvent::Completed,
 					this,
 					&AP9Character::StopJump
-				);
-			}
-
-			// Sprint
-			if (PlayerController->SprintAction)
-			{
-				EnhancedInput->BindAction(
-					PlayerController->SprintAction,
-					ETriggerEvent::Triggered,
-					this,
-					&AP9Character::StartSprint
-				);
-
-				EnhancedInput->BindAction(
-					PlayerController->SprintAction,
-					ETriggerEvent::Completed,
-					this,
-					&AP9Character::StopSprint
 				);
 			}
 
@@ -308,6 +259,12 @@ void AP9Character::Move(const FInputActionValue& Value)
 		return;
 	}
 
+	// 앞구르기 중 무시
+	if (bForwardRolling)
+	{
+		return;
+	}
+
 	FVector2D MoveInput = Value.Get<FVector2D>();
 	float ForwardValue = MoveInput.X;
 	float SideValue = MoveInput.Y;
@@ -354,48 +311,14 @@ void AP9Character::MoveCompleted(const FInputActionValue& Value)
 	}
 }
 
-void AP9Character::StartDiagonalMove(const FInputActionValue& Value)
+void AP9Character::StartJump(const FInputActionValue& Value)
 {
-	if (!Controller)
+	// 앞구르기 중 무시
+	if (bForwardRolling)
 	{
 		return;
 	}
 
-	float DiagonalValue = Value.Get<float>();
-
-	FRotator ControlRot = Controller->GetControlRotation();
-	ControlRot.Pitch = 0.f;
-	ControlRot.Roll = 0.f;
-
-	if (!FMath::IsNearlyZero(DiagonalValue))
-	{
-		bIsDiagonalMoving = true;
-
-		if (DiagonalValue < 0)
-		{
-			TargetYawOffset = -45.f;
-		}
-		else if (DiagonalValue > 0)
-		{
-			TargetYawOffset = 45.f;
-		}
-
-		FRotator MoveRot(0.f, ControlRot.Yaw + TargetYawOffset, 0.f);
-		FVector MoveDir = FRotationMatrix(MoveRot).GetUnitAxis(EAxis::X);
-		AddMovementInput(MoveDir, 1.f);
-	}
-}
-
-void AP9Character::StopDiagonalMove(const FInputActionValue& Value)
-{
-	if (bIsDiagonalMoving)
-	{
-		bIsDiagonalMoving = false;
-	}
-}
-
-void AP9Character::StartJump(const FInputActionValue& Value)
-{
 	if (Value.Get<bool>())
 	{
 		Jump();
@@ -408,18 +331,6 @@ void AP9Character::StopJump(const FInputActionValue& Value)
 	{
 		StopJumping();
 	}
-}
-
-void AP9Character::StartSprint(const FInputActionValue& Value)
-{
-	bSprinting = true;
-	UpdateMoveSpeed();
-}
-
-void AP9Character::StopSprint(const FInputActionValue& Value)
-{
-	bSprinting = false;
-	UpdateMoveSpeed();
 }
 
 void AP9Character::Look(const FInputActionValue& Value)
@@ -490,6 +401,10 @@ void AP9Character::StartForwardRoll()
 		bForwardRolling = true;
 		bCanRoll = false;
 
+		// 회전 잠금
+		bUseControllerRotationYaw = false;
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+
 		// 무기 숨기기
 		HideAllWeapons(true);
 
@@ -502,8 +417,9 @@ void AP9Character::StartForwardRoll()
 
 		// 앞 방향으로 캐릭터 이동
 		FVector ForwardDir = GetActorForwardVector();
-		AddMovementInput(ForwardDir, 1.0f);
+		FVector RollVelocity = ForwardDir * RollDistance;
 
+		LaunchCharacter(RollVelocity, true, true);
 
 		GetWorldTimerManager().SetTimer(RollCooldownTimerHandle, this, &AP9Character::ResetRollCooldown, 3.0f, false);
 	}
@@ -515,6 +431,10 @@ void AP9Character::OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 	if (Montage == ForwardRollMontage)
 	{
 		bForwardRolling = false;
+
+		bUseControllerRotationYaw = true;
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+
 
 		HideAllWeapons(false);
 	}
@@ -574,6 +494,24 @@ void AP9Character::AddHealth(float Amount)
 	Health = FMath::Clamp(Health + Amount, 0.0f, MaxHealth);
 }
 
+
+float AP9Character:: GetMaxHealth() const
+{
+	return MaxHealth;
+}
+
+void AP9Character::SetMaxHealth(float NewMaxHealth)
+{
+	MaxHealth = FMath::Max(NewMaxHealth, 0.0f);
+}
+
+void AP9Character::AddMaxHealth(float Amount)
+{
+	MaxHealth += Amount;
+	MaxHealth = FMath::Max(MaxHealth, 0.0f);
+}
+
+
 float AP9Character::GetNormalSpeed() const
 {
 	return NormalSpeed;
@@ -615,11 +553,11 @@ void AP9Character::OnDeath()
 
 }
 
-void AP9Character::UpdateMoveSpeed()
-{
-	const float BaseSpeed = bSprinting ? SprintSpeed : NormalSpeed;
-	GetCharacterMovement()->MaxWalkSpeed = BaseSpeed * SprintSpeedMultiplier;
-}
+//void AP9Character::UpdateMoveSpeed()
+//{
+//	const float BaseSpeed = NormalSpeed;
+//	GetCharacterMovement()->MaxWalkSpeed = BaseSpeed;
+//}
 
 float AP9Character::TakeDamage(
 	float DamageAmount,
@@ -742,4 +680,19 @@ void AP9Character::HideAllWeapons(bool bHide)
 			}
 		}
 	}
+}
+
+void AP9Character::RotateMeshToTarget(AActor* InTargetActor)
+{
+	if (!InTargetActor || !WeaponMesh_rl) return;
+
+	FVector TargetLocation = InTargetActor->GetActorLocation();
+	FVector MyLocation = WeaponMesh_rl->GetComponentLocation();
+
+	FVector Direction = TargetLocation - MyLocation;
+	Direction.Z = 0.0f; // 수평 회전만 고려
+	Direction.Normalize();
+
+	FRotator TargetRotation = Direction.Rotation();
+	WeaponMesh_rl->SetWorldRotation(TargetRotation);
 }

@@ -10,6 +10,11 @@ struct FSpawnData
 {
 	GENERATED_BODY()
 
+	FSpawnData()
+	{
+		MonsterClass = nullptr;
+		SpawnCount = 0;
+	}
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<AP9Monster> MonsterClass;
@@ -21,6 +26,10 @@ struct FP9WaveData
 {
 	GENERATED_BODY()
 	
+	FP9WaveData()
+	{
+		WaveEndTime = 0.0f;
+	}
 public:
 	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = "Wave")
 	float WaveEndTime;		// wave 종료 시간
@@ -28,6 +37,8 @@ public:
 	FString WaveName;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TArray<FSpawnData> SpawnList;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave|Boss")
+	TSubclassOf<AP9Monster> MidBoss;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWaveChangedSignature, int32, NewWaveIndex, FString, NewWaveName);
