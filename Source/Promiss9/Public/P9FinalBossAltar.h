@@ -15,32 +15,36 @@ public:
 
 	AP9FinalBossAltar();
 
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category ="Altar")
-	TObjectPtr<USphereComponent> Trigger;
+	TObjectPtr<USphereComponent> Trigger=nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Altar")
-	TObjectPtr<USceneComponent> BossSpawnPoint;
+	TObjectPtr<USceneComponent> BossSpawnPoint=nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Altar")
 	TSubclassOf<AP9Monster> FinalBoss;
 
-	UPROPERTY(EditAnywhere, Category = "Altar")
-	float InteractionDuration = 3.0f;
+
 
 	FTimerHandle InterActionTimerHandle;
 
 	virtual void BeginPlay() override;
 
 
-private :
-	void InteractionTimerComplete();
+
 
 public:	
+
+	UPROPERTY(EditAnywhere, Category = "Altar")
+	float InteractionDuration = 3.0f;
 
 	UFUNCTION()
 	void OverlapBegin(UPrimitiveComponent* OverlappedCompoent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
 	void OverlapEnd(UPrimitiveComponent* OvelappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
+	void InteractionTimerComplete();
 
 };

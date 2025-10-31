@@ -77,7 +77,8 @@ public:
 
 	//FinalBoss
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction")
-	TObjectPtr<AP9FinalBossAltar> CurrentOverlappingAltar;
+	TObjectPtr<AP9FinalBossAltar> CurrentOverlappingAltar=nullptr;
+
 
 	UFUNCTION()
 	void Move(const FInputActionValue& Value);
@@ -202,6 +203,12 @@ protected:
 
 	//FinalBoss
 
-	void InteractPrassed();
+	void InteractPressed();
 	void InteractReleased();
+
+private:
+	//FinalBoss
+	FTimerHandle InteractHoldTimer;
+
+	void InteractHoldSucceeded();
 };

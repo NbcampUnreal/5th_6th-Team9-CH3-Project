@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "P9Character.h"
 #include "P9PlayerController.h"
@@ -243,9 +243,16 @@ void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 			{
 				EnhancedInput->BindAction(
 					PlayerController->InteractAction,
+					ETriggerEvent::Started,
+					this,
+					&AP9Character::InteractPressed
+				);
+
+				EnhancedInput->BindAction(
+					PlayerController->InteractAction,
 					ETriggerEvent::Completed,
 					this,
-					&AP9Character::Interact
+					&AP9Character::InteractReleased
 				);
 			}
 		}
@@ -679,6 +686,32 @@ void AP9Character::HideAllWeapons(bool bHide)
 				Primitive->SetCollisionEnabled(bHide ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
 			}
 		}
+	}
+}
+
+void AP9Character::InteractPressed()
+{
+	if (CurrentOverlappingAltar != nullptr)
+	{
+		GetWorldTimerManager().SetTimer(InteractHoldTimer, this, &AP9Character::InteractHoldSucceeded, CurrentOverlappingAltar->InteractionDuration, false);
+	}
+}
+
+void AP9Character::InteractReleased()
+{
+	bool bWasHolding = GetWorldTimerManager().IsTimerActive(InteractHoldTimer);
+	GetWorldTimerManager().ClearTimer(InteractHoldTimer);
+	if (bWasHolding)
+	{
+		//상점호출
+	}
+}
+
+void AP9Character::InteractHoldSucceeded()
+{
+	if (CurrentOverlappingAltar != nullptr)
+	{
+		CurrentOverlappingAltar->InteractionTimerComplete();
 	}
 }
 

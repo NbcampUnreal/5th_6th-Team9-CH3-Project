@@ -44,3 +44,11 @@ void AP9FinalBossAltar::OverlapEnd(UPrimitiveComponent* OvelappedComponent, AAct
 		Player->CurrentOverlappingAltar = nullptr;
 	}
 }
+
+void AP9FinalBossAltar::InteractionTimerComplete()
+{
+	if (FinalBoss == nullptr) return;
+	if (BossSpawnPoint == nullptr) return;
+
+	GetWorld()->SpawnActor<AP9Monster>(FinalBoss, BossSpawnPoint->GetComponentLocation(), BossSpawnPoint->GetComponentRotation());
+}
