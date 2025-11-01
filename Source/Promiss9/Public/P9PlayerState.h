@@ -87,11 +87,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddGold(int32 GoldAmount);
 
+	UFUNCTION(BlueprintCallable)
+	void AddKillCount();
+
 	float GetBonusHeadshotDamage() const;
 	float GetBonusHeadshotChance() const;
 	float GetBonusDamagePer() const;
 	float GetBonusReloadSpeed() const;
 	float GetBonusLuck() const;
+
 
 	// 상점 연동용 골드 계산
 	UFUNCTION(BlueprintPure, Category = "Gold")
@@ -102,6 +106,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Gold")
 	bool SpendGold(int32 Cost);
+
 
 private:
 	void GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutValue, FString& OutDescription);
@@ -115,6 +120,9 @@ protected:
 	int32 XPForNextLevel;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gold")
 	int32 CurrentGold;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KillCount")
+	int32 Killcount;
+
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
