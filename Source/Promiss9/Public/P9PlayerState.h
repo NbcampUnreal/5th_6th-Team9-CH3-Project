@@ -110,7 +110,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Gold")
 	bool SpendGold(int32 Cost);
 
-	// 상점 인벤토리 연동
+	// 상점 인벤토리 연동(무기랑 최종 데미지)
 	UFUNCTION(BlueprintCallable, Category = "Weapons")
 	void AddWeaponDamageBonus(FName WeaponId, int32 FlatBonus);
 
@@ -149,7 +149,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = " Level")
 	TObjectPtr<UDataTable> RewardStatTable = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapons|Data")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapons|Data") // 무기 기본 수치
 	TObjectPtr<UDataTable> WeaponDataTable = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapons")

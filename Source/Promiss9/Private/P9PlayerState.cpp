@@ -290,9 +290,9 @@ bool AP9PlayerState::SpendGold(int32 Cost)
 
 void AP9PlayerState::AddWeaponDamageBonus(FName WeaponId, int32 FlatBonus)
 {
-	if (WeaponId.IsNone() || FlatBonus == 0) return;
+	if (WeaponId.IsNone() || FlatBonus == 0) return; //무기 ID가 없으면 무시하는 거
 
-	WeaponFlatBonus.FindOrAdd(WeaponId) += FlatBonus;
+	WeaponFlatBonus.FindOrAdd(WeaponId) += FlatBonus; // 이미 있는 무기가 추가되면 값을 누적, 없으면 새로 추가하기
 }
 
 bool AP9PlayerState::GetEffectiveDamage(FName WeaponId, float& OutDamage) const
@@ -301,12 +301,13 @@ bool AP9PlayerState::GetEffectiveDamage(FName WeaponId, float& OutDamage) const
 	if (!WeaponDataTable || WeaponId.IsNone()) return false;
 
 	const FP9WeaponData* Row = WeaponDataTable->FindRow<FP9WeaponData>(
-		WeaponId, TEXT("PS_GetEffectiveDamage"), false);
+		WeaponId, TEXT("PS_GetEffectiveDamage"), false); //DataTable에서 무기의 기본값을 찾기, row를 못찾으면 찾을때 쓰는용 문구.
 	if (!Row) return false;
 
 	const int32* Flat = WeaponFlatBonus.Find(WeaponId);
 	const int32 Add = Flat ? *Flat : 0;
 
 	OutDamage = Row->Damage + Add;
+	return true;
 }
 
