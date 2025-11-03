@@ -529,7 +529,7 @@ void AP9Character::SetNormalSpeed(float NewNormalSpeed)
 
 void AP9Character::AddNormalSpeed(float Amount)
 {
-	NormalSpeed += (NormalSpeed)*(Amount/100);
+	NormalSpeed += (300)*(Amount/100);
 }
 
 void AP9Character::OnDeath()
