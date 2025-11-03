@@ -6,7 +6,7 @@
 UP9InventoryComponent::UP9InventoryComponent()
 {
     PrimaryComponentTick.bCanEverTick = false;
-    NormalizeLength(); // 배열/초기값 보정
+    NormalizeLength();
 }
 
 void UP9InventoryComponent::BeginPlay()
@@ -21,7 +21,7 @@ void UP9InventoryComponent::TickComponent(
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-/** 배열 보정 + 권총 보장 */
+/** 권총 보장 */
 void UP9InventoryComponent::NormalizeLength()
 {
     if (MaxSlots < 4) MaxSlots = 4; // 0=권총, 1~=추가
@@ -35,7 +35,6 @@ void UP9InventoryComponent::NormalizeLength()
         Slots[i].Count = 0;
     }
 
-    // 기존 칸 보정
     for (int32 i = 0; i < OldNum && i < Slots.Num(); ++i)
     {
         if (!Slots[i].WeaponId.IsNone() && Slots[i].Count <= 0)
@@ -61,7 +60,7 @@ int32 UP9InventoryComponent::FindEmptySlotIndex_From1() const
     return INDEX_NONE;
 }
 
-/**  무기 위치 */
+/** 특정 무기 위치 */
 int32 UP9InventoryComponent::FindSlotIndexById(FName WeaponId) const
 {
     if (WeaponId.IsNone()) return INDEX_NONE;
@@ -85,7 +84,7 @@ int32 UP9InventoryComponent::GetWeaponCount(FName WeaponId) const
     return (Idx != INDEX_NONE) ? Slots[Idx].Count : 0;
 }
 
-/** 0번 권총  */
+/** 0번 권총 보장 */
 void UP9InventoryComponent::EnsureDefaultHandgun()
 {
     if (!Slots.IsValidIndex(0)) return;
@@ -102,16 +101,22 @@ void UP9InventoryComponent::EnsureDefaultHandgun()
     if (Slots[0].Count <= 0) Slots[0].Count = 1;
 }
 
-/** 무기 추가: 이미 있으면 Count++(스택), 없으면 1~에서 빈칸에 신규(Count=1) */
+/** 무기 추가: 이미 있으면 Count++, 없으면 1~에서 빈칸에 새로 넣기 */
 bool UP9InventoryComponent::AddWeaponById(FName WeaponId)
 {
     if (WeaponId.IsNone())
         return false;
 
-    // 0번 슬롯의 권총은 추가/변경 불가
+    // 0번 슬롯의 권총은 수동 추가/변경 불가
     if (WeaponId == DefaultHandgunId)
     {
-
+#if !(UE_BUILD_SHIPPING)
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan,
+                TEXT("[Inventory] 권총은 기본 소지이므로 AddWeaponById로 추가하지 않습니다."));
+        }
+#endif
         return false;
     }
 
@@ -161,17 +166,16 @@ bool UP9InventoryComponent::AddWeaponById(FName WeaponId)
     return true;
 }
 
-/** DataTable */
 bool UP9InventoryComponent::AddWeaponById_Validated(FName WeaponId)
 {
     FP9WeaponData Row;
     if (!GetWeaponData(WeaponId, Row))
-        return false; // 정의되지 않은 ID
+        return false;
 
     return AddWeaponById(WeaponId);
 }
 
-/** 슬롯 개수 변경 */
+/** 슬롯 개수 변경(소지 수보다 작게 줄이면 실패) */
 bool UP9InventoryComponent::SetMaxSlots(int32 NewMaxSlots)
 {
     if (NewMaxSlots < 4)
@@ -192,7 +196,7 @@ bool UP9InventoryComponent::SetMaxSlots(int32 NewMaxSlots)
     return true;
 }
 
-/** 전체 초기화 → 전부 비우고 권총 복구 */
+/** 전체 초기화 */
 void UP9InventoryComponent::ResetAll()
 {
     for (FInventorySlot& S : Slots)
@@ -212,8 +216,8 @@ bool UP9InventoryComponent::GetWeaponData(FName WeaponId, FP9WeaponData& OutRow)
         if (const FP9WeaponData* Found =
             WeaponDataTable->FindRow<FP9WeaponData>(WeaponId, Ctx, /*bWarnIfRowMissing*/ false))
         {
-            OutRow = *Found; // 값 복사
-            return true;
+            OutRow = *Found; 
+                return true;
         }
     }
     return false;

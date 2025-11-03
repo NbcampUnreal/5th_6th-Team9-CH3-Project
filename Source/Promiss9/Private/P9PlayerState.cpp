@@ -2,265 +2,153 @@
 #include "P9Character.h"
 #include "Algo/RandomShuffle.h"
 
+#include "P9WeaponData.h"
 
 AP9PlayerState::AP9PlayerState()
 {
-	
 	CurrentLevel = 1;
-	
-	CurrentXP=0.0f;
-	
+	CurrentXP = 0.f;
+	XPForNextLevel = 50;
+
 	CurrentGold = 0;
 
-	XPForNextLevel=50;
-
-	BonusHeadshotChance=0.0f;
-	BonusHeadshotDamage=0.0f;
-	BonusDamagePer=0.0f;
-	BonusReloadSpeed=0.0f;
-	BonusLuck=0.0f;
+	BonusHeadshotChance = 0.f;
+	BonusHeadshotDamage = 0.f;
+	BonusDamagePer = 0.f;
+	BonusReloadSpeed = 0.f;
+	BonusLuck = 0.f;
 }
 
 void AP9PlayerState::GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutValue, FString& OutDescription)
 {
-	if (RewardStatTable == nullptr) return;
-	FName RowName;
+	if (!RewardStatTable) return;
 
+	FName RowName = NAME_None;
 	switch (Stat)
 	{
-	case EP9Stat::MoveSpeed:
-	{
-		RowName = FName("MoveSpeed");
-		break;
+	case EP9Stat::MoveSpeed:       RowName = TEXT("MoveSpeed");      break;
+	case EP9Stat::Health:          RowName = TEXT("Health");         break;
+	case EP9Stat::HeadshotChance:  RowName = TEXT("HeadshotChance"); break;
+	case EP9Stat::HeadshotDamage:  RowName = TEXT("HeadshotDamage"); break;
+	case EP9Stat::ReloadSpeed:     RowName = TEXT("ReloadSpeed");    break;
+	case EP9Stat::DamagePer:       RowName = TEXT("DamagePer");      break;
+	case EP9Stat::Luck:            RowName = TEXT("Luck");           break;
+	default: return;
 	}
 
-	case EP9Stat::Health:
-	{
-		RowName = FName("Health");
-		break;
-	}
-	case EP9Stat::HeadshotChance:
-	{
-		RowName = FName("HeadshotChance");
-		break;
-	}
+	const FP9RewardStatData* Row = RewardStatTable->FindRow<FP9RewardStatData>(RowName, TEXT("P9PS_GetRewardDetail"), false);
+	if (!Row) return;
 
-	case EP9Stat::HeadshotDamage:
-	{
-		RowName = FName("HeadshotDamage");
-		break;
-	}
-	case EP9Stat::ReloadSpeed:
-	{
-		RowName = FName("ReloadSpeed");
-		break;
-	}
-	case EP9Stat::DamagePer:
-	{
-		RowName = FName("DamagePer");
-		break;
-	}
-
-	case EP9Stat::Luck:
-	{
-		RowName = FName("Luck");
-		break;
-	}
-	}
-
-	FP9RewardStatData* RowData = RewardStatTable->FindRow<FP9RewardStatData>(RowName, TEXT(""));
-	if (RowData == nullptr) return;
-	
 	switch (Rarity)
 	{
-	case EP9Rarity::Common:
-	{
-		OutValue = RowData->Common;
-		break;
-	}
-	case EP9Rarity::Uncommon:
-	{
-		OutValue = RowData->Uncommon;
-		break;
-	}
-	case EP9Rarity::Rare:
-	{
-		OutValue = RowData->Rare;
-		break;
-	}
-	case EP9Rarity::Legendary:
-	{
-		OutValue = RowData->Legendary;
-		break;
-	}
+	case EP9Rarity::Common:    OutValue = Row->Common;    break;
+	case EP9Rarity::Uncommon:  OutValue = Row->Uncommon;  break;
+	case EP9Rarity::Rare:      OutValue = Row->Rare;      break;
+	case EP9Rarity::Legendary: OutValue = Row->Legendary; break;
+	default: return;
 	}
 
-	FString RarityString;
+	const TCHAR* RarityText = TEXT("");
 	switch (Rarity)
 	{
-	case EP9Rarity::Common:
-	{
-		RarityString = TEXT("일반");
-		break;
-	}
-	case EP9Rarity::Uncommon:
-	{
-		RarityString = TEXT("고급");
-		break;
-	}
-	case EP9Rarity::Rare:
-	{
-		RarityString = TEXT("희귀");
-		break;
-	}
-	case EP9Rarity::Legendary:
-	{
-		RarityString = TEXT("전설");
-		break;
-	}
+	case EP9Rarity::Common:    RarityText = TEXT("일반");  break;
+	case EP9Rarity::Uncommon:  RarityText = TEXT("고급");  break;
+	case EP9Rarity::Rare:      RarityText = TEXT("희귀");  break;
+	case EP9Rarity::Legendary: RarityText = TEXT("전설");  break;
+	default: break;
 	}
 
-	OutDescription = FString::Printf(TEXT("[%s] %s : +%.0f%% 증가"), *RarityString, *RowData->StatName, OutValue);
+	OutDescription = FString::Printf(TEXT("[%s] %s : +%.0f%% 증가"), RarityText, *Row->StatName, OutValue);
 }
 
-
-
-	void AP9PlayerState::AddXP(float XPAmount)
+void AP9PlayerState::AddXP(float XPAmount)
 {
-	if (CurrentXP < XPForNextLevel)
-	{
-		CurrentXP += XPAmount;
-	}
-	if (CurrentXP >= XPForNextLevel)
+	if (XPAmount <= 0.f) return;
+
+	CurrentXP += XPAmount;
+	while (CurrentXP >= XPForNextLevel)
 	{
 		LevelUp();
 	}
 }
-
-
 
 void AP9PlayerState::LevelUp()
 {
 	CurrentXP -= XPForNextLevel;
 	CurrentLevel += 1;
 	XPForNextLevel += 15;
+
 	TArray<FP9LevelUpReward> Choices = GenerateReward();
 	LevelUpUI(Choices);
 }
+
 TArray<FP9LevelUpReward> AP9PlayerState::GenerateReward()
 {
-	TArray<EP9Stat> StatPool;
-	for (int32 i = 0; i < (int32)EP9Stat::MAX; ++i)
+	TArray<EP9Stat> Pool;
+	for (int32 i = 0; i < static_cast<int32>(EP9Stat::MAX); ++i)
 	{
-		StatPool.Add(EP9Stat(i));
+		Pool.Add(static_cast<EP9Stat>(i));
 	}
-	Algo::RandomShuffle(StatPool);
+	Algo::RandomShuffle(Pool);
 
-	TArray<FP9LevelUpReward> Choices;
-
-	for (int32 i = 0; i < 3; ++i)
+	TArray<FP9LevelUpReward> Out;
+	for (int32 i = 0; i < 3 && i < Pool.Num(); ++i)
 	{
-		EP9Stat SelectedStat = StatPool[i];
-		EP9Rarity SelectedRarity = (EP9Rarity)FMath::RandRange(0, (int32)EP9Rarity::MAX - 1);
-		FP9LevelUpReward Choice;
-		float Value;
+		EP9Stat   S = Pool[i];
+		EP9Rarity R = static_cast<EP9Rarity>(FMath::RandRange(0, static_cast<int32>(EP9Rarity::MAX) - 1));
+
+		float   Val = 0.f;
 		FString Desc;
-		Choice.Stat=(SelectedStat);
-		Choice.Rarity=(SelectedRarity);
-		GetRewardDetail(SelectedStat, SelectedRarity, Value, Desc);
-		Choice.Description=(Desc);
+		GetRewardDetail(S, R, Val, Desc);
 
-		Choices.Add(Choice);
+		FP9LevelUpReward Rw;
+		Rw.Stat = S;
+		Rw.Rarity = R;
+		Rw.Description = Desc;
+		Out.Add(Rw);
 	}
-
-	return Choices;
+	return Out;
 }
+
 void AP9PlayerState::ApplyReward(const FP9LevelUpReward& Selected)
 {
-	float ValueToApply;
-	FString IgnoredDesc;
-	GetRewardDetail(Selected.Stat, Selected.Rarity, ValueToApply, IgnoredDesc);
+	float   Val = 0.f;
+	FString Ignored;
+	GetRewardDetail(Selected.Stat, Selected.Rarity, Val, Ignored);
+
 	switch (Selected.Stat)
 	{
 	case EP9Stat::MoveSpeed:
 	{
-		AP9Character* Player = Cast<AP9Character>(GetPawn());
-		if (Player != nullptr)
+		if (AP9Character* P = Cast<AP9Character>(GetPawn()))
 		{
-			Player->AddNormalSpeed(ValueToApply);
+			P->AddNormalSpeed(Val);
 		}
 		break;
 	}
 	case EP9Stat::Health:
 	{
-		AP9Character* Player = Cast<AP9Character>(GetPawn());
-		if (Player != nullptr)
+		if (AP9Character* P = Cast<AP9Character>(GetPawn()))
 		{
-			Player->AddMaxHealth(ValueToApply);
-			Player->AddHealth(ValueToApply);
+			P->AddMaxHealth(Val);
+			P->AddHealth(Val);
 		}
 		break;
 	}
-	case EP9Stat::HeadshotChance:
-	{
-		BonusHeadshotChance += ValueToApply;
-		break;
+	case EP9Stat::HeadshotChance:  BonusHeadshotChance += Val; break;
+	case EP9Stat::HeadshotDamage:  BonusHeadshotDamage += Val; break;
+	case EP9Stat::DamagePer:       BonusDamagePer += Val; break;
+	case EP9Stat::ReloadSpeed:     BonusReloadSpeed += Val; break;
+	case EP9Stat::Luck:            BonusLuck += Val; break;
+	default: break;
 	}
-	case EP9Stat::HeadshotDamage:
-	{
-		BonusHeadshotDamage += ValueToApply;
-		break;
-	}
-	case EP9Stat::DamagePer:
-	{
-		BonusDamagePer += ValueToApply;
-		break;
-	}
-	case EP9Stat::ReloadSpeed:
-	{
-		BonusReloadSpeed += ValueToApply;
-		break;
-	}
-	case EP9Stat::Luck:
-	{
-		BonusLuck += ValueToApply;
-		break;
-	}
-	}
-
 }
 
+//  골드 
 void AP9PlayerState::AddGold(int32 GoldAmount)
 {
 	CurrentGold += GoldAmount;
 }
-
-float AP9PlayerState::GetBonusHeadshotDamage() const
-{
-	return BonusHeadshotDamage;
-}
-
-float AP9PlayerState::GetBonusHeadshotChance() const
-{
-	return BonusHeadshotChance;
-}
-
-float AP9PlayerState::GetBonusDamagePer() const
-{
-	return BonusDamagePer;
-}
-
-float AP9PlayerState::GetBonusReloadSpeed() const
-{
-	return BonusReloadSpeed;
-}
-
-float AP9PlayerState::GetBonusLuck() const
-{
-	return BonusLuck;
-}
-
-//상점 연동용
 
 int32 AP9PlayerState::GetGold() const
 {
@@ -269,7 +157,6 @@ int32 AP9PlayerState::GetGold() const
 
 bool AP9PlayerState::CanAfford(int32 Cost) const
 {
-	// 0원 이하라면 항상 가능, 그 외엔 보유 골드로 판단
 	return (Cost <= 0) || (CurrentGold >= Cost);
 }
 
@@ -277,9 +164,35 @@ bool AP9PlayerState::SpendGold(int32 Cost)
 {
 	if (Cost <= 0) return true;
 	if (CurrentGold < Cost) return false;
-
 	CurrentGold -= Cost;
 	return true;
 }
 
+float AP9PlayerState::GetBonusHeadshotDamage() const { return BonusHeadshotDamage; }
+float AP9PlayerState::GetBonusHeadshotChance() const { return BonusHeadshotChance; }
+float AP9PlayerState::GetBonusDamagePer()     const { return BonusDamagePer; }
+float AP9PlayerState::GetBonusReloadSpeed()   const { return BonusReloadSpeed; }
+float AP9PlayerState::GetBonusLuck()          const { return BonusLuck; }
 
+//상점 연동
+void AP9PlayerState::AddWeaponDamageBonus(FName WeaponId, int32 FlatBonus)
+{
+	if (WeaponId.IsNone() || FlatBonus == 0) return;
+	WeaponFlatBonus.FindOrAdd(WeaponId) += FlatBonus;
+}
+
+bool AP9PlayerState::GetEffectiveDamage(FName WeaponId, float& OutDamage) const
+{
+	OutDamage = 0.f;
+	if (!WeaponDataTable || WeaponId.IsNone()) return false;
+
+	// 기본 Damage 조회
+	const FP9WeaponData* Row = WeaponDataTable->FindRow<FP9WeaponData>(WeaponId, TEXT("PS_GetEffectiveDamage"), false);
+	if (!Row) return false;
+
+	const int32* Flat = WeaponFlatBonus.Find(WeaponId);
+	const int32  Add = Flat ? *Flat : 0;
+
+	OutDamage = Row->Damage + Add;
+	return true;
+}
