@@ -26,7 +26,7 @@ private:
 	FTimerHandle WaveTimer;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Shop")
-	TSubclassOf<AP9Monster> ShopClass;
+	TSubclassOf<AP9Shop> ShopClass;
 	UPROPERTY(EditDefaultsOnly, Category = "Shop")
 	float ShopSpawnFrequency = 20.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Shop")
