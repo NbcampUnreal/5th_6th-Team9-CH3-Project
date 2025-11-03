@@ -62,7 +62,9 @@ void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
 
     PlayHitFlashEffect();
 
-    ApplyKnockback();
+    if (!bIsBossMonster) {
+        ApplyKnockback();
+    }
 
     if (HP <= 0.0f)
     {
