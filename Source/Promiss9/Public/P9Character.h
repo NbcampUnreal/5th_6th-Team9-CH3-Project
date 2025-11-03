@@ -1,10 +1,11 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "P9InventoryComponent.h"
+#include "P9FinalBossAltar.h"
 #include "P9Character.generated.h"
 
 class USpringArmComponent;
@@ -74,6 +75,11 @@ public:
 		AController* EventInstigator,
 		AActor* DamageCauser) override;
 
+	//FinalBoss
+	UPROPERTY(BlueprintReadOnly, Category = "Interaction")
+	TObjectPtr<AP9FinalBossAltar> CurrentOverlappingAltar=nullptr;
+
+
 	UFUNCTION()
 	void Move(const FInputActionValue& Value);
 	UFUNCTION()
@@ -100,15 +106,15 @@ public:
 	void OnFreeLookEnd(const FInputActionValue& Value);
 
 	// 무기 장착
-	void EquipWeaponToMultipleSockets();
 	void EquipWeaponToRightHandSockets();
 
 	// 라인트레이스 가장 가까운 적 추적
 	UFUNCTION(BlueprintCallable, Category = "Targeting")
 	void RotateMeshToTarget(AActor* TargetActor);
 
-	// 몽타주 실행 중 무기 숨기기
+	// 앞구르기 애니메이션 몽타주 실행 중 무기 숨기기
 	void HideAllWeapons(bool bHide);
+	void LaunchForwardRoll();
 
 protected:
 
@@ -194,4 +200,15 @@ protected:
 
 	FOnMontageEnded RollMontageEndedDelegate;
 	FTimerHandle RollCooldownTimerHandle;
+
+	//FinalBoss
+
+	void InteractPressed();
+	void InteractReleased();
+
+private:
+	//FinalBoss
+	FTimerHandle InteractHoldTimer;
+
+	void InteractHoldSucceeded();
 };

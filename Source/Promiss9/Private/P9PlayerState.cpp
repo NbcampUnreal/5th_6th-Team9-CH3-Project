@@ -229,7 +229,10 @@ void AP9PlayerState::ApplyReward(const FP9LevelUpReward& Selected)
 	}
 
 }
-
+void AP9PlayerState::AddKillCount()
+{
+	Killcount++;
+}
 void AP9PlayerState::AddGold(int32 GoldAmount)
 {
 	CurrentGold += GoldAmount;
