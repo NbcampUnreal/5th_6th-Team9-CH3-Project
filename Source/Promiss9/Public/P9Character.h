@@ -150,12 +150,16 @@ protected:
 	float NormalSpeed;
 	float RollDistance;
 
+	// 앞구르기 변수
+	float RollDistanceTraveled; // 현재까지 앞구르기로 이동한 거리
+	float RollTargetDistance; // 앞구르기로 이동하는 총 거리
+	float RollSpeed; // cm/s, 속도
+
 	// 캐릭터 이동 관련
 	float DefaultYaw;
 	float TargetYawOffset; // 회전 오프셋
 	float RotationInterpSpeed; // 회전 보간 속도
 	bool bIsSideMoving; // 좌우 이동 여부
-	bool bIsDiagonalMoving; // 대각선 이동 여부
 
 	// 자유시점 관련
 	float SavedArmLength;
