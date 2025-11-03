@@ -5,6 +5,9 @@
 #include "Engine/DataTable.h"
 #include "P9PlayerState.generated.h"
 
+struct FP9WeaponData;
+class UDataTable;
+
 
 UENUM(BlueprintType)
 enum class EP9Stat : uint8
@@ -16,7 +19,7 @@ enum class EP9Stat : uint8
 	DamagePer,
 	ReloadSpeed,
 	Luck,
-	
+
 	MAX
 };
 
@@ -79,7 +82,7 @@ UCLASS()
 class PROMISS9_API AP9PlayerState : public APlayerState
 {
 	GENERATED_BODY()
-	
+
 public:
 	AP9PlayerState();
 	UFUNCTION(BlueprintCallable)
@@ -106,6 +109,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Gold")
 	bool SpendGold(int32 Cost);
+
+	// 상점 인벤토리 연동(무기랑 최종 데미지)
+	UFUNCTION(BlueprintCallable, Category = "Weapons")
+	void AddWeaponDamageBonus(FName WeaponId, int32 FlatBonus);
+
+	UFUNCTION(BlueprintPure, Category = "Weapons")
+	bool GetEffectiveDamage(FName WeaponId, float& OutDamage) const;
 
 
 private:
@@ -137,9 +147,14 @@ protected:
 	float BonusLuck;
 
 	UPROPERTY(EditDefaultsOnly, Category = " Level")
-	TObjectPtr<UDataTable> RewardStatTable=nullptr;
+	TObjectPtr<UDataTable> RewardStatTable = nullptr;
 
-	
+	UPROPERTY(EditDefaultsOnly, Category = "Weapons|Data") // 무기 기본 수치
+	TObjectPtr<UDataTable> WeaponDataTable = nullptr;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapons")
+	TMap<FName, int32> WeaponFlatBonus;
+
 	void LevelUp();
 	TArray<FP9LevelUpReward> GenerateReward();
 	UFUNCTION(BlueprintCallable)

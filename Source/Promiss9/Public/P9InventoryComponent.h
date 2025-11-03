@@ -5,7 +5,7 @@
 #include "Components/ActorComponent.h"
 #include "P9InventoryComponent.generated.h"
 
-/** 슬롯 */
+
 USTRUCT(BlueprintType)
 struct FInventorySlot
 {
@@ -15,7 +15,7 @@ struct FInventorySlot
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
     FName WeaponId = NAME_None;
 
-    /** 보유 개수 — 0이면 빈칸, >=1이면 보유 */
+    /** 보유 개수 */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
     int32 Count = 0;
 };
@@ -42,11 +42,10 @@ public:
     UFUNCTION(BlueprintPure, Category = "Inventory")
     const TArray<FInventorySlot>& GetSlots() const { return Slots; }
 
-    /** 무기 추가(권총 제외). 이미 보유하면 슬롯 추가 없이 Count만 증가 */
+    /** 무기 추가(권총 제외). 이미 보유하면 슬롯 추가 없이 수량만 증가 */
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     bool AddWeaponById(FName WeaponId);
 
-    /** DataTable  */
     UFUNCTION(BlueprintCallable, Category = "Inventory|Data")
     bool AddWeaponById_Validated(FName WeaponId);
 
@@ -54,20 +53,20 @@ public:
     UFUNCTION(BlueprintPure, Category = "Inventory")
     bool HasWeaponId(FName WeaponId) const;
 
-    /** 특정 무기의 Count 조회 */
     UFUNCTION(BlueprintPure, Category = "Inventory")
     int32 GetWeaponCount(FName WeaponId) const;
 
-    /** 슬롯 개수 조정(0번은 권총 고정) */
+    /** 슬롯 개수 조정(최소 4칸; 0번은 권총 고정) */
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     bool SetMaxSlots(int32 NewMaxSlots);
 
-    /** 전체 초기화(사망/재시작) */
+    /** 전체 초기화 — 권총 복구 */
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     void ResetAll();
 
-    // ── DataTable 연동 ────────────────────────────────────────
+
 public:
+
     UFUNCTION(BlueprintPure, Category = "Inventory|Data")
     bool GetWeaponData(FName WeaponId, FP9WeaponData& OutRow) const;
 
@@ -98,5 +97,5 @@ private:
     void  NormalizeLength();                 // 배열 길이/값 보정 + 권총 보장
     int32 FindEmptySlotIndex_From1() const;  // 1번 인덱스부터 첫 빈칸
     int32 FindSlotIndexById(FName WeaponId) const; // 무기 위치
-    void  EnsureDefaultHandgun();            // 0번 권총 
+    void  EnsureDefaultHandgun();            // 0번 권총 보장
 };

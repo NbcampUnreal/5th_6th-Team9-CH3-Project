@@ -7,11 +7,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
 
-#include "P9PlayerState.h"          // CanAfford(), SpendGold()
-#include "P9InventoryComponent.h"   // AddWeaponById_Validated()
-#include "P9WeaponData.h"           // FP9WeaponData (RowStruct)
-
-// -------------------------------------------------------
+#include "P9PlayerState.h"          
+#include "P9InventoryComponent.h"  
+#include "P9WeaponData.h"           
 
 AP9Shop::AP9Shop()
 {
@@ -46,7 +44,9 @@ void AP9Shop::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-// 무기 3개(중복X) + 희귀도 랜덤 + 가격 설정
+
+// 오퍼 3개(무기 중복 X) , 등급 랜덤
+
 void AP9Shop::BuildOffers()
 {
 	CurrentOffers.Reset();
@@ -54,7 +54,9 @@ void AP9Shop::BuildOffers()
 	TArray<FName> Picked;
 	if (!PickThreeDistinctWeapons(Picked))
 	{
+#if !(UE_BUILD_SHIPPING)
 		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("[Shop] DataTable이 없거나 Row가 3개 미만"));
+#endif
 		return;
 	}
 
@@ -64,20 +66,17 @@ void AP9Shop::BuildOffers()
 		Offer.WeaponId = Picked[i];
 		Offer.Rarity = RollRarity();
 		Offer.Price = GetPriceByRarity(Offer.Rarity);
-
 		CurrentOffers.Add(Offer);
 
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow,
+#if !(UE_BUILD_SHIPPING)
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow,
 			FString::Printf(TEXT("[Offer %d] %s / %s / %d Gold"),
-				i + 1,
-				*Offer.WeaponId.ToString(),
-				*UEnum::GetValueAsString(Offer.Rarity),
-				Offer.Price));
+				i + 1, *Offer.WeaponId.ToString(),
+				*UEnum::GetValueAsString(Offer.Rarity), Offer.Price));
+#endif
 	}
-
 }
 
-// DataTable에서 중복 없이 3개 뽑기
 bool AP9Shop::PickThreeDistinctWeapons(TArray<FName>& OutWeaponIds) const
 {
 	OutWeaponIds.Reset();
@@ -97,7 +96,6 @@ bool AP9Shop::PickThreeDistinctWeapons(TArray<FName>& OutWeaponIds) const
 	return true;
 }
 
-// 희귀도 
 EP9ShopRarity AP9Shop::RollRarity() const
 {
 	const float r = FMath::FRand();
@@ -113,7 +111,6 @@ EP9ShopRarity AP9Shop::RollRarity() const
 	return EP9ShopRarity::Legendary;
 }
 
-// 희귀도별 가격
 int32 AP9Shop::GetPriceByRarity(EP9ShopRarity Rarity) const
 {
 	switch (Rarity)
@@ -126,7 +123,19 @@ int32 AP9Shop::GetPriceByRarity(EP9ShopRarity Rarity) const
 	}
 }
 
-// 구매: 골드 차감 + 인벤토리 추가
+int32 AP9Shop::GetDamageBonusByRarity(EP9ShopRarity Rarity) const
+{
+	switch (Rarity)
+	{
+	case EP9ShopRarity::Common:     return 3;
+	case EP9ShopRarity::Uncommon:   return 6;
+	case EP9ShopRarity::Rare:       return 9;
+	case EP9ShopRarity::Legendary:  return 12;
+	default:                        return 0;
+	}
+}
+
+// 구매: 골드 차감 + 인벤토리 등록
 bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 {
 	if (!BuyerPawn) return false;
@@ -134,28 +143,22 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 
 	const FShopOffer& Offer = CurrentOffers[OfferIndex];
 
-	// PlayerState(골드)
+	// PlayerState(골드/보정 관리)
 	AP9PlayerState* PS = BuyerPawn->GetPlayerState<AP9PlayerState>();
-	if (!PS)
-	{
-		return false;
-	}
+	if (!PS) return false;
 
-	// 골드 확인 
+	// 골드 확인
 	if (!PS->CanAfford(Offer.Price))
 	{
+#if !(UE_BUILD_SHIPPING)
 		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("골드 부족"));
+#endif
 		return false;
 	}
 
-	// 인벤토리
 	UP9InventoryComponent* Inv = BuyerPawn->FindComponentByClass<UP9InventoryComponent>();
-	if (!Inv)
-	{
-		return false;
-	}
+	if (!Inv) return false;
 
-	// DataTable 검증 후 추가
 	if (!Inv->AddWeaponById_Validated(Offer.WeaponId))
 	{
 		return false;
@@ -167,16 +170,22 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 		return false;
 	}
 
+	const int32 FlatBonus = GetDamageBonusByRarity(Offer.Rarity);
+	if (FlatBonus != 0)
+	{
+		PS->AddWeaponDamageBonus(Offer.WeaponId, FlatBonus);
+	}
+
+#if !(UE_BUILD_SHIPPING)
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green,
-		FString::Printf(TEXT("구매 성공: %s / %s / -%d Gold"),
+		FString::Printf(TEXT("구매 성공: %s / %s / -%d Gold (보정 +%d)"),
 			*Offer.WeaponId.ToString(),
 			*UEnum::GetValueAsString(Offer.Rarity),
-			Offer.Price));
+			Offer.Price, FlatBonus));
+#endif
 
 	return true;
 }
-
-// 오버랩 & 입력
 
 void AP9Shop::OnTriggerBegin(UPrimitiveComponent* Comp, AActor* Other, UPrimitiveComponent* OtherComp,
 	int32 BodyIndex, bool bFromSweep, const FHitResult& Hit)
@@ -184,8 +193,9 @@ void AP9Shop::OnTriggerBegin(UPrimitiveComponent* Comp, AActor* Other, UPrimitiv
 	if (!Other || !Other->IsA<APawn>()) return;
 
 	bPlayerInRange = true;
-	GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Cyan, TEXT("E : 상점 열기"));
-
+#if !(UE_BUILD_SHIPPING)
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Cyan, TEXT("E : 상점 열기"));
+#endif
 	BindInput();
 }
 
@@ -195,7 +205,6 @@ void AP9Shop::OnTriggerEnd(UPrimitiveComponent* Comp, AActor* Other, UPrimitiveC
 	if (!Other || !Other->IsA<APawn>()) return;
 
 	bPlayerInRange = false;
-
 	UnbindInput();
 }
 
@@ -227,6 +236,5 @@ void AP9Shop::UnbindInput()
 void AP9Shop::HandleInteract()
 {
 	if (!bPlayerInRange) return;
-	BuildOffers(); // 매번 갱신(랜덤)
+	BuildOffers();
 }
-
