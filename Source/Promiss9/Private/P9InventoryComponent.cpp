@@ -107,17 +107,27 @@ bool UP9InventoryComponent::AddWeaponById(FName WeaponId)
     if (WeaponId.IsNone())
         return false;
 
-    // 0번 슬롯의 권총은 수동 추가/변경 불가
+    // ── 권총도 구매 가능: 0번 슬롯에 스택업 ──
     if (WeaponId == DefaultHandgunId)
     {
+        if (!Slots.IsValidIndex(0)) return false;
+
+        // 0번은 항상 권총 유지
+        Slots[0].WeaponId = DefaultHandgunId;
+
+        // 기본 보유가 1이므로 0이면 1로, 그 외엔 스택업
+        if (Slots[0].Count <= 0) Slots[0].Count = 1;
+        else                     Slots[0].Count += 1;
+
 #if !(UE_BUILD_SHIPPING)
         if (GEngine)
         {
-            GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan,
-                TEXT("[Inventory] 권총은 기본 소지이므로 AddWeaponById로 추가하지 않습니다."));
+            GEngine->AddOnScreenDebugMessage(
+                -1, 2.0f, FColor::Green,
+                FString::Printf(TEXT("[인벤토리] 권총 + 1 → x%d"), Slots[0].Count));
         }
 #endif
-        return false;
+        return true;
     }
 
     // 이미 보유 → 슬롯 추가 없이 Count++
@@ -130,7 +140,7 @@ bool UP9InventoryComponent::AddWeaponById(FName WeaponId)
         {
             GEngine->AddOnScreenDebugMessage(
                 -1, 2.0f, FColor::Green,
-                FString::Printf(TEXT("[인벤토리] %s 스택업 → x%d"),
+                FString::Printf(TEXT("[인벤토리] %s + 1 → x%d"),
                     *WeaponId.ToString(), Slots[OwnedIdx].Count));
         }
 #endif

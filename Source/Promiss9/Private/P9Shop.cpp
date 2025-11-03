@@ -68,12 +68,12 @@ void AP9Shop::BuildOffers()
 		Offer.Price = GetPriceByRarity(Offer.Rarity);
 		CurrentOffers.Add(Offer);
 
-#if !(UE_BUILD_SHIPPING)
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow,
-			FString::Printf(TEXT("[Offer %d] %s / %s / %d Gold"),
-				i + 1, *Offer.WeaponId.ToString(),
-				*UEnum::GetValueAsString(Offer.Rarity), Offer.Price));
-#endif
+//#if !(UE_BUILD_SHIPPING)
+//		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow,
+//			FString::Printf(TEXT("[Offer %d] %s / %s / %d Gold"),
+//				i + 1, *Offer.WeaponId.ToString(),
+//				*UEnum::GetValueAsString(Offer.Rarity), Offer.Price));
+//#endif
 	}
 }
 
