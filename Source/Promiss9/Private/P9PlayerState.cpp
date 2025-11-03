@@ -14,6 +14,8 @@ AP9PlayerState::AP9PlayerState()
 
 	XPForNextLevel=50;
 
+	Killcount = 0;
+
 	BonusHeadshotChance=0.0f;
 	BonusHeadshotDamage=0.0f;
 	BonusDamagePer=0.0f;
@@ -229,7 +231,10 @@ void AP9PlayerState::ApplyReward(const FP9LevelUpReward& Selected)
 	}
 
 }
-
+void AP9PlayerState::AddKillCount()
+{
+	Killcount++;
+}
 void AP9PlayerState::AddGold(int32 GoldAmount)
 {
 	CurrentGold += GoldAmount;
