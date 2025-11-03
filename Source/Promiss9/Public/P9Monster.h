@@ -73,6 +73,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster")
     EMonsterState CurrentState;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster")
+	bool bIsBossMonster = false;    
+
     // 몬스터가 데미지를 입는 함수
     UFUNCTION(BlueprintCallable, Category = "Combat")
     void TakeDamageFromPlayer(float DamageAmount);
