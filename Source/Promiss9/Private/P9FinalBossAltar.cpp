@@ -54,4 +54,5 @@ void AP9FinalBossAltar::InteractionTimerComplete()
 	if (BossSpawnPoint == nullptr) return;
 
 	GetWorld()->SpawnActor<AP9Monster>(FinalBoss, BossSpawnPoint->GetComponentLocation(), BossSpawnPoint->GetComponentRotation());
+	Destroy();
 }
