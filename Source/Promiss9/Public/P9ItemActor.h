@@ -41,11 +41,20 @@ protected:
 	
 	//UFUNCTION(BlueprintCallable, Category = "Weapon|Action")
 	//void Fire(int32 RowNumber) const;
-	virtual void OnItemOverlap(AActor* OverlapActor) override;
-	virtual void OnItemEndOverlap(AActor* OverlapActor) override;
+	virtual void OnItemOverlap(UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult) override;
+
+	virtual void OnItemEndOverlap(UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex) override;
 	UFUNCTION(BlueprintCallable, Category = "Weapon|Action")
 	//virtual void ActivateItem(AActor* Activator, int32 RowNumber) override;
-	virtual FName GetItemType(int32 RowNumber) const override;
+	virtual FName GetItemType() const;
 
 	virtual void DestroyItem();
 
