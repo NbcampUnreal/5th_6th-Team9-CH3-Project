@@ -5,6 +5,9 @@
 #include "Engine/DataTable.h"
 #include "P9PlayerState.generated.h"
 
+struct FP9WeaponData;
+class UDataTable;
+
 
 UENUM(BlueprintType)
 enum class EP9Stat : uint8
@@ -16,7 +19,7 @@ enum class EP9Stat : uint8
 	DamagePer,
 	ReloadSpeed,
 	Luck,
-	
+
 	MAX
 };
 
@@ -79,7 +82,7 @@ UCLASS()
 class PROMISS9_API AP9PlayerState : public APlayerState
 {
 	GENERATED_BODY()
-	
+
 public:
 	AP9PlayerState();
 	UFUNCTION(BlueprintCallable)
@@ -87,11 +90,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddGold(int32 GoldAmount);
 
+	UFUNCTION(BlueprintCallable)
+	void AddKillCount();
+
 	float GetBonusHeadshotDamage() const;
 	float GetBonusHeadshotChance() const;
 	float GetBonusDamagePer() const;
 	float GetBonusReloadSpeed() const;
 	float GetBonusLuck() const;
+
 
 	// 상점 연동용 골드 계산
 	UFUNCTION(BlueprintPure, Category = "Gold")
@@ -102,6 +109,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Gold")
 	bool SpendGold(int32 Cost);
+
+	// 상점 인벤토리 연동(무기랑 최종 데미지)
+	UFUNCTION(BlueprintCallable, Category = "Weapons")
+	void AddWeaponDamageBonus(FName WeaponId, int32 FlatBonus);
+
+	UFUNCTION(BlueprintPure, Category = "Weapons")
+	bool GetEffectiveDamage(FName WeaponId, float& OutDamage) const;
+
 
 private:
 	void GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutValue, FString& OutDescription);
@@ -115,6 +130,9 @@ protected:
 	int32 XPForNextLevel;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gold")
 	int32 CurrentGold;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KillCount")
+	int32 Killcount;
+
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
@@ -129,9 +147,14 @@ protected:
 	float BonusLuck;
 
 	UPROPERTY(EditDefaultsOnly, Category = " Level")
-	TObjectPtr<UDataTable> RewardStatTable=nullptr;
+	TObjectPtr<UDataTable> RewardStatTable = nullptr;
 
-	
+	UPROPERTY(EditDefaultsOnly, Category = "Weapons|Data") // 무기 기본 수치
+	TObjectPtr<UDataTable> WeaponDataTable = nullptr;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapons")
+	TMap<FName, int32> WeaponFlatBonus;
+
 	void LevelUp();
 	TArray<FP9LevelUpReward> GenerateReward();
 	UFUNCTION(BlueprintCallable)
