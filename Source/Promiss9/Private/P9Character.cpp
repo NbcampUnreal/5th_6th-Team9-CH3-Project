@@ -82,12 +82,13 @@ AP9Character::AP9Character()
 	TargetYawOffset = 0.f;
 	RotationInterpSpeed = 8.0f;
 	bIsSideMoving = false;
-	bIsDiagonalMoving = false;
 
 	// 앞구르기 관련
-	RollDistance = 2000.0f;
-	bForwardRolling = false;
 	bCanRoll = true;
+	RollDistanceTraveled = 0.0f;
+	RollSpeed = 0.0f; // 속도
+	RollTargetDistance = 1000.0f; // 거리
+	bForwardRolling = false;
 
 	// Health
 	MaxHealth = 100.0f;
@@ -113,8 +114,23 @@ void AP9Character::Tick(float DeltaTime)
 
 	if (!Controller) return;
 
-	// 앞구르기 중에 회전 X
-	if (bForwardRolling) return;
+	if (bForwardRolling)
+	{
+		float DeltaDistance = RollSpeed * DeltaTime;
+		RollDistanceTraveled += DeltaDistance;
+
+		if (RollDistanceTraveled < RollTargetDistance)
+		{
+			AddMovementInput(GetActorForwardVector(), 1.0f);
+		}
+		else
+		{
+			bForwardRolling = false;
+			HideAllWeapons(false);
+		}
+
+		return;
+	}
 
 	if (!bIsFreeLookMode)
 	{
@@ -229,12 +245,12 @@ void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 					&AP9Character::StartForwardRoll
 				);
 
-				EnhancedInput->BindAction(
-					PlayerController->ForwardRollAction,
-					ETriggerEvent::Completed,
-					this,
-					&AP9Character::StopForwardRoll
-				);
+				//EnhancedInput->BindAction(
+				//	PlayerController->ForwardRollAction,
+				//	ETriggerEvent::Completed,
+				//	this,
+				//	&AP9Character::StopForwardRoll
+				//);
 			}
 
 			// Interact
@@ -260,7 +276,9 @@ void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 void AP9Character::Move(const FInputActionValue& Value)
 {
-	if (!Controller || bForwardRolling) return;
+	if (!Controller) return;
+
+	if (bForwardRolling) return;
 
 	FVector2D MoveInput = Value.Get<FVector2D>();
 	float ForwardValue = MoveInput.X;
@@ -321,6 +339,8 @@ void AP9Character::StartJump(const FInputActionValue& Value)
 
 void AP9Character::StopJump(const FInputActionValue& Value)
 {
+	if (bForwardRolling) return;
+
 	if (Value.Get<bool>())
 	{
 		StopJumping();
@@ -369,10 +389,6 @@ void AP9Character::OnFreeLookEnd(const FInputActionValue& Value)
 {
 	bIsFreeLookMode = false;
 
-	// 카메라를 freelook 모드 이전 마지막 위치로 복원
-	//SpringArmComp->TargetArmLength = SavedArmLength;
-	//SpringArmComp->SetRelativeRotation(SavedSpringArmRotation);
-
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
@@ -384,7 +400,6 @@ void AP9Character::OnFreeLookEnd(const FInputActionValue& Value)
 	UE_LOG(LogTemp, Warning, TEXT(">> FreeLook End"));
 }
 
-
 void AP9Character::StartForwardRoll()
 {
 	if (bForwardRolling || !bCanRoll || !ForwardRollMontage || GetCharacterMovement()->IsFalling()) return;
@@ -394,24 +409,18 @@ void AP9Character::StartForwardRoll()
 	{
 		bForwardRolling = true;
 		bCanRoll = false;
+		RollDistanceTraveled = 0.0f;
 
-		// 무기 숨기기
+		// 애니메이션 길이에 맞춰 속도 계산
+		float MontageDuration = ForwardRollMontage->GetPlayLength();
+		RollSpeed = RollTargetDistance / MontageDuration;
+
+		// 무기 안보기에 하기
 		HideAllWeapons(true);
-
-		// 몽타주 재생
+		
+		// 애니메이션 몽타주 재생
 		AnimInstance->Montage_Play(ForwardRollMontage);
-		UE_LOG(LogTemp, Warning, TEXT(">>> Montage_Play called. IsPlaying=%d"), AnimInstance->Montage_IsPlaying(ForwardRollMontage));
 
-		FTimerHandle RollLaunchTimerHandle;
-		GetWorldTimerManager().SetTimer(
-			RollLaunchTimerHandle,
-			this,
-			&AP9Character::LaunchForwardRoll,
-			0.4f, // 딜레이 시간 (초)
-			false
-		);
-
-		// 몽타주 종료
 		RollMontageEndedDelegate.BindUObject(this, &AP9Character::OnRollMontageEnded);
 		AnimInstance->Montage_SetEndDelegate(RollMontageEndedDelegate, ForwardRollMontage);
 
@@ -419,29 +428,17 @@ void AP9Character::StartForwardRoll()
 	}
 }
 
-// 실제 캐릭터가 앞구르기로 나가는 함수
-void AP9Character::LaunchForwardRoll()
-{
-	FVector RollVelocity = FRotationMatrix(GetActorRotation()).GetUnitAxis(EAxis::X) * RollDistance;
-	RollVelocity.Z = 100.f; // 살짝 띄우기
-	LaunchCharacter(RollVelocity, true, true);
-
-	UE_LOG(LogTemp, Warning, TEXT(">>> LaunchCharacter triggered after delay"));
-}
-
 void AP9Character::OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	// 다른 몽타주와 섞이지 않게 확인
-	if (Montage == ForwardRollMontage)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("bForwardRolling = false"));
-		bForwardRolling = false;
-		HideAllWeapons(false);
+	if (Montage != ForwardRollMontage) return;
 
-		if (bInterrupted)
-		{
-			GetCharacterMovement()->StopMovementImmediately();
-		}
+	UE_LOG(LogTemp, Warning, TEXT("bForwardRolling = false"));
+	HideAllWeapons(false);
+
+	if (bInterrupted)
+	{
+		GetCharacterMovement()->StopMovementImmediately();
 	}
 }
 
