@@ -84,9 +84,21 @@ public:
 
 	// 골드
 	UFUNCTION(BlueprintCallable, Category = "Gold") void   AddGold(int32 GoldAmount);
-	UFUNCTION(BlueprintPure, Category = "Gold") int32  GetGold() const;
 	UFUNCTION(BlueprintPure, Category = "Gold") bool   CanAfford(int32 Cost) const;
 	UFUNCTION(BlueprintCallable, Category = "Gold") bool  SpendGold(int32 Cost);
+	UFUNCTION(BlueprintCallable)
+	void AddKillCount();
+
+	float GetBonusHeadshotDamage() const;
+	float GetBonusHeadshotChance() const;
+	float GetBonusDamagePer() const;
+	float GetBonusReloadSpeed() const;
+	float GetBonusLuck() const;
+
+
+	// 상점 연동용 골드 계산
+	UFUNCTION(BlueprintPure, Category = "Gold")
+	int32 GetGold() const;
 
 	// 보너스 조회
 	UFUNCTION(BlueprintPure) float GetBonusHeadshotDamage() const;
@@ -131,6 +143,43 @@ protected:
 	UFUNCTION(BlueprintCallable) void ApplyReward(const FP9LevelUpReward& Selected);
 	UFUNCTION(BlueprintImplementableEvent, Category = "Level") void LevelUpUI(const TArray<FP9LevelUpReward>& Reward);
 
+
 private:
 	void GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutValue, FString& OutDescription);
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
+	int32 CurrentLevel;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
+	float CurrentXP;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
+	int32 XPForNextLevel;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gold")
+	int32 CurrentGold;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KillCount")
+	int32 Killcount;
+
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
+	float BonusHeadshotChance;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
+	float BonusHeadshotDamage;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
+	float BonusDamagePer;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
+	float BonusReloadSpeed;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
+	float BonusLuck;
+
+	UPROPERTY(EditDefaultsOnly, Category = " Level")
+	TObjectPtr<UDataTable> RewardStatTable=nullptr;
+
+	
+	void LevelUp();
+	TArray<FP9LevelUpReward> GenerateReward();
+	UFUNCTION(BlueprintCallable)
+	void ApplyReward(const FP9LevelUpReward& Selected);
+	UFUNCTION(BlueprintImplementableEvent, Category = "Level")
+	void LevelUpUI(const TArray<FP9LevelUpReward>& Reward);
 };

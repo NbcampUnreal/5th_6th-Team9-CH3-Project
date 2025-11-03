@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "P9Character.h"
 #include "P9PlayerController.h"
@@ -65,8 +65,7 @@ AP9Character::AP9Character()
 	WeaponMesh_rl = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh_rl"));
 	WeaponMesh_rl->SetupAttachment(WaeponSocket_rl);
 
-
-
+	// 인벤토리 컴포넌트
 	InventoryComponent = CreateDefaultSubobject<UP9InventoryComponent>(TEXT("InventoryComponent"));
 
 	bIsFreeLookMode = false;
@@ -86,7 +85,7 @@ AP9Character::AP9Character()
 	bIsDiagonalMoving = false;
 
 	// 앞구르기 관련
-	RollDistance = 600.0f;
+	RollDistance = 2000.0f;
 	bForwardRolling = false;
 	bCanRoll = true;
 
@@ -103,7 +102,7 @@ void AP9Character::BeginPlay()
 	{
 		RotateMeshToTarget(TargetActor);
 	}
-	EquipWeaponToMultipleSockets();
+
 	EquipWeaponToRightHandSockets();
 }
 
@@ -225,7 +224,7 @@ void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 			{
 				EnhancedInput->BindAction(
 					PlayerController->ForwardRollAction,
-					ETriggerEvent::Triggered,
+					ETriggerEvent::Started,
 					this,
 					&AP9Character::StartForwardRoll
 				);
@@ -243,9 +242,16 @@ void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 			{
 				EnhancedInput->BindAction(
 					PlayerController->InteractAction,
+					ETriggerEvent::Started,
+					this,
+					&AP9Character::InteractPressed
+				);
+
+				EnhancedInput->BindAction(
+					PlayerController->InteractAction,
 					ETriggerEvent::Completed,
 					this,
-					&AP9Character::Interact
+					&AP9Character::InteractReleased
 				);
 			}
 		}
@@ -254,16 +260,7 @@ void AP9Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 void AP9Character::Move(const FInputActionValue& Value)
 {
-	if (!Controller)
-	{
-		return;
-	}
-
-	// 앞구르기 중 무시
-	if (bForwardRolling)
-	{
-		return;
-	}
+	if (!Controller || bForwardRolling) return;
 
 	FVector2D MoveInput = Value.Get<FVector2D>();
 	float ForwardValue = MoveInput.X;
@@ -314,10 +311,7 @@ void AP9Character::MoveCompleted(const FInputActionValue& Value)
 void AP9Character::StartJump(const FInputActionValue& Value)
 {
 	// 앞구르기 중 무시
-	if (bForwardRolling)
-	{
-		return;
-	}
+	if (bForwardRolling) return;
 
 	if (Value.Get<bool>())
 	{
@@ -393,7 +387,7 @@ void AP9Character::OnFreeLookEnd(const FInputActionValue& Value)
 
 void AP9Character::StartForwardRoll()
 {
-	if (bForwardRolling || !bCanRoll || !ForwardRollMontage) return;
+	if (bForwardRolling || !bCanRoll || !ForwardRollMontage || GetCharacterMovement()->IsFalling()) return;
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance)
@@ -401,28 +395,38 @@ void AP9Character::StartForwardRoll()
 		bForwardRolling = true;
 		bCanRoll = false;
 
-		// 회전 잠금
-		bUseControllerRotationYaw = false;
-		GetCharacterMovement()->bOrientRotationToMovement = false;
-
 		// 무기 숨기기
 		HideAllWeapons(true);
 
 		// 몽타주 재생
 		AnimInstance->Montage_Play(ForwardRollMontage);
+		UE_LOG(LogTemp, Warning, TEXT(">>> Montage_Play called. IsPlaying=%d"), AnimInstance->Montage_IsPlaying(ForwardRollMontage));
+
+		FTimerHandle RollLaunchTimerHandle;
+		GetWorldTimerManager().SetTimer(
+			RollLaunchTimerHandle,
+			this,
+			&AP9Character::LaunchForwardRoll,
+			0.4f, // 딜레이 시간 (초)
+			false
+		);
 
 		// 몽타주 종료
 		RollMontageEndedDelegate.BindUObject(this, &AP9Character::OnRollMontageEnded);
 		AnimInstance->Montage_SetEndDelegate(RollMontageEndedDelegate, ForwardRollMontage);
 
-		// 앞 방향으로 캐릭터 이동
-		FVector ForwardDir = GetActorForwardVector();
-		FVector RollVelocity = ForwardDir * RollDistance;
-
-		LaunchCharacter(RollVelocity, true, true);
-
-		GetWorldTimerManager().SetTimer(RollCooldownTimerHandle, this, &AP9Character::ResetRollCooldown, 3.0f, false);
+		GetWorldTimerManager().SetTimer(RollCooldownTimerHandle, this, &AP9Character::ResetRollCooldown, 2.0f, false);
 	}
+}
+
+// 실제 캐릭터가 앞구르기로 나가는 함수
+void AP9Character::LaunchForwardRoll()
+{
+	FVector RollVelocity = FRotationMatrix(GetActorRotation()).GetUnitAxis(EAxis::X) * RollDistance;
+	RollVelocity.Z = 100.f; // 살짝 띄우기
+	LaunchCharacter(RollVelocity, true, true);
+
+	UE_LOG(LogTemp, Warning, TEXT(">>> LaunchCharacter triggered after delay"));
 }
 
 void AP9Character::OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -430,13 +434,14 @@ void AP9Character::OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 	// 다른 몽타주와 섞이지 않게 확인
 	if (Montage == ForwardRollMontage)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("bForwardRolling = false"));
 		bForwardRolling = false;
-
-		bUseControllerRotationYaw = true;
-		GetCharacterMovement()->bOrientRotationToMovement = true;
-
-
 		HideAllWeapons(false);
+
+		if (bInterrupted)
+		{
+			GetCharacterMovement()->StopMovementImmediately();
+		}
 	}
 }
 
@@ -507,7 +512,7 @@ void AP9Character::SetMaxHealth(float NewMaxHealth)
 
 void AP9Character::AddMaxHealth(float Amount)
 {
-	MaxHealth += Amount;
+	MaxHealth += (MaxHealth)*(Amount/100);
 	MaxHealth = FMath::Max(MaxHealth, 0.0f);
 }
 
@@ -524,7 +529,7 @@ void AP9Character::SetNormalSpeed(float NewNormalSpeed)
 
 void AP9Character::AddNormalSpeed(float Amount)
 {
-	NormalSpeed += Amount;
+	NormalSpeed += (300)*(Amount/100);
 }
 
 void AP9Character::OnDeath()
@@ -553,22 +558,35 @@ void AP9Character::OnDeath()
 
 }
 
-//void AP9Character::UpdateMoveSpeed()
-//{
-//	const float BaseSpeed = NormalSpeed;
-//	GetCharacterMovement()->MaxWalkSpeed = BaseSpeed;
-//}
-
 float AP9Character::TakeDamage(
 	float DamageAmount,
 	struct FDamageEvent const& DamageEvent,
 	AController* EventInstigator,
 	AActor* DamageCauser)
 {
+	// 애니메이션 몽타주 실행 여부
+	UAnimInstance* AnimInstance = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+	bool bIsRollingMontagePlaying = false;
+
+	if (AnimInstance && ForwardRollMontage)
+	{
+		bIsRollingMontagePlaying = AnimInstance->Montage_IsPlaying(ForwardRollMontage);
+	}
+	
+	// CharacterLaunch 여부
+	bool bIsLaunched = !GetCharacterMovement()->IsMovingOnGround();
+
+	// ✅ 구르기 중이거나 / 롤 몽타주 중이거나 / LaunchCharacter 이동 중일 때는 데미지 무시
+	if (bForwardRolling || bIsRollingMontagePlaying || bIsLaunched)
+	{
+		UE_LOG(LogTemp, Warning, TEXT(">> Damage ignored (Rolling=%d, Montage=%d, Launched=%d)"),
+			bForwardRolling, bIsRollingMontagePlaying, bIsLaunched);
+		return 0.f;
+	}
+
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
 	Health = FMath::Clamp(Health - DamageAmount, 0.0f, MaxHealth);
-
 
 	if (Health <= 0.0f)
 	{
@@ -576,48 +594,6 @@ float AP9Character::TakeDamage(
 	}
 
 	return ActualDamage;
-}
-
-// 멀티 무기(캐릭터 4방향)
-void AP9Character::EquipWeaponToMultipleSockets()
-{
-	if (!MultiWeaponClass) return;
-
-	UWorld* World = GetWorld();
-	if (!World) return;
-
-	// 원하는 소켓 이름 목록
-	TArray<FName> SocketNames = {
-		TEXT("Weapon1_fr"),
-		TEXT("Weapon2_fl"),
-		TEXT("Weapon3_rl"),
-		TEXT("Weapon4_rr")
-	};
-
-	for (FName SocketName : SocketNames)
-	{
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		SpawnParams.Instigator = GetInstigator();
-
-		FVector SpawnLocation = GetActorLocation();
-		FRotator SpawnRotation = GetActorRotation();
-
-		// 무기 액터 생성
-		AActor* SpawnedWeapon = World->SpawnActor<AActor>(MultiWeaponClass, SpawnLocation, SpawnRotation, SpawnParams);
-		if (!SpawnedWeapon) continue;
-
-		// 캐릭터 메시에 부착
-		USkeletalMeshComponent* MeshComp = GetMesh();
-		if (!MeshComp) continue;
-
-		SpawnedWeapon->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
-
-		// 참조 저장
-		EquippedWeapons.Add(SpawnedWeapon);
-
-		UE_LOG(LogTemp, Warning, TEXT("Weapon spawned: %s"), *SpawnedWeapon->GetName());
-	}
 }
 
 // 오른손 무기
@@ -679,6 +655,32 @@ void AP9Character::HideAllWeapons(bool bHide)
 				Primitive->SetCollisionEnabled(bHide ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
 			}
 		}
+	}
+}
+
+void AP9Character::InteractPressed()
+{
+	if (CurrentOverlappingAltar != nullptr)
+	{
+		GetWorldTimerManager().SetTimer(InteractHoldTimer, this, &AP9Character::InteractHoldSucceeded, CurrentOverlappingAltar->InteractionDuration, false);
+	}
+}
+
+void AP9Character::InteractReleased()
+{
+	bool bWasHolding = GetWorldTimerManager().IsTimerActive(InteractHoldTimer);
+	GetWorldTimerManager().ClearTimer(InteractHoldTimer);
+	if (bWasHolding)
+	{
+		//상점호출
+	}
+}
+
+void AP9Character::InteractHoldSucceeded()
+{
+	if (CurrentOverlappingAltar != nullptr)
+	{
+		CurrentOverlappingAltar->InteractionTimerComplete();
 	}
 }
 

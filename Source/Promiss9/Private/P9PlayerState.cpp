@@ -7,16 +7,20 @@
 AP9PlayerState::AP9PlayerState()
 {
 	CurrentLevel = 1;
+	
 	CurrentXP = 0.f;
-	XPForNextLevel = 50;
 
 	CurrentGold = 0;
 
-	BonusHeadshotChance = 0.f;
-	BonusHeadshotDamage = 0.f;
-	BonusDamagePer = 0.f;
-	BonusReloadSpeed = 0.f;
-	BonusLuck = 0.f;
+	XPForNextLevel=50;
+
+	Killcount = 0;
+
+	BonusHeadshotChance=0.0f;
+	BonusHeadshotDamage=0.0f;
+	BonusDamagePer=0.0f;
+	BonusReloadSpeed=0.0f;
+	BonusLuck=0.0f;
 }
 
 void AP9PlayerState::GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutValue, FString& OutDescription)
@@ -143,8 +147,10 @@ void AP9PlayerState::ApplyReward(const FP9LevelUpReward& Selected)
 	default: break;
 	}
 }
-
-//  골드 
+void AP9PlayerState::AddKillCount()
+{
+	Killcount++;
+}
 void AP9PlayerState::AddGold(int32 GoldAmount)
 {
 	CurrentGold += GoldAmount;
