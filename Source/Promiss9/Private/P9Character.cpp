@@ -512,7 +512,7 @@ void AP9Character::SetMaxHealth(float NewMaxHealth)
 
 void AP9Character::AddMaxHealth(float Amount)
 {
-	MaxHealth += Amount;
+	MaxHealth += (MaxHealth)*(Amount/100);
 	MaxHealth = FMath::Max(MaxHealth, 0.0f);
 }
 
@@ -529,7 +529,7 @@ void AP9Character::SetNormalSpeed(float NewNormalSpeed)
 
 void AP9Character::AddNormalSpeed(float Amount)
 {
-	NormalSpeed += Amount;
+	NormalSpeed += (NormalSpeed)*(Amount/100);
 }
 
 void AP9Character::OnDeath()
