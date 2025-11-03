@@ -25,7 +25,24 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HealingItem|Component")
 	USphereComponent* Collision;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HealingItem|Amount")
-	float HealAmount = 40.0f;
+	float HealAmount = 0.2f;
+	//드롭 확률
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HealingItem|Drop")
+	float DropChance = 0.1f;
+	//드롭위치 오프셋(위치)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HealingItem|Drop")
+	FVector DropOffset = FVector(0.0f, 0.0f, 20.0f);
+	//드롭시 뛰어오르는 위치
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HealingItem|Drop")
+	float DropImpulse = 200.f;
+	//드롭 가능 여부
+	UPROPERTY(EditDefaultsOnly, Category = "HealingItem|Drop")
+	bool bEligibleForDrop = true;
+	UPROPERTY(EditDefaultsOnly)
+	float DropWeight = 1.0f;
+	//아이템 드롭 함수
+	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"))
+	static AP9HealingItem* SpawnHealingItem(const UObject* WorldContextObject, const AActor* SourceActor);
 
 private:
 	
