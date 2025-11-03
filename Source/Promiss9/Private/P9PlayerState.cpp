@@ -14,6 +14,8 @@ AP9PlayerState::AP9PlayerState()
 
 	XPForNextLevel=50;
 
+	Killcount = 0;
+
 	BonusHeadshotChance=0.0f;
 	BonusHeadshotDamage=0.0f;
 	BonusDamagePer=0.0f;
