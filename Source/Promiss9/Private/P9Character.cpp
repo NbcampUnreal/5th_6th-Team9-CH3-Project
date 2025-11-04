@@ -11,6 +11,7 @@
 #include "Components/ProgressBar.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AP9Character::AP9Character()
@@ -653,6 +654,11 @@ void AP9Character::HideAllWeapons(bool bHide)
 			}
 		}
 	}
+}
+
+void AP9Character::ApplyPenaltyDamage(float DamageAmount)
+{
+	UGameplayStatics::ApplyDamage(this, DamageAmount, GetController(), this, UDamageType::StaticClass());
 }
 
 void AP9Character::InteractPressed()

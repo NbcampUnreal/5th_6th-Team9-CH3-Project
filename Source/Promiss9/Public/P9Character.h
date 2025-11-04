@@ -116,6 +116,10 @@ public:
 	void HideAllWeapons(bool bHide);
 	void LaunchForwardRoll();
 
+	//Penalty
+
+	void ApplyPenaltyDamage(float DamageAmount);
+
 protected:
 
 	// 무기 장착 관련 컴포넌트

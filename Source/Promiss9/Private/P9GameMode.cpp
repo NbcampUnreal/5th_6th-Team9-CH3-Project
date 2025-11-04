@@ -6,6 +6,7 @@ AP9GameMode::AP9GameMode()
 {
 	ShopRespawnTimer = ShopSpawnFrequency;
 	CurrentShop = nullptr;
+	TimeUntilPenaltyUp = PenaltyUpFrequency;
 }
 
 void AP9GameMode::BeginPlay()
@@ -90,6 +91,36 @@ void AP9GameMode::UpdateTimer()
 	{
 		SpawnShop();
 		ShopRespawnTimer = ShopSpawnFrequency;
+	}
+
+	//Penalty
+
+	if (bIsPenaltyActive == false)
+	{
+		if (P9GameState->CurrentGameTime >= PenaltyStartTime)
+		{
+			bIsPenaltyActive = true;
+		}
+	}
+
+	if (bIsPenaltyActive == true)
+	{
+		float DamageToApply = PenaltyDamage + (10 * (CurrentPenaltyLevel - 1));
+
+		ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+		AP9Character* P9Player = Cast<AP9Character>(Player);
+
+		if (P9Player != nullptr)
+		{
+			P9Player->ApplyPenaltyDamage(DamageToApply);
+		}
+
+		TimeUntilPenaltyUp -= 1.0f;
+		if (TimeUntilPenaltyUp <= 0.0f)
+		{
+			CurrentPenaltyLevel++;
+			TimeUntilPenaltyUp = PenaltyUpFrequency;
+		}
 	}
 
 }
