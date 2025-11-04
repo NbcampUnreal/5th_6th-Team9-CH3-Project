@@ -127,7 +127,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
 	float CurrentXP;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
-	int32 XPForNextLevel;
+	float XPForNextLevel;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gold")
 	int32 CurrentGold;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KillCount")
