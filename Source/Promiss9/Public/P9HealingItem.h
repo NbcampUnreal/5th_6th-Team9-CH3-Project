@@ -20,6 +20,10 @@ class PROMISS9_API AP9HealingItem : public AP9ItemActor
 public:
 	AP9HealingItem();
 
+	float RotationSpeed;
+
+	virtual void Tick(float DeltaTime) override;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HealingItem")
 	FName ItemType = FName("Healing");
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HealingItem|Component")
@@ -66,6 +70,5 @@ private:
 	virtual void DestroyItem() override;
 
 	void applyHeal(AActor* Target, float InAmount);
-
 
 };
