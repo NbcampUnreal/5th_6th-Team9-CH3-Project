@@ -72,7 +72,10 @@ public:
 	int32 Price;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
 	int32 Count;
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	float Cooldown;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	float Radius;
 
 	
 
@@ -102,7 +105,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
 	float GetFireSpeed() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	float GetRadius() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	float GetCooldown() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
 	float CurrentRange() const;
@@ -110,6 +117,12 @@ public:
 	float CurrentDamage() const;
 	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
 	float CurrentFireSpeed () const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float CurrentRadius() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float CurrentCooldown() const;
 
 	/*UFUNCTION(BlueprintCallable, Category = "Weapon|State")
 	float GetCurrentRange() const;

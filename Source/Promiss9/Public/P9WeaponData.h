@@ -27,6 +27,8 @@ struct FP9WeaponData : public FTableRowBase
 		, ItemIcon(nullptr)
 		, Damage(0.0f)
 		, Range(0.0f)
+		, Radius(0.0f)
+		, Cooldown(0.0f)
 		, Count(0)
 		, Price(000)
 		, ItemMesh(nullptr)

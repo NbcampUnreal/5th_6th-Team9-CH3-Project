@@ -32,6 +32,8 @@ void AP9ItemActor::BeginPlay()
 			FireSpeed = WeaponData.FireSpeed;
 			Price = WeaponData.Price;
 			Count = WeaponData.Count;
+			Radius = WeaponData.Radius;
+			Cooldown = WeaponData.Cooldown;
 		}
 		
 	}
@@ -177,6 +179,21 @@ float AP9ItemActor::GetFireSpeed() const
 	return FireSpeed;
 }
 
+float AP9ItemActor::GetRadius() const
+{
+	return Radius;
+}
+
+float AP9ItemActor::GetCooldown() const
+{
+	return Cooldown;
+}
+
+FName AP9ItemActor::GetItemType() const
+{
+	return FName();
+}
+
 float AP9ItemActor::CurrentRange() const
 {
 	return GetRange();
@@ -192,9 +209,14 @@ float AP9ItemActor::CurrentFireSpeed() const
 	return GetFireSpeed();
 }
 
-FName AP9ItemActor::GetItemType() const
+float AP9ItemActor::CurrentRadius() const
 {
-	return FName();
+	return GetRadius();
+}
+
+float AP9ItemActor::CurrentCooldown() const
+{
+	return GetCooldown();
 }
 
 void AP9ItemActor::DestroyItem()

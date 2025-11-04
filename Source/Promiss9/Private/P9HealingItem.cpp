@@ -27,6 +27,18 @@ AP9HealingItem::AP9HealingItem()
 	
 	Collision->OnComponentBeginOverlap.AddDynamic(this, &AP9HealingItem::OnItemOverlap);
 	//Collision->OnComponentEndOverlap.AddDynamic(this, &AP9HealingItem::OnItemEndOverlap);
+
+	PrimaryActorTick.bCanEverTick = true;
+	RotationSpeed = 90.0f;
+}
+
+void AP9HealingItem::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	if(!FMath::IsNearlyZero(RotationSpeed))
+	{
+		AddActorLocalRotation(FRotator(0.0f, RotationSpeed * DeltaTime, 0.0f));
+	}
 }
 
 void AP9HealingItem::OnItemOverlap(UPrimitiveComponent* OverlappedComp,
