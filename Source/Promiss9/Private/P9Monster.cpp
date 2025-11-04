@@ -132,6 +132,7 @@ void AP9Monster::Die()
         {
             PS->AddXP(ExpReward);
 			PS->AddGold(GoldReward);
+			PS->AddKillCount();
 			AP9HealingItem::SpawnHealingItem(GetWorld(), this);
         }
     }
