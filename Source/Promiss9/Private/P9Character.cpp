@@ -488,9 +488,7 @@ float AP9Character::GetHealth() const
 
 void AP9Character::SetHealth(float NewHealth)
 {
-	float Amount = (MaxHealth) * (NewHealth / 100);
-	Health += Amount;
-	Health = FMath::Clamp(Amount, 0.0f, MaxHealth);
+	Health = FMath::Clamp(NewHealth, 0.0f, MaxHealth);
 }
 
 
@@ -512,7 +510,9 @@ void AP9Character::SetMaxHealth(float NewMaxHealth)
 
 void AP9Character::AddMaxHealth(float Amount)
 {
-	MaxHealth += (MaxHealth)*(Amount/100);
+	float Add = (MaxHealth) * (Amount / 100);
+	MaxHealth += Add;
+	Health += Add;
 	MaxHealth = FMath::Max(MaxHealth, 0.0f);
 }
 

@@ -200,7 +200,6 @@ void AP9PlayerState::ApplyReward(const FP9LevelUpReward& Selected)
 		if (Player != nullptr)
 		{
 			Player->AddMaxHealth(ValueToApply);
-			Player->AddHealth(ValueToApply);
 		}
 		break;
 	}
