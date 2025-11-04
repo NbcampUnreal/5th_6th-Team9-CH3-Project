@@ -83,14 +83,15 @@ void AP9GameMode::UpdateTimer()
 		}
 	}
 	//ShopSystem Timer
-	if (CurrentShop != nullptr) return;
-
-	ShopRespawnTimer -= 1.0f;
-
-	if (ShopRespawnTimer <= 0.0f)
+	if (CurrentShop == nullptr)
 	{
-		SpawnShop();
-		ShopRespawnTimer = ShopSpawnFrequency;
+		ShopRespawnTimer -= 1.0f;
+
+		if (ShopRespawnTimer <= 0.0f)
+		{
+			SpawnShop();
+			ShopRespawnTimer = ShopSpawnFrequency;
+		}
 	}
 
 	//Penalty
