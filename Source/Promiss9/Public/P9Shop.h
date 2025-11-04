@@ -34,6 +34,8 @@ struct FShopOffer
 	int32 Price = 0;
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPressE);
+
 UCLASS()
 class PROMISS9_API AP9Shop : public AActor
 {
@@ -41,6 +43,9 @@ class PROMISS9_API AP9Shop : public AActor
 
 public:
 	AP9Shop();
+
+	UPROPERTY(BlueprintAssignable, Category = "Key")
+	FOnPressE OnPressE;
 
 protected:
 	virtual void BeginPlay() override;
@@ -92,6 +97,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Shop")
 	const TArray<FShopOffer>& GetOffers() const { return CurrentOffers; }
+	//이거 블루프린트
+	UFUNCTION(BlueprintPure, Category = "Shop")
+	FShopOffer GetOffer(int32 INdex) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Shop")
 	bool TryPurchase(int32 OfferIndex, APawn* BuyerPawn);

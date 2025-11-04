@@ -70,6 +70,16 @@ void AP9Shop::BuildOffers()
 
 	}
 }
+//요기도
+FShopOffer AP9Shop::GetOffer(int32 Index) const
+{
+	if (CurrentOffers.IsValidIndex(Index))
+	{
+		return CurrentOffers[Index];
+	}
+
+	return FShopOffer();
+}
 
 bool AP9Shop::PickThreeDistinctWeapons(TArray<FName>& OutWeaponIds) const
 {
@@ -237,4 +247,5 @@ void AP9Shop::HandleInteract()
 {
 	if (!bPlayerInRange) return;
 	BuildOffers();
+	OnPressE.Broadcast();
 }
