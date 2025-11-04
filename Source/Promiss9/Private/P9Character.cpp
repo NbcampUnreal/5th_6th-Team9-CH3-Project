@@ -660,7 +660,15 @@ void AP9Character::HideAllWeapons(bool bHide)
 
 void AP9Character::ApplyPenaltyDamage(float DamageAmount)
 {
-	UGameplayStatics::ApplyDamage(this, DamageAmount, GetController(), this, UDamageType::StaticClass());
+	if (Health <= 0.0f || DamageAmount <= 0.0f) return;
+
+	Health -= DamageAmount;
+	Health = FMath::Clamp(Health, 0.0f, MaxHealth);
+
+	if (Health <= 0.0f)
+	{
+		OnDeath();
+	}
 }
 
 void AP9Character::InteractPressed()
