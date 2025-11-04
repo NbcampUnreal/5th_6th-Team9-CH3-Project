@@ -232,6 +232,7 @@ void AP9PlayerState::ApplyReward(const FP9LevelUpReward& Selected)
 	}
 
 }
+
 void AP9PlayerState::AddKillCount()
 {
 	Killcount++;
@@ -311,3 +312,25 @@ bool AP9PlayerState::GetEffectiveDamage(FName WeaponId, float& OutDamage) const
 	return true;
 }
 
+//Damage
+float AP9PlayerState::DamageCalculation(float WeaponDamage, bool& bHeadshot)
+{
+	bHeadshot = IsHeadshot();
+	if (bHeadshot)
+	{
+		return WeaponDamage * (1 + (BonusDamagePer / 100)) * (1.5 + (BonusHeadshotDamage / 100));
+	}
+
+	return WeaponDamage * (1 + (BonusDamagePer / 100));
+}
+
+bool AP9PlayerState::IsHeadshot()
+{
+	if(BonusHeadshotChance<=0.0f) return false;
+
+	float RandomRoll = FMath::FRandRange(0.0f, 100.0f);
+
+	if (RandomRoll < BonusHeadshotChance) return true;
+
+	return false;
+}
