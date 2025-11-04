@@ -1,4 +1,3 @@
-// P9Shop.cpp
 #include "P9Shop.h"
 
 #include "Components/SphereComponent.h"
@@ -9,7 +8,8 @@
 
 #include "P9PlayerState.h"          
 #include "P9InventoryComponent.h"  
-#include "P9WeaponData.h"           
+#include "P9WeaponData.h"  
+#include "P9GameMode.h"
 
 AP9Shop::AP9Shop()
 {
@@ -68,12 +68,6 @@ void AP9Shop::BuildOffers()
 		Offer.Price = GetPriceByRarity(Offer.Rarity);
 		CurrentOffers.Add(Offer);
 
-//#if !(UE_BUILD_SHIPPING)
-//		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow,
-//			FString::Printf(TEXT("[Offer %d] %s / %s / %d Gold"),
-//				i + 1, *Offer.WeaponId.ToString(),
-//				*UEnum::GetValueAsString(Offer.Rarity), Offer.Price));
-//#endif
 	}
 }
 
@@ -178,11 +172,17 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 
 #if !(UE_BUILD_SHIPPING)
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green,
-		FString::Printf(TEXT("구매 성공: %s / %s / -%d Gold (보정 +%d)"),
+		FString::Printf(TEXT("구매 성공: %s / %s / -%d Gold ( +%d)"),
 			*Offer.WeaponId.ToString(),
 			*UEnum::GetValueAsString(Offer.Rarity),
 			Offer.Price, FlatBonus));
 #endif
+
+	//구매 성공 후 사라지기
+	if (AP9GameMode* GM = Cast<AP9GameMode>(UGameplayStatics::GetGameMode(this)))
+	{
+		GM->OnShopPurchased();
+	}
 
 	return true;
 }

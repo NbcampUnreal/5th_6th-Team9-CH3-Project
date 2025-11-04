@@ -107,7 +107,7 @@ bool UP9InventoryComponent::AddWeaponById(FName WeaponId)
     if (WeaponId.IsNone())
         return false;
 
-    // ── 권총도 구매 가능: 0번 슬롯에 스택업 ──
+    // 권총도 구매 가능
     if (WeaponId == DefaultHandgunId)
     {
         if (!Slots.IsValidIndex(0)) return false;
@@ -115,7 +115,7 @@ bool UP9InventoryComponent::AddWeaponById(FName WeaponId)
         // 0번은 항상 권총 유지
         Slots[0].WeaponId = DefaultHandgunId;
 
-        // 기본 보유가 1이므로 0이면 1로, 그 외엔 스택업
+        // 기본 보유가 1이므로 0이면 1로
         if (Slots[0].Count <= 0) Slots[0].Count = 1;
         else                     Slots[0].Count += 1;
 
@@ -130,7 +130,7 @@ bool UP9InventoryComponent::AddWeaponById(FName WeaponId)
         return true;
     }
 
-    // 이미 보유 → 슬롯 추가 없이 Count++
+    // 이미 보유 → 슬롯 추가 없이 Count
     if (const int32 OwnedIdx = FindSlotIndexById(WeaponId); OwnedIdx != INDEX_NONE)
     {
         Slots[OwnedIdx].Count += 1;
