@@ -77,12 +77,20 @@ void AP9ItemActor::Tick(float DeltaTime)
 
 }
 
-void AP9ItemActor::OnItemOverlap(AActor* OverlapActor)
+void AP9ItemActor::OnItemOverlap(UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
 {
 
 }
 
-void AP9ItemActor::OnItemEndOverlap(AActor* OverlapActor)
+void AP9ItemActor::OnItemEndOverlap(UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex)
 {
 
 }
@@ -184,9 +192,9 @@ float AP9ItemActor::CurrentFireSpeed() const
 	return GetFireSpeed();
 }
 
-FName AP9ItemActor::GetItemType(int32 RowNumber) const
+FName AP9ItemActor::GetItemType() const
 {
-	return FName(FString::FromInt(RowNumber));
+	return FName();
 }
 
 void AP9ItemActor::DestroyItem()

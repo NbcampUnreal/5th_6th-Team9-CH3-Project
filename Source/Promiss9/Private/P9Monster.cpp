@@ -1,5 +1,6 @@
 #include "P9Monster.h"
 #include "P9PlayerState.h"
+#include "P9HealingItem.h"
 #include "TimerManager.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
@@ -131,9 +132,10 @@ void AP9Monster::Die()
         {
             PS->AddXP(ExpReward);
 			PS->AddGold(GoldReward);
+			AP9HealingItem::SpawnHealingItem(GetWorld(), this);
         }
     }
-
+   
     //1.33초 뒤에 디졸브 시작
     FTimerHandle DeathTimerHandle;
     GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, [this]()

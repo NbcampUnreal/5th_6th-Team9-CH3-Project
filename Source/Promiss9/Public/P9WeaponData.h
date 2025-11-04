@@ -49,6 +49,12 @@ struct FP9WeaponData : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float Range;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float Radius;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float Cooldown;
+
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int32 Count;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int32 Price;
