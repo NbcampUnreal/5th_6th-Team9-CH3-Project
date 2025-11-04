@@ -42,7 +42,7 @@ public:
     UFUNCTION(BlueprintPure, Category = "Inventory")
     const TArray<FInventorySlot>& GetSlots() const { return Slots; }
 
-    /** 무기 추가(권총 제외). 이미 보유하면 슬롯 추가 없이 수량만 증가 */
+    /** 무기 추가. 이미 보유하면 슬롯 추가 없이 수량만 증가 */
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     bool AddWeaponById(FName WeaponId);
 
