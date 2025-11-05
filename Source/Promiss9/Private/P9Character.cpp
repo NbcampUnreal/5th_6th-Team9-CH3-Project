@@ -124,7 +124,7 @@ void AP9Character::Tick(float DeltaTime)
 
 		if (RollDistanceTraveled < RollTargetDistance)
 		{
-			AddMovementInput(GetActorForwardVector(), 1.0f);
+			AddMovementInput(GetActorForwardVector(), (RollSpeed * DeltaTime));
 		}
 		else
 		{
@@ -403,6 +403,7 @@ void AP9Character::OnFreeLookEnd(const FInputActionValue& Value)
 	UE_LOG(LogTemp, Warning, TEXT(">> FreeLook End"));
 }
 
+// 수정
 void AP9Character::StartForwardRoll()
 {
 	if (bForwardRolling || !bCanRoll || !ForwardRollMontage || GetCharacterMovement()->IsFalling()) return;
@@ -413,14 +414,13 @@ void AP9Character::StartForwardRoll()
 		bForwardRolling = true;
 		bCanRoll = false;
 		RollDistanceTraveled = 0.0f;
-
-		// 애니메이션 길이에 맞춰 속도 계산
-		float MontageDuration = ForwardRollMontage->GetPlayLength();
-		RollSpeed = RollTargetDistance / MontageDuration;
+		// 수정
+		RollSpeed = 1500.0f; // 속도
+		RollTargetDistance = 1500.0f; // 거리
 
 		// 무기 안보기에 하기
 		HideAllWeapons(true);
-		
+
 		// 애니메이션 몽타주 재생
 		AnimInstance->Montage_Play(ForwardRollMontage);
 
@@ -448,34 +448,6 @@ void AP9Character::OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 void AP9Character::StopForwardRoll()
 {
 	bForwardRolling = false;
-}
-
-void AP9Character::Interact(const FInputActionValue& Value)
-{
-	{
-		// 트레이스(시야 방향으로 레이저)
-		FVector Start = GetActorLocation();
-		FVector End = Start + GetActorForwardVector() * 300.0f;
-
-		FHitResult HitResult;
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(this); // 자기 자신 무시
-
-		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
-
-		FColor LineColor = bHit ? FColor::Green : FColor::Red;
-		DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.0f, 0, 2.0f);
-
-		if (bHit && HitResult.GetActor())
-		{
-			//// 액터와 상호작용
-			//IInteractableInterface* Interactable = Cast<IInteractableInterface>(HitResult.GetActor());
-			//if (Interactable)
-			//{
-			//	Interactable->Execute_OnInteract(HitResult.GetActor(), this);
-			//}
-		}
-	}
 }
 
 void AP9Character::ResetRollCooldown()

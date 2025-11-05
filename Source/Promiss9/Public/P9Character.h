@@ -59,8 +59,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Speed")
 	void AddNormalSpeed(float Amount);
 
-	//void UpdateMoveSpeed();
-
 	// 앞구르기 관련
 	void ResetRollCooldown();
 
@@ -98,8 +96,6 @@ public:
 	void StopForwardRoll();
 	UFUNCTION()
 	void OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-	UFUNCTION()
-	void Interact(const FInputActionValue& Value);
 
 	// 자유 시점
 	void OnFreeLookStart(const FInputActionValue& Value);
