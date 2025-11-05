@@ -37,11 +37,18 @@ void AP9Monster::BeginPlay()
 
 void AP9Monster::Tick(float DeltaTime)
 {
+    if (IsActorBeingDestroyed())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("디졸브 중단: 이미 파괴 중인 액터"));
+        return;
+    }
+
     Super::Tick(DeltaTime);
 
     // Dissolve 진행
     if (bIsDissolving && HitFlashMatInstance)
     {
+
         CurrentDissolveValue += DeltaTime / DissolveDuration;
         HitFlashMatInstance->SetScalarParameterValue("DissolveAmount", CurrentDissolveValue);
 
@@ -49,7 +56,7 @@ void AP9Monster::Tick(float DeltaTime)
         {
             UE_LOG(LogTemp, Warning, TEXT("투명화 끝남"));
             bIsDissolving = false;
-            Destroy();
+			SetLifeSpan(0.2f); // 짧은 시간 후에 액터 제거
         }
     }
 }
@@ -76,6 +83,12 @@ void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
 
 void AP9Monster::PlayHitFlashEffect()
 {
+    if (IsActorBeingDestroyed())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("플래시 중단: 이미 파괴 중인 액터"));
+        return;
+    }
+
     if (HitFlashMatInstance)
     {
         HitFlashMatInstance->SetScalarParameterValue("HitFlash", 1.0f);
@@ -150,7 +163,7 @@ void AP9Monster::Die()
 
 void AP9Monster::StartDissolveEffect()
 {
-    if (HitFlashMatInstance)
+    if (HitFlashMatInstance && !IsActorBeingDestroyed())
     {
         CurrentDissolveValue = 0.0f;
         HitFlashMatInstance->SetScalarParameterValue("DissolveAmount", 0.0f);
