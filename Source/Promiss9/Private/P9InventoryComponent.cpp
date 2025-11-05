@@ -216,6 +216,18 @@ void UP9InventoryComponent::ResetAll()
     }
     EnsureDefaultHandgun();
 }
+// 지금 가진 무기 ID 알려주기
+void UP9InventoryComponent::GetCurrentWeaponIds(TArray<FName>& OutWeaponIds) const
+{
+    OutWeaponIds.Reset();
+    for (const FInventorySlot& Slot : Slots)
+    {
+        if (Slot.Count > 0 && !Slot.WeaponId.IsNone())
+        {
+            OutWeaponIds.Add(Slot.WeaponId);
+        }
+    }
+}
 
 /** DataTable 연동 */
 bool UP9InventoryComponent::GetWeaponData(FName WeaponId, FP9WeaponData& OutRow) const
