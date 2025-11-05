@@ -63,6 +63,9 @@ public:
     /** 전체 초기화 — 권총 복구 */
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     void ResetAll();
+    // 지금 인벤토리에 들어있는 무기 ID만 뽑기.
+    UFUNCTION(BlueprintPure, Category = "Inventory")
+    void GetCurrentWeaponIds(TArray<FName>& OutWeaponIds) const;
 
 
 public:

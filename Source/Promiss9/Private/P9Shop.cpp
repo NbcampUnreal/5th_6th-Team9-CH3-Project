@@ -51,23 +51,55 @@ void AP9Shop::BuildOffers()
 {
 	CurrentOffers.Reset();
 
-	TArray<FName> Picked;
-	if (!PickThreeDistinctWeapons(Picked))
+	//   DataTable에 있는 전체 무기
+	TArray<FName> CandidatePool;
+	if (WeaponDataTable)
+	{
+		CandidatePool = WeaponDataTable->GetRowNames();
+	}
+
+	//  케릭터의 인벤토리가 꽉 차면 보유한 무기만 뜨게 함.
+	if (OverlappedPawn)
+	{
+		if (UP9InventoryComponent* Inv = OverlappedPawn->FindComponentByClass<UP9InventoryComponent>())
+		{
+			TArray<FName> OwnedIds;
+			Inv->GetCurrentWeaponIds(OwnedIds);  
+
+			//  4개 이상이면 꽉 찼다고 본다
+			const bool bInventoryFull = (OwnedIds.Num() >= 4);
+
+			if (bInventoryFull && OwnedIds.Num() > 0)
+			{
+				CandidatePool = OwnedIds;
+			}
+		}
+	}
+
+	if (CandidatePool.Num() <= 0)
 	{
 #if !(UE_BUILD_SHIPPING)
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("[Shop] DataTable이 없거나 Row가 3개 미만"));
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("[Shop] 후보 무기가 없습니다."));
 #endif
 		return;
 	}
 
-	for (int32 i = 0; i < Picked.Num(); ++i)
+	for (int32 i = 0; i < 16; ++i)
+	{
+		const int32 A = FMath::RandRange(0, CandidatePool.Num() - 1);
+		const int32 B = FMath::RandRange(0, CandidatePool.Num() - 1);
+		if (A != B) CandidatePool.Swap(A, B);
+	}
+
+	const int32 OfferCount = FMath::Min(3, CandidatePool.Num());
+	for (int32 i = 0; i < OfferCount; ++i)
 	{
 		FShopOffer Offer;
-		Offer.WeaponId = Picked[i];
+		Offer.WeaponId = CandidatePool[i];
 		Offer.Rarity = RollRarity();
 		Offer.Price = GetPriceByRarity(Offer.Rarity);
+		Offer.DamageBonus = GetDamageBonusByRarity(Offer.Rarity);
 		CurrentOffers.Add(Offer);
-
 	}
 }
 //요기도
@@ -177,7 +209,7 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 	const int32 FlatBonus = GetDamageBonusByRarity(Offer.Rarity);
 	if (FlatBonus != 0)
 	{
-		PS->AddWeaponDamageBonus(Offer.WeaponId, FlatBonus);
+		PS->AddWeaponDamageBonus(Offer.WeaponId, Offer.DamageBonus);
 	}
 
 #if !(UE_BUILD_SHIPPING)
@@ -202,6 +234,8 @@ void AP9Shop::OnTriggerBegin(UPrimitiveComponent* Comp, AActor* Other, UPrimitiv
 {
 	if (!Other || !Other->IsA<APawn>()) return;
 
+	OverlappedPawn = Cast<APawn>(Other);
+
 	bPlayerInRange = true;
 #if !(UE_BUILD_SHIPPING)
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Cyan, TEXT("E : 상점 열기"));
@@ -213,6 +247,11 @@ void AP9Shop::OnTriggerEnd(UPrimitiveComponent* Comp, AActor* Other, UPrimitiveC
 	int32 BodyIndex)
 {
 	if (!Other || !Other->IsA<APawn>()) return;
+
+	if (Other == OverlappedPawn)
+	{
+		OverlappedPawn = nullptr;
+	}
 
 	bPlayerInRange = false;
 	UnbindInput();

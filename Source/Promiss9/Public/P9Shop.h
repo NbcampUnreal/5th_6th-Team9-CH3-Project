@@ -32,6 +32,10 @@ struct FShopOffer
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop")
 	int32 Price = 0;
+
+	//공격력 뽀너스
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop")
+	int32 DamageBonus = 0;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPressE);
@@ -88,6 +92,9 @@ protected:
 
 	UPROPERTY()
 	APlayerController* CachedPC = nullptr;
+	// 요기 추가됨
+	UPROPERTY()
+	APawn* OverlappedPawn = nullptr;
 
 	bool bInteractBound = false;
 
