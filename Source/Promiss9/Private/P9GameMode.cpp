@@ -68,18 +68,19 @@ bool AP9GameMode::FindShopSpawnLocation(FVector& OutLocation)
 void AP9GameMode::UpdateTimer()
 {
 	//WaveSystem Timer
-	if (P9GameState == nullptr) return;
-	
-	P9GameState->CurrentGameTime += 1.0f;
-	int32 CurrentWave = P9GameState->CurrentWaveIndex;
-
-	if (P9GameState->WaveSettings.IsValidIndex(CurrentWave))
+	if (P9GameState != nullptr)
 	{
-		float CurrentWaveEndTime = P9GameState->WaveSettings[CurrentWave].WaveEndTime;
+		P9GameState->CurrentGameTime += 1.0f;
+		int32 CurrentWave = P9GameState->CurrentWaveIndex;
 
-		if (P9GameState->CurrentGameTime >= CurrentWaveEndTime)
+		if (P9GameState->WaveSettings.IsValidIndex(CurrentWave))
 		{
-			P9GameState->NextWave();
+			float CurrentWaveEndTime = P9GameState->WaveSettings[CurrentWave].WaveEndTime;
+
+			if (P9GameState->CurrentGameTime >= CurrentWaveEndTime)
+			{
+				P9GameState->NextWave();
+			}
 		}
 	}
 	//ShopSystem Timer
