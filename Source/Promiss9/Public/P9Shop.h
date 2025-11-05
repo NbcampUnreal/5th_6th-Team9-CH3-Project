@@ -98,6 +98,8 @@ protected:
 
 	bool bInteractBound = false;
 
+	bool bOffersBuilt = false;
+
 public:
 	UFUNCTION(BlueprintCallable, Category = "Shop")
 	void BuildOffers();
