@@ -6,6 +6,7 @@ AP9GameMode::AP9GameMode()
 {
 	ShopRespawnTimer = ShopSpawnFrequency;
 	CurrentShop = nullptr;
+	TimeUntilPenaltyUp = PenaltyUpFrequency;
 }
 
 void AP9GameMode::BeginPlay()
@@ -67,29 +68,61 @@ bool AP9GameMode::FindShopSpawnLocation(FVector& OutLocation)
 void AP9GameMode::UpdateTimer()
 {
 	//WaveSystem Timer
-	if (P9GameState == nullptr) return;
-	
-	P9GameState->CurrentGameTime += 1.0f;
-	int32 CurrentWave = P9GameState->CurrentWaveIndex;
-
-	if (P9GameState->WaveSettings.IsValidIndex(CurrentWave))
+	if (P9GameState != nullptr)
 	{
-		float CurrentWaveEndTime = P9GameState->WaveSettings[CurrentWave].WaveEndTime;
+		P9GameState->CurrentGameTime += 1.0f;
+		int32 CurrentWave = P9GameState->CurrentWaveIndex;
 
-		if (P9GameState->CurrentGameTime >= CurrentWaveEndTime)
+		if (P9GameState->WaveSettings.IsValidIndex(CurrentWave))
 		{
-			P9GameState->NextWave();
+			float CurrentWaveEndTime = P9GameState->WaveSettings[CurrentWave].WaveEndTime;
+
+			if (P9GameState->CurrentGameTime >= CurrentWaveEndTime)
+			{
+				P9GameState->NextWave();
+			}
 		}
 	}
 	//ShopSystem Timer
-	if (CurrentShop != nullptr) return;
-
-	ShopRespawnTimer -= 1.0f;
-
-	if (ShopRespawnTimer <= 0.0f)
+	if (CurrentShop == nullptr)
 	{
-		SpawnShop();
-		ShopRespawnTimer = ShopSpawnFrequency;
+		ShopRespawnTimer -= 1.0f;
+
+		if (ShopRespawnTimer <= 0.0f)
+		{
+			SpawnShop();
+			ShopRespawnTimer = ShopSpawnFrequency;
+		}
+	}
+
+	//Penalty
+
+	if (bIsPenaltyActive == false)
+	{
+		if (P9GameState->CurrentGameTime >= PenaltyStartTime)
+		{
+			bIsPenaltyActive = true;
+		}
+	}
+
+	if (bIsPenaltyActive == true)
+	{
+		float DamageToApply = PenaltyDamage + (10 * (CurrentPenaltyLevel - 1));
+
+		ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+		AP9Character* P9Player = Cast<AP9Character>(Player);
+
+		if (P9Player != nullptr)
+		{
+			P9Player->ApplyPenaltyDamage(DamageToApply);
+		}
+
+		TimeUntilPenaltyUp -= 1.0f;
+		if (TimeUntilPenaltyUp <= 0.0f)
+		{
+			CurrentPenaltyLevel++;
+			TimeUntilPenaltyUp = PenaltyUpFrequency;
+		}
 	}
 
 }

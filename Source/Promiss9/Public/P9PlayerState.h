@@ -127,7 +127,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
 	float CurrentXP;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
-	int32 XPForNextLevel;
+	float XPForNextLevel;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gold")
 	int32 CurrentGold;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KillCount")
@@ -161,4 +161,11 @@ protected:
 	void ApplyReward(const FP9LevelUpReward& Selected);
 	UFUNCTION(BlueprintImplementableEvent, Category = "Level")
 	void LevelUpUI(const TArray<FP9LevelUpReward>& Reward);
+
+public:
+	//Damage
+	UFUNCTION(BlueprintCallable)
+	float DamageCalculation(float WeaponDamage, bool& bHeadshot);
+
+	bool IsHeadshot();
 };

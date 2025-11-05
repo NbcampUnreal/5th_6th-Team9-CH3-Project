@@ -59,8 +59,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Speed")
 	void AddNormalSpeed(float Amount);
 
-	//void UpdateMoveSpeed();
-
 	// 앞구르기 관련
 	void ResetRollCooldown();
 
@@ -98,8 +96,6 @@ public:
 	void StopForwardRoll();
 	UFUNCTION()
 	void OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-	UFUNCTION()
-	void Interact(const FInputActionValue& Value);
 
 	// 자유 시점
 	void OnFreeLookStart(const FInputActionValue& Value);
@@ -114,6 +110,10 @@ public:
 
 	// 앞구르기 애니메이션 몽타주 실행 중 무기 숨기기
 	void HideAllWeapons(bool bHide);
+
+	//Penalty
+
+	void ApplyPenaltyDamage(float DamageAmount);
 
 protected:
 
