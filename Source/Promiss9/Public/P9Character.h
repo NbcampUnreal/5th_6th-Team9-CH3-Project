@@ -114,7 +114,6 @@ public:
 
 	// 앞구르기 애니메이션 몽타주 실행 중 무기 숨기기
 	void HideAllWeapons(bool bHide);
-	void LaunchForwardRoll();
 
 	//Penalty
 

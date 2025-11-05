@@ -100,6 +100,8 @@ void AP9Character::BeginPlay()
 {
 	Super::BeginPlay();
 
+	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+
 	if (TargetActor)
 	{
 		RotateMeshToTarget(TargetActor);
@@ -527,9 +529,11 @@ void AP9Character::SetNormalSpeed(float NewNormalSpeed)
 	NormalSpeed = NewNormalSpeed;
 }
 
+// 걷기 속도 입력 함수 수정
 void AP9Character::AddNormalSpeed(float Amount)
 {
-	NormalSpeed += (300)*(Amount/100);
+	NormalSpeed += (300) * (Amount/100);
+	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 }
 
 void AP9Character::OnDeath()
