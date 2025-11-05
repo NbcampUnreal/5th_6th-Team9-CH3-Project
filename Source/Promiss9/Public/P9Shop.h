@@ -109,6 +109,9 @@ public:
 	FShopOffer GetOffer(int32 INdex) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Shop")
+	bool TryPurchaseWithCurrentPawn(int32 OfferIndex);
+
+	UFUNCTION(BlueprintCallable, Category = "Shop")
 	bool TryPurchase(int32 OfferIndex, APawn* BuyerPawn);
 
 protected:

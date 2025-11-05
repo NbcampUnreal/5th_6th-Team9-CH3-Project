@@ -113,6 +113,11 @@ FShopOffer AP9Shop::GetOffer(int32 Index) const
 	return FShopOffer();
 }
 
+bool AP9Shop::TryPurchaseWithCurrentPawn(int32 OfferIndex)
+{
+	return TryPurchase(OfferIndex, OverlappedPawn);
+}
+
 bool AP9Shop::PickThreeDistinctWeapons(TArray<FName>& OutWeaponIds) const
 {
 	OutWeaponIds.Reset();
@@ -187,8 +192,14 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 	if (!PS->CanAfford(Offer.Price))
 	{
 #if !(UE_BUILD_SHIPPING)
-		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("골드 부족"));
+		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("골드가 부족합니다."));
 #endif
+		return false;
+	}
+
+	// 결제
+	if (!PS->SpendGold(Offer.Price))
+	{
 		return false;
 	}
 
@@ -196,12 +207,6 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 	if (!Inv) return false;
 
 	if (!Inv->AddWeaponById_Validated(Offer.WeaponId))
-	{
-		return false;
-	}
-
-	// 결제
-	if (!PS->SpendGold(Offer.Price))
 	{
 		return false;
 	}
