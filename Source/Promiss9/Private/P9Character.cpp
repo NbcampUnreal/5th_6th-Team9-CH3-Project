@@ -11,6 +11,7 @@
 #include "Components/ProgressBar.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AP9Character::AP9Character()
@@ -483,7 +484,9 @@ void AP9Character::SetMaxHealth(float NewMaxHealth)
 
 void AP9Character::AddMaxHealth(float Amount)
 {
-	MaxHealth += (MaxHealth)*(Amount/100);
+	float Add = (MaxHealth) * (Amount / 100);
+	MaxHealth += Add;
+	Health += Add;
 	MaxHealth = FMath::Max(MaxHealth, 0.0f);
 }
 
@@ -628,6 +631,19 @@ void AP9Character::HideAllWeapons(bool bHide)
 				Primitive->SetCollisionEnabled(bHide ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
 			}
 		}
+	}
+}
+
+void AP9Character::ApplyPenaltyDamage(float DamageAmount)
+{
+	if (Health <= 0.0f || DamageAmount <= 0.0f) return;
+
+	Health -= DamageAmount;
+	Health = FMath::Clamp(Health, 0.0f, MaxHealth);
+
+	if (Health <= 0.0f)
+	{
+		OnDeath();
 	}
 }
 

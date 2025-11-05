@@ -4,6 +4,7 @@
 #include "UObject/ObjectPtr.h"
 #include "P9GameState.h"
 #include "P9Shop.h"
+#include "P9Character.h"
 #include "GameFramework/GameModeBase.h"
 #include "P9GameMode.generated.h"
 
@@ -24,6 +25,18 @@ private:
 	UPROPERTY()
 	TObjectPtr<AP9GameState> P9GameState;
 	FTimerHandle WaveTimer;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Penalty")
+	float PenaltyStartTime = 660.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Penalty")
+	float PenaltyUpFrequency = 60.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Penalty")
+	float PenaltyDamage = 10.0f;
+
+
+	bool bIsPenaltyActive = false;
+	int32 CurrentPenaltyLevel = 1;
+	float TimeUntilPenaltyUp;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Shop")
 	TSubclassOf<AP9Shop> ShopClass;
