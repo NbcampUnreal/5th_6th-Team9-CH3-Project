@@ -49,6 +49,9 @@ void AP9Shop::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AP9Shop::BuildOffers()
 {
+	if (bOffersBuilt)
+		return;
+
 	CurrentOffers.Reset();
 
 	//   DataTable에 있는 전체 무기
@@ -101,6 +104,8 @@ void AP9Shop::BuildOffers()
 		Offer.DamageBonus = GetDamageBonusByRarity(Offer.Rarity);
 		CurrentOffers.Add(Offer);
 	}
+
+	bOffersBuilt = true;
 }
 //요기도
 FShopOffer AP9Shop::GetOffer(int32 Index) const
@@ -191,9 +196,6 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 	// 골드 확인
 	if (!PS->CanAfford(Offer.Price))
 	{
-#if !(UE_BUILD_SHIPPING)
-		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("골드가 부족합니다."));
-#endif
 		return false;
 	}
 
@@ -217,14 +219,6 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 		PS->AddWeaponDamageBonus(Offer.WeaponId, Offer.DamageBonus);
 	}
 
-#if !(UE_BUILD_SHIPPING)
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green,
-		FString::Printf(TEXT("구매 성공: %s / %s / -%d Gold ( +%d)"),
-			*Offer.WeaponId.ToString(),
-			*UEnum::GetValueAsString(Offer.Rarity),
-			Offer.Price, FlatBonus));
-#endif
-
 	//구매 성공 후 사라지기
 	if (AP9GameMode* GM = Cast<AP9GameMode>(UGameplayStatics::GetGameMode(this)))
 	{
@@ -242,9 +236,6 @@ void AP9Shop::OnTriggerBegin(UPrimitiveComponent* Comp, AActor* Other, UPrimitiv
 	OverlappedPawn = Cast<APawn>(Other);
 
 	bPlayerInRange = true;
-#if !(UE_BUILD_SHIPPING)
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Cyan, TEXT("E : 상점 열기"));
-#endif
 	BindInput();
 }
 
