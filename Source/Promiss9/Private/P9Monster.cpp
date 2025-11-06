@@ -173,7 +173,6 @@ void AP9Monster::Die()
     }
    
     //1.33초 뒤에 디졸브 시작
-    if (IsActorBeingDestroyed()) return;
     FTimerHandle DeathTimerHandle;
     GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, [this]()
         {
@@ -252,7 +251,6 @@ void AP9Monster::ShowDamageWidget(float DamageValue, bool bIsCritical)
     TWeakObjectPtr<UWidgetComponent> WeakDamageWidget = DamageWidgetComp;
 
     // 카메라 바라보기 타이머
-    if (IsActorBeingDestroyed()) return;
     GetWorld()->GetTimerManager().SetTimer(
         FaceTimer,
         [WeakDamageWidget]()
@@ -271,7 +269,6 @@ void AP9Monster::ShowDamageWidget(float DamageValue, bool bIsCritical)
     );
 
     // 기존 제거 타이머 안에 FaceTimer 해제도 추가
-    if (IsActorBeingDestroyed()) return;
     GetWorld()->GetTimerManager().SetTimer(RemoveTimer, [this, WeakDamageWidget, &FaceTimer]()
         {
             if (!IsValid(this)) return;
