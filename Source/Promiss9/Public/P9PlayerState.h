@@ -8,7 +8,6 @@
 struct FP9WeaponData;
 class UDataTable;
 
-
 UENUM(BlueprintType)
 enum class EP9Stat : uint8
 {
@@ -17,7 +16,7 @@ enum class EP9Stat : uint8
 	HeadshotChance,
 	HeadshotDamage,
 	DamagePer,
-	HealthRegen,
+	ReloadSpeed,
 	Luck,
 
 	MAX
@@ -78,6 +77,8 @@ struct FP9RewardStatData : public FTableRowBase
 	float Legendary;
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLevelUP);
+
 UCLASS()
 class PROMISS9_API AP9PlayerState : public APlayerState
 {
@@ -85,6 +86,10 @@ class PROMISS9_API AP9PlayerState : public APlayerState
 
 public:
 	AP9PlayerState();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnLevelUP OnLevelUP;
+
 	UFUNCTION(BlueprintCallable)
 	void AddXP(float XPAmount);
 	UFUNCTION(BlueprintCallable)
@@ -96,7 +101,7 @@ public:
 	float GetBonusHeadshotDamage() const;
 	float GetBonusHeadshotChance() const;
 	float GetBonusDamagePer() const;
-	float GetBonusHealthRegen() const;
+	float GetBonusReloadSpeed() const;
 	float GetBonusLuck() const;
 
 
@@ -133,14 +138,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KillCount")
 	int32 Killcount;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
-	float ProbCommon = 50.0f;
-	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
-	float ProbUncommon = 30.0f;
-	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
-	float ProbRare = 15.0f;
-	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
-	float ProbLegendary = 5.0f;
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
 	float BonusHeadshotChance;
@@ -149,7 +147,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
 	float BonusDamagePer;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
-	float BonusHealthRegen;
+	float BonusReloadSpeed;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
 	float BonusLuck;
 

@@ -125,13 +125,6 @@ void AP9GameMode::UpdateTimer()
 		}
 	}
 
-	//HealthRegen
-	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	AP9Character* P9Player = Cast<AP9Character>(Player);
-	if (P9Player != nullptr)
-	{
-		//P9Player->ApplyHealthRegen();
-	}
 }
 
 void AP9GameMode::OnShopPurchased()

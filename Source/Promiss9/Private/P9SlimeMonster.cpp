@@ -6,7 +6,7 @@ AP9SlimeMonster::AP9SlimeMonster()
     HP = 50.f;             // 체력
     AttackPower = 8.f;     // 공격력
     ExpReward = 5;         // 경험치 드랍량
-    GoldReward = 2;        // 골드 드랍량
+    GoldReward = 20;        // 골드 드랍량
 }
 
 void AP9SlimeMonster::BeginPlay()
