@@ -101,7 +101,11 @@ void AP9Shop::BuildOffers()
 		Offer.WeaponId = CandidatePool[i];
 		Offer.Rarity = RollRarity();
 		Offer.Price = GetPriceByRarity(Offer.Rarity);
+
 		Offer.DamageBonus = GetDamageBonusByRarity(Offer.Rarity);
+		Offer.RangeBonus = GetRangeBonusByRarity(Offer.Rarity);
+		Offer.FireSpeedBonus = GetFireSpeedBonusByRarity(Offer.Rarity);
+
 		CurrentOffers.Add(Offer);
 	}
 
@@ -169,15 +173,39 @@ int32 AP9Shop::GetPriceByRarity(EP9ShopRarity Rarity) const
 	}
 }
 
-int32 AP9Shop::GetDamageBonusByRarity(EP9ShopRarity Rarity) const
+float AP9Shop::GetDamageBonusByRarity(EP9ShopRarity Rarity) const
 {
 	switch (Rarity)
 	{
-	case EP9ShopRarity::Common:     return 3;
-	case EP9ShopRarity::Uncommon:   return 6;
-	case EP9ShopRarity::Rare:       return 9;
-	case EP9ShopRarity::Legendary:  return 12;
-	default:                        return 0;
+	case EP9ShopRarity::Common:     return 3.f;
+	case EP9ShopRarity::Uncommon:   return 6.f;
+	case EP9ShopRarity::Rare:       return 9.f;
+	case EP9ShopRarity::Legendary:  return 12.f;
+	default:                        return 0.f;
+	}
+}
+
+float AP9Shop::GetRangeBonusByRarity(EP9ShopRarity Rarity) const
+{
+	switch (Rarity)
+	{
+	case EP9ShopRarity::Common:     return 50.f;
+	case EP9ShopRarity::Uncommon:   return 100.f;
+	case EP9ShopRarity::Rare:       return 150.f;
+	case EP9ShopRarity::Legendary:  return 200.f;
+	default:                        return 0.f;
+	}
+}
+
+float AP9Shop::GetFireSpeedBonusByRarity(EP9ShopRarity Rarity) const
+{
+	switch (Rarity)
+	{
+	case EP9ShopRarity::Common:     return -0.1f;
+	case EP9ShopRarity::Uncommon:   return -0.2f;
+	case EP9ShopRarity::Rare:       return -0.3f;
+	case EP9ShopRarity::Legendary:  return -0.4f;
+	default:                        return 0.f;
 	}
 }
 
@@ -213,10 +241,22 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 		return false;
 	}
 
-	const int32 FlatBonus = GetDamageBonusByRarity(Offer.Rarity);
-	if (FlatBonus != 0)
+	//  데미지 
+	if (!FMath::IsNearlyZero(Offer.DamageBonus))
 	{
 		PS->AddWeaponDamageBonus(Offer.WeaponId, Offer.DamageBonus);
+	}
+
+	//  사거리 
+	if (!FMath::IsNearlyZero(Offer.RangeBonus))
+	{
+		PS->AddWeaponRangeBonus(Offer.WeaponId, Offer.RangeBonus);
+	}
+
+	//  발사속도
+	if (!FMath::IsNearlyZero(Offer.FireSpeedBonus))
+	{
+		PS->AddWeaponFireSpeedBonus(Offer.WeaponId, Offer.FireSpeedBonus);
 	}
 
 	//구매 성공 후 사라지기

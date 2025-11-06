@@ -288,11 +288,14 @@ bool AP9PlayerState::SpendGold(int32 Cost)
 	return true;
 }
 
-void AP9PlayerState::AddWeaponDamageBonus(FName WeaponId, int32 FlatBonus)
+#pragma region ShopWeapon
+void AP9PlayerState::AddWeaponDamageBonus(FName WeaponId, float FlatBonus)
 {
-	if (WeaponId.IsNone() || FlatBonus == 0) return; //무기 ID가 없으면 무시하는 거
+	if (WeaponId.IsNone() || FMath::IsNearlyZero(FlatBonus))
+		return;
 
-	WeaponFlatBonus.FindOrAdd(WeaponId) += FlatBonus; // 이미 있는 무기가 추가되면 값을 누적, 없으면 새로 추가하기
+	float& Stored = WeaponFlatBonus.FindOrAdd(WeaponId);
+	Stored += FlatBonus;
 }
 
 bool AP9PlayerState::GetEffectiveDamage(FName WeaponId, float& OutDamage) const
@@ -301,15 +304,65 @@ bool AP9PlayerState::GetEffectiveDamage(FName WeaponId, float& OutDamage) const
 	if (!WeaponDataTable || WeaponId.IsNone()) return false;
 
 	const FP9WeaponData* Row = WeaponDataTable->FindRow<FP9WeaponData>(
-		WeaponId, TEXT("PS_GetEffectiveDamage"), false); //DataTable에서 무기의 기본값을 찾기, row를 못찾으면 찾을때 쓰는용 문구.
+		WeaponId,
+		TEXT("PS_GetEffectiveDamage"),
+		false);
 	if (!Row) return false;
 
-	const int32* Flat = WeaponFlatBonus.Find(WeaponId);
-	const int32 Add = Flat ? *Flat : 0;
+	const float* Flat = WeaponFlatBonus.Find(WeaponId);
+	const float Add = Flat ? *Flat : 0.f;
 
 	OutDamage = Row->Damage + Add;
 	return true;
 }
+
+void AP9PlayerState::AddWeaponRangeBonus(FName WeaponId, float BonusAmount)
+{
+	if (WeaponId.IsNone() || FMath::IsNearlyZero(BonusAmount)) return;
+
+	float& Stored = WeaponRangeBonusMap.FindOrAdd(WeaponId);
+	Stored += BonusAmount;
+}
+bool AP9PlayerState::GetEffectiveRange(FName WeaponId, float& OutRange) const
+{
+	if (!WeaponDataTable || WeaponId.IsNone()) return false;
+
+	const FP9WeaponData* Row = WeaponDataTable->FindRow<FP9WeaponData>(
+		WeaponId,
+		TEXT("PS_GetEffectiveRange"));
+	if (!Row) return false;
+
+	const float* Bonus = WeaponRangeBonusMap.Find(WeaponId);
+	const float Add = Bonus ? *Bonus : 0.f;
+
+	OutRange = Row->Range + Add;
+	return true;
+}
+
+void AP9PlayerState::AddWeaponFireSpeedBonus(FName WeaponId, float BonusAmount)
+{
+	if (WeaponId.IsNone() || FMath::IsNearlyZero(BonusAmount)) return;
+
+	float& Stored = WeaponFireSpeedBonusMap.FindOrAdd(WeaponId);
+	Stored += BonusAmount;
+}
+
+bool AP9PlayerState::GetEffectiveFireSpeed(FName WeaponId, float& OutSpeed) const
+{
+	if (!WeaponDataTable || WeaponId.IsNone()) return false;
+
+	const FP9WeaponData* Row = WeaponDataTable->FindRow<FP9WeaponData>(
+		WeaponId,
+		TEXT("PS_GetEffectiveFireSpeed"));
+	if (!Row) return false;
+
+	const float* Bonus = WeaponFireSpeedBonusMap.Find(WeaponId);
+	const float Add = Bonus ? *Bonus : 0.f;
+
+	OutSpeed = Row->FireSpeed + Add;
+	return true;
+}
+#pragma endregion
 
 //Damage
 float AP9PlayerState::DamageCalculation(float WeaponDamage, bool& bHeadshot)

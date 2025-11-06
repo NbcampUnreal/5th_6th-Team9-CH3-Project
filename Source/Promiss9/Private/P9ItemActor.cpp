@@ -2,6 +2,8 @@
 
 
 #include "P9ItemActor.h"
+#include "GameFramework/Pawn.h"
+#include "P9PlayerState.h"
 
 // Sets default values
 AP9ItemActor::AP9ItemActor()
@@ -196,16 +198,55 @@ FName AP9ItemActor::GetItemType() const
 
 float AP9ItemActor::CurrentRange() const
 {
+	if (APawn* PawnOwner = Cast<APawn>(GetOwner()))
+	{
+		if (AP9PlayerState* PS = PawnOwner->GetPlayerState<AP9PlayerState>())
+		{
+			float FinalRange = 0.f;
+			
+			if (PS->GetEffectiveRange(P9WeaponRow.RowName, FinalRange))
+			{
+				return FinalRange;
+			}
+		}
+	}
+
 	return GetRange();
 }
 
 float AP9ItemActor::CurrentDamage() const
 {
+	if (APawn* PawnOwner = Cast<APawn>(GetOwner()))
+	{
+		if (AP9PlayerState* PS = PawnOwner->GetPlayerState<AP9PlayerState>())
+		{
+			float FinalDamage = 0.f;
+		
+			if (PS->GetEffectiveDamage(P9WeaponRow.RowName, FinalDamage))
+			{
+				return FinalDamage;
+			}
+		}
+	}
+
 	return GetDamage();
 }
 
 float AP9ItemActor::CurrentFireSpeed() const
 {
+	if (APawn* PawnOwner = Cast<APawn>(GetOwner()))
+	{
+		if (AP9PlayerState* PS = PawnOwner->GetPlayerState<AP9PlayerState>())
+		{
+			float FinalFireSpeed = 0.f;
+		
+			if (PS->GetEffectiveFireSpeed(P9WeaponRow.RowName, FinalFireSpeed))
+			{
+				return FinalFireSpeed;
+			}
+		}
+	}
+
 	return GetFireSpeed();
 }
 
