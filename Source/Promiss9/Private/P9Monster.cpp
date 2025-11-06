@@ -215,6 +215,11 @@ void AP9Monster::ShowDamageWidget(float DamageValue, bool bIsCritical)
     DamageWidgetComp->SetWidgetClass(DamageTextWidgetClass);
     DamageWidgetComp->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 
+    // 그림자 비활성
+    DamageWidgetComp->CastShadow = false;
+    DamageWidgetComp->bCastDynamicShadow = false;
+    DamageWidgetComp->bCastStaticShadow = false;
+
     // 위젯 띄우는 위치
     float HalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
     float OffsetZ = HalfHeight + 80.f; // 머리 위 약간 띄우기 / 해당 수치로 위치 조절 가능
