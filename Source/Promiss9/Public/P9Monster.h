@@ -78,7 +78,7 @@ public:
 
     // 몬스터가 데미지를 입는 함수
     UFUNCTION(BlueprintCallable, Category = "Combat")
-    void TakeDamageFromPlayer(float DamageAmount);
+    void TakeDamageFromPlayer(float DamageAmount, bool Critical);
 
     UFUNCTION(BlueprintCallable, Category = "Combat")
     void PlayHitFlashEffect();
