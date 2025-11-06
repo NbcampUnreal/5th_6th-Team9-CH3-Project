@@ -60,7 +60,7 @@ void AP9Monster::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 
     // Dissolve 진행
-    if (bIsDissolving && HitFlashMatInstance)
+    if (bIsDissolving && HitFlashMatInstance.IsValid())
     {
 
         CurrentDissolveValue += DeltaTime / DissolveDuration;
@@ -109,14 +109,14 @@ void AP9Monster::PlayHitFlashEffect()
         return;
     }
 
-    if (HitFlashMatInstance)
+    if (HitFlashMatInstance.IsValid())
     {
         HitFlashMatInstance->SetScalarParameterValue("HitFlash", 1.0f);
 
         FTimerHandle FlashTimer;
         GetWorld()->GetTimerManager().SetTimer(FlashTimer, [this]()
             {
-                if (HitFlashMatInstance)
+                if (HitFlashMatInstance.IsValid())
                     HitFlashMatInstance->SetScalarParameterValue("HitFlash", 0.0f);
             }, 0.1f, false);
     }
@@ -185,7 +185,7 @@ void AP9Monster::Die()
 
 void AP9Monster::StartDissolveEffect()
 {
-    if (HitFlashMatInstance && !IsActorBeingDestroyed())
+    if (HitFlashMatInstance.IsValid() && !IsActorBeingDestroyed())
     {
         CurrentDissolveValue = 0.0f;
         HitFlashMatInstance->SetScalarParameterValue("DissolveAmount", 0.0f);
@@ -214,6 +214,11 @@ void AP9Monster::ShowDamageWidget(float DamageValue, bool bIsCritical)
     DamageWidgetComp->SetTwoSided(true);
     DamageWidgetComp->SetWidgetClass(DamageTextWidgetClass);
     DamageWidgetComp->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+
+    // 그림자 비활성
+    DamageWidgetComp->CastShadow = false;
+    DamageWidgetComp->bCastDynamicShadow = false;
+    DamageWidgetComp->bCastStaticShadow = false;
 
     // 위젯 띄우는 위치
     float HalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();

@@ -20,7 +20,7 @@ AP9PlayerState::AP9PlayerState()
 	BonusHeadshotChance = 0.0f;
 	BonusHeadshotDamage = 0.0f;
 	BonusDamagePer = 0.0f;
-	BonusHealthRegen = 0.0f;
+	BonusReloadSpeed = 0.0f;
 	BonusLuck = 0.0f;
 }
 
@@ -53,9 +53,9 @@ void AP9PlayerState::GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutV
 		RowName = FName("HeadshotDamage");
 		break;
 	}
-	case EP9Stat::HealthRegen:
+	case EP9Stat::ReloadSpeed:
 	{
-		RowName = FName("HealthRegen");
+		RowName = FName("ReloadSpeed");
 		break;
 	}
 	case EP9Stat::DamagePer:
@@ -164,48 +164,7 @@ TArray<FP9LevelUpReward> AP9PlayerState::GenerateReward()
 	for (int32 i = 0; i < 3; ++i)
 	{
 		EP9Stat SelectedStat = StatPool[i];
-		EP9Rarity SelectedRarity;
-
-
-	
-		float LuckCommon = BonusLuck * (-0.2f);
-		float LuckUncommon = BonusLuck * (-0.1f);
-		float LuckRare = BonusLuck * (0.2f);
-		float LuckLegendary = BonusLuck * (0.1f);
-
-		float FinalProbCommon = FMath::Max(0.0f, ProbCommon + LuckCommon);
-		float FinalProbUncommon = FMath::Max(0.0f, ProbUncommon + LuckUncommon);
-		float FinalProbRare = FMath::Max(0.0f, ProbRare + LuckRare);
-		float FinalProbLegendary = FMath::Max(0.0f, ProbLegendary + LuckLegendary);
-		float TotalProb = FinalProbCommon + FinalProbUncommon + FinalProbRare + FinalProbLegendary;
-
-		const float RandomRoll = FMath::FRandRange(0.0f, TotalProb);
-
-		float CurrentPer = FinalProbCommon;
-		if (RandomRoll < CurrentPer)
-		{
-			SelectedRarity = EP9Rarity::Common;
-		}
-		else
-		{
-			CurrentPer += FinalProbUncommon;
-			if (RandomRoll < CurrentPer)
-			{
-				SelectedRarity = EP9Rarity::Uncommon;
-			}
-			else
-			{
-				CurrentPer += FinalProbRare;
-				if (RandomRoll < CurrentPer)
-				{
-					SelectedRarity = EP9Rarity::Rare;
-				}
-				else
-				{
-					SelectedRarity = EP9Rarity::Legendary;
-				}
-			}
-		}
+		EP9Rarity SelectedRarity = (EP9Rarity)FMath::RandRange(0, (int32)EP9Rarity::MAX - 1);
 		FP9LevelUpReward Choice;
 		float Value;
 		FString Desc;
@@ -259,9 +218,9 @@ void AP9PlayerState::ApplyReward(const FP9LevelUpReward& Selected)
 		BonusDamagePer += ValueToApply;
 		break;
 	}
-	case EP9Stat::HealthRegen:
+	case EP9Stat::ReloadSpeed:
 	{
-		BonusHealthRegen += ValueToApply;
+		BonusReloadSpeed += ValueToApply;
 		break;
 	}
 	case EP9Stat::Luck:
@@ -270,7 +229,7 @@ void AP9PlayerState::ApplyReward(const FP9LevelUpReward& Selected)
 		break;
 	}
 	}
-
+	OnLevelUP.Broadcast();
 }
 
 void AP9PlayerState::AddKillCount()
@@ -297,9 +256,9 @@ float AP9PlayerState::GetBonusDamagePer() const
 	return BonusDamagePer;
 }
 
-float AP9PlayerState::GetBonusHealthRegen() const
+float AP9PlayerState::GetBonusReloadSpeed() const
 {
-	return BonusHealthRegen;
+	return BonusReloadSpeed;
 }
 
 float AP9PlayerState::GetBonusLuck() const

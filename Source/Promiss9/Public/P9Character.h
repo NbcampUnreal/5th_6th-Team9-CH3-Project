@@ -16,6 +16,8 @@ class UUserWidget;
 
 struct FInputActionValue;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
+
 UCLASS()
 class PROMISS9_API AP9Character : public ACharacter
 {
@@ -25,6 +27,9 @@ public:
 	AP9Character();
 
 	virtual void BeginPlay() override;
+
+	UPROPERTY(BlueprintAssignable, Category = "Death")
+	FOnDeath OnDeath;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -61,9 +66,6 @@ public:
 
 	// 앞구르기 관련
 	void ResetRollCooldown();
-
-	// 사망
-	void OnDeath();
 
 	// Damage
 	UFUNCTION(BlueprintCallable)
