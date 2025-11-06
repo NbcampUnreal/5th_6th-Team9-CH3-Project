@@ -38,6 +38,10 @@ private:
 	int32 CurrentPenaltyLevel = 1;
 	float TimeUntilPenaltyUp;
 
+	UPROPERTY(EditAnywhere, Category = "HealthRegen")
+	float HealthRegenFrequency = 5.0f;
+	float TimeUntilHealthRegen;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Shop")
 	TSubclassOf<AP9Shop> ShopClass;
 	UPROPERTY(EditDefaultsOnly, Category = "Shop")

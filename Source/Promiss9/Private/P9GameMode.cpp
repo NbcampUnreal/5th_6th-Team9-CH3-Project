@@ -7,6 +7,7 @@ AP9GameMode::AP9GameMode()
 	ShopRespawnTimer = ShopSpawnFrequency;
 	CurrentShop = nullptr;
 	TimeUntilPenaltyUp = PenaltyUpFrequency;
+	TimeUntilHealthRegen = HealthRegenFrequency;
 }
 
 void AP9GameMode::BeginPlay()
@@ -130,7 +131,12 @@ void AP9GameMode::UpdateTimer()
 	AP9Character* P9Player = Cast<AP9Character>(Player);
 	if (P9Player != nullptr)
 	{
-		P9Player->ApplyHealthRegen();
+		TimeUntilHealthRegen -= 1.0f;
+		if (TimeUntilHealthRegen <= 0)
+		{
+			P9Player->ApplyHealthRegen();
+			TimeUntilHealthRegen = HealthRegenFrequency;
+		}
 	}
 }
 
