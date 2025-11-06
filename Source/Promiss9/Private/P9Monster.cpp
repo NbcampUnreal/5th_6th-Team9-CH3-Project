@@ -16,6 +16,16 @@ AP9Monster::AP9Monster()
 {
     PrimaryActorTick.bCanEverTick = true;
 
+    // 위젯 블루프린트 클래스 자동 지정
+    static ConstructorHelpers::FClassFinder<UUserWidget> DamageWidgetBP(
+        TEXT("/Game/Blueprints/UI/WBP_DamageText")
+    );
+
+    if (DamageWidgetBP.Succeeded())
+    {
+        DamageTextWidgetClass = DamageWidgetBP.Class;
+    }
+
     MonsterMesh = GetMesh();
 
     // 기본값
@@ -23,7 +33,6 @@ AP9Monster::AP9Monster()
     AttackPower = 10.0f;
     ExpReward = 10;
     GoldReward = 5;
-
 }
 
 void AP9Monster::BeginPlay()
@@ -66,7 +75,7 @@ void AP9Monster::Tick(float DeltaTime)
     }
 }
 
-void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
+void AP9Monster::TakeDamageFromPlayer(float DamageAmount, bool Critical)
 {
     UE_LOG(LogTemp, Warning, TEXT("데미지 함수 실행!"));
 
@@ -77,7 +86,7 @@ void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
 
     if (DamageAmount > 0.f)
     {
-        ShowDamageWidget(DamageAmount, true);
+        ShowDamageWidget(DamageAmount, Critical);
         UE_LOG(LogTemp, Warning, TEXT("데미지 : %.0f"), DamageAmount);
     }
 
