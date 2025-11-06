@@ -17,7 +17,7 @@ enum class EP9Stat : uint8
 	HeadshotChance,
 	HeadshotDamage,
 	DamagePer,
-	ReloadSpeed,
+	HealthRegen,
 	Luck,
 
 	MAX
@@ -96,7 +96,7 @@ public:
 	float GetBonusHeadshotDamage() const;
 	float GetBonusHeadshotChance() const;
 	float GetBonusDamagePer() const;
-	float GetBonusReloadSpeed() const;
+	float GetBonusHealthRegen() const;
 	float GetBonusLuck() const;
 
 
@@ -142,7 +142,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
 	float BonusDamagePer;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
-	float BonusReloadSpeed;
+	float BonusHealthRegen;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
 	float BonusLuck;
 

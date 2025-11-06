@@ -20,7 +20,7 @@ AP9PlayerState::AP9PlayerState()
 	BonusHeadshotChance = 0.0f;
 	BonusHeadshotDamage = 0.0f;
 	BonusDamagePer = 0.0f;
-	BonusReloadSpeed = 0.0f;
+	BonusHealthRegen = 0.0f;
 	BonusLuck = 0.0f;
 }
 
@@ -53,9 +53,9 @@ void AP9PlayerState::GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutV
 		RowName = FName("HeadshotDamage");
 		break;
 	}
-	case EP9Stat::ReloadSpeed:
+	case EP9Stat::HealthRegen:
 	{
-		RowName = FName("ReloadSpeed");
+		RowName = FName("HealthRegen");
 		break;
 	}
 	case EP9Stat::DamagePer:
@@ -218,9 +218,9 @@ void AP9PlayerState::ApplyReward(const FP9LevelUpReward& Selected)
 		BonusDamagePer += ValueToApply;
 		break;
 	}
-	case EP9Stat::ReloadSpeed:
+	case EP9Stat::HealthRegen:
 	{
-		BonusReloadSpeed += ValueToApply;
+		BonusHealthRegen += ValueToApply;
 		break;
 	}
 	case EP9Stat::Luck:
@@ -256,9 +256,9 @@ float AP9PlayerState::GetBonusDamagePer() const
 	return BonusDamagePer;
 }
 
-float AP9PlayerState::GetBonusReloadSpeed() const
+float AP9PlayerState::GetBonusHealthRegen() const
 {
-	return BonusReloadSpeed;
+	return BonusHealthRegen;
 }
 
 float AP9PlayerState::GetBonusLuck() const
