@@ -49,26 +49,63 @@ void AP9Shop::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AP9Shop::BuildOffers()
 {
+	if (bOffersBuilt)
+		return;
+
 	CurrentOffers.Reset();
 
-	TArray<FName> Picked;
-	if (!PickThreeDistinctWeapons(Picked))
+	//   DataTable에 있는 전체 무기
+	TArray<FName> CandidatePool;
+	if (WeaponDataTable)
+	{
+		CandidatePool = WeaponDataTable->GetRowNames();
+	}
+
+	//  케릭터의 인벤토리가 꽉 차면 보유한 무기만 뜨게 함.
+	if (OverlappedPawn)
+	{
+		if (UP9InventoryComponent* Inv = OverlappedPawn->FindComponentByClass<UP9InventoryComponent>())
+		{
+			TArray<FName> OwnedIds;
+			Inv->GetCurrentWeaponIds(OwnedIds);  
+
+			//  4개 이상이면 꽉 찼다고 본다
+			const bool bInventoryFull = (OwnedIds.Num() >= 4);
+
+			if (bInventoryFull && OwnedIds.Num() > 0)
+			{
+				CandidatePool = OwnedIds;
+			}
+		}
+	}
+
+	if (CandidatePool.Num() <= 0)
 	{
 #if !(UE_BUILD_SHIPPING)
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("[Shop] DataTable이 없거나 Row가 3개 미만"));
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("[Shop] 후보 무기가 없습니다."));
 #endif
 		return;
 	}
 
-	for (int32 i = 0; i < Picked.Num(); ++i)
+	for (int32 i = 0; i < 16; ++i)
+	{
+		const int32 A = FMath::RandRange(0, CandidatePool.Num() - 1);
+		const int32 B = FMath::RandRange(0, CandidatePool.Num() - 1);
+		if (A != B) CandidatePool.Swap(A, B);
+	}
+
+	const int32 OfferCount = FMath::Min(3, CandidatePool.Num());
+	for (int32 i = 0; i < OfferCount; ++i)
 	{
 		FShopOffer Offer;
-		Offer.WeaponId = Picked[i];
+		Offer.WeaponId = CandidatePool[i];
 		Offer.Rarity = RollRarity();
 		Offer.Price = GetPriceByRarity(Offer.Rarity);
+		Offer.DamageBonus = GetDamageBonusByRarity(Offer.Rarity);
 		CurrentOffers.Add(Offer);
-
 	}
+
+	bOffersBuilt = true;
 }
 //요기도
 FShopOffer AP9Shop::GetOffer(int32 Index) const
@@ -79,6 +116,11 @@ FShopOffer AP9Shop::GetOffer(int32 Index) const
 	}
 
 	return FShopOffer();
+}
+
+bool AP9Shop::TryPurchaseWithCurrentPawn(int32 OfferIndex)
+{
+	return TryPurchase(OfferIndex, OverlappedPawn);
 }
 
 bool AP9Shop::PickThreeDistinctWeapons(TArray<FName>& OutWeaponIds) const
@@ -154,9 +196,12 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 	// 골드 확인
 	if (!PS->CanAfford(Offer.Price))
 	{
-#if !(UE_BUILD_SHIPPING)
-		GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("골드 부족"));
-#endif
+		return false;
+	}
+
+	// 결제
+	if (!PS->SpendGold(Offer.Price))
+	{
 		return false;
 	}
 
@@ -168,25 +213,11 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 		return false;
 	}
 
-	// 결제
-	if (!PS->SpendGold(Offer.Price))
-	{
-		return false;
-	}
-
 	const int32 FlatBonus = GetDamageBonusByRarity(Offer.Rarity);
 	if (FlatBonus != 0)
 	{
-		PS->AddWeaponDamageBonus(Offer.WeaponId, FlatBonus);
+		PS->AddWeaponDamageBonus(Offer.WeaponId, Offer.DamageBonus);
 	}
-
-#if !(UE_BUILD_SHIPPING)
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green,
-		FString::Printf(TEXT("구매 성공: %s / %s / -%d Gold ( +%d)"),
-			*Offer.WeaponId.ToString(),
-			*UEnum::GetValueAsString(Offer.Rarity),
-			Offer.Price, FlatBonus));
-#endif
 
 	//구매 성공 후 사라지기
 	if (AP9GameMode* GM = Cast<AP9GameMode>(UGameplayStatics::GetGameMode(this)))
@@ -202,10 +233,9 @@ void AP9Shop::OnTriggerBegin(UPrimitiveComponent* Comp, AActor* Other, UPrimitiv
 {
 	if (!Other || !Other->IsA<APawn>()) return;
 
+	OverlappedPawn = Cast<APawn>(Other);
+
 	bPlayerInRange = true;
-#if !(UE_BUILD_SHIPPING)
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Cyan, TEXT("E : 상점 열기"));
-#endif
 	BindInput();
 }
 
@@ -213,6 +243,11 @@ void AP9Shop::OnTriggerEnd(UPrimitiveComponent* Comp, AActor* Other, UPrimitiveC
 	int32 BodyIndex)
 {
 	if (!Other || !Other->IsA<APawn>()) return;
+
+	if (Other == OverlappedPawn)
+	{
+		OverlappedPawn = nullptr;
+	}
 
 	bPlayerInRange = false;
 	UnbindInput();

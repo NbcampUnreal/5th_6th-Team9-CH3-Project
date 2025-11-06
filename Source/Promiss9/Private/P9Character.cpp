@@ -11,6 +11,7 @@
 #include "Components/ProgressBar.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AP9Character::AP9Character()
@@ -86,7 +87,7 @@ AP9Character::AP9Character()
 	// 앞구르기 관련
 	bCanRoll = true;
 	RollDistanceTraveled = 0.0f;
-	RollSpeed = 0.0f; // 속도
+	RollSpeed = 1.0f; // 속도
 	RollTargetDistance = 1000.0f; // 거리
 	bForwardRolling = false;
 
@@ -118,18 +119,17 @@ void AP9Character::Tick(float DeltaTime)
 
 	if (bForwardRolling)
 	{
-		float DeltaDistance = RollSpeed * DeltaTime;
-		RollDistanceTraveled += DeltaDistance;
+		FVector LaunchDirection = GetActorForwardVector().GetSafeNormal();
+		LaunchCharacter(LaunchDirection * RollSpeed, true, true);
 
-		if (RollDistanceTraveled < RollTargetDistance)
+		FVector DesiredVelocity = GetActorForwardVector().GetSafeNormal() * RollSpeed;
+		FVector NewVelocity = GetCharacterMovement()->Velocity + DesiredVelocity * 0.016f; // 단순 보정용, FPS 60 기준
+		float MaxRollSpeed = 1.f;
+		if (NewVelocity.Size() > MaxRollSpeed)
 		{
-			AddMovementInput(GetActorForwardVector(), 1.0f);
+			NewVelocity = NewVelocity.GetSafeNormal() * MaxRollSpeed;
 		}
-		else
-		{
-			bForwardRolling = false;
-			HideAllWeapons(false);
-		}
+		GetCharacterMovement()->Velocity = NewVelocity;
 
 		return;
 	}
@@ -402,6 +402,7 @@ void AP9Character::OnFreeLookEnd(const FInputActionValue& Value)
 	UE_LOG(LogTemp, Warning, TEXT(">> FreeLook End"));
 }
 
+// 수정
 void AP9Character::StartForwardRoll()
 {
 	if (bForwardRolling || !bCanRoll || !ForwardRollMontage || GetCharacterMovement()->IsFalling()) return;
@@ -412,22 +413,31 @@ void AP9Character::StartForwardRoll()
 		bForwardRolling = true;
 		bCanRoll = false;
 		RollDistanceTraveled = 0.0f;
-
-		// 애니메이션 길이에 맞춰 속도 계산
-		float MontageDuration = ForwardRollMontage->GetPlayLength();
-		RollSpeed = RollTargetDistance / MontageDuration;
+		// 수정
+		RollSpeed = 1500.0f; // 속도
+		RollTargetDistance = 1500.0f; // 거리
 
 		// 무기 안보기에 하기
 		HideAllWeapons(true);
-		
+
 		// 애니메이션 몽타주 재생
-		AnimInstance->Montage_Play(ForwardRollMontage);
+		AnimInstance->Montage_Play(ForwardRollMontage, RollPlayRate);
+
+		OriginalMaxWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+		GetWorldTimerManager().SetTimer(StopMovementTimerHandle, this, &AP9Character::StopMovementCompletely, RollDuration, false);
 
 		RollMontageEndedDelegate.BindUObject(this, &AP9Character::OnRollMontageEnded);
 		AnimInstance->Montage_SetEndDelegate(RollMontageEndedDelegate, ForwardRollMontage);
 
 		GetWorldTimerManager().SetTimer(RollCooldownTimerHandle, this, &AP9Character::ResetRollCooldown, 2.0f, false);
 	}
+}
+
+void AP9Character::StopMovementCompletely()
+{
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->SetMovementMode(MOVE_None);
+	StopForwardRoll();
 }
 
 void AP9Character::OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -438,43 +448,31 @@ void AP9Character::OnRollMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 	UE_LOG(LogTemp, Warning, TEXT("bForwardRolling = false"));
 	HideAllWeapons(false);
 
+	GetWorldTimerManager().SetTimer(
+		RollMovementRestoreTimerHandle,
+		this,
+		&AP9Character::RestoreMovementAfterRoll,
+		0.1f,
+		false
+	);
+
 	if (bInterrupted)
 	{
 		GetCharacterMovement()->StopMovementImmediately();
 	}
 }
 
+void AP9Character::RestoreMovementAfterRoll()
+{
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	}
+}
+
 void AP9Character::StopForwardRoll()
 {
 	bForwardRolling = false;
-}
-
-void AP9Character::Interact(const FInputActionValue& Value)
-{
-	{
-		// 트레이스(시야 방향으로 레이저)
-		FVector Start = GetActorLocation();
-		FVector End = Start + GetActorForwardVector() * 300.0f;
-
-		FHitResult HitResult;
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(this); // 자기 자신 무시
-
-		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
-
-		FColor LineColor = bHit ? FColor::Green : FColor::Red;
-		DrawDebugLine(GetWorld(), Start, End, LineColor, false, 2.0f, 0, 2.0f);
-
-		if (bHit && HitResult.GetActor())
-		{
-			//// 액터와 상호작용
-			//IInteractableInterface* Interactable = Cast<IInteractableInterface>(HitResult.GetActor());
-			//if (Interactable)
-			//{
-			//	Interactable->Execute_OnInteract(HitResult.GetActor(), this);
-			//}
-		}
-	}
 }
 
 void AP9Character::ResetRollCooldown()
@@ -499,7 +497,7 @@ void AP9Character::AddHealth(float Amount)
 }
 
 
-float AP9Character:: GetMaxHealth() const
+float AP9Character::GetMaxHealth() const
 {
 	return MaxHealth;
 }
@@ -511,7 +509,9 @@ void AP9Character::SetMaxHealth(float NewMaxHealth)
 
 void AP9Character::AddMaxHealth(float Amount)
 {
-	MaxHealth += (MaxHealth)*(Amount/100);
+	float Add = (MaxHealth) * (Amount / 100);
+	MaxHealth += Add;
+	Health += Add;
 	MaxHealth = FMath::Max(MaxHealth, 0.0f);
 }
 
@@ -577,7 +577,7 @@ float AP9Character::TakeDamage(
 	// CharacterLaunch 여부
 	bool bIsLaunched = !GetCharacterMovement()->IsMovingOnGround();
 
-	// ✅ 구르기 중이거나 / 롤 몽타주 중이거나 / LaunchCharacter 이동 중일 때는 데미지 무시
+	//구르기 중이거나 / 롤 몽타주 중이거나 / LaunchCharacter 이동 중일 때는 데미지 무시
 	if (bForwardRolling || bIsRollingMontagePlaying || bIsLaunched)
 	{
 		UE_LOG(LogTemp, Warning, TEXT(">> Damage ignored (Rolling=%d, Montage=%d, Launched=%d)"),
@@ -656,6 +656,19 @@ void AP9Character::HideAllWeapons(bool bHide)
 				Primitive->SetCollisionEnabled(bHide ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
 			}
 		}
+	}
+}
+
+void AP9Character::ApplyPenaltyDamage(float DamageAmount)
+{
+	if (Health <= 0.0f || DamageAmount <= 0.0f) return;
+
+	Health -= DamageAmount;
+	Health = FMath::Clamp(Health, 0.0f, MaxHealth);
+
+	if (Health <= 0.0f)
+	{
+		OnDeath();
 	}
 }
 

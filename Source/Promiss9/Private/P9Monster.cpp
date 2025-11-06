@@ -6,6 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/WidgetComponent.h" //추가
+#include "Blueprint/UserWidget.h" // 추가
+#include "Components/TextBlock.h" // 추가
+#include "Components/CapsuleComponent.h" 
+#include "UObject/ConstructorHelpers.h" //추가
 
 AP9Monster::AP9Monster()
 {
@@ -37,11 +42,18 @@ void AP9Monster::BeginPlay()
 
 void AP9Monster::Tick(float DeltaTime)
 {
+    if (IsActorBeingDestroyed())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("디졸브 중단: 이미 파괴 중인 액터"));
+        return;
+    }
+
     Super::Tick(DeltaTime);
 
     // Dissolve 진행
     if (bIsDissolving && HitFlashMatInstance)
     {
+
         CurrentDissolveValue += DeltaTime / DissolveDuration;
         HitFlashMatInstance->SetScalarParameterValue("DissolveAmount", CurrentDissolveValue);
 
@@ -49,7 +61,7 @@ void AP9Monster::Tick(float DeltaTime)
         {
             UE_LOG(LogTemp, Warning, TEXT("투명화 끝남"));
             bIsDissolving = false;
-            Destroy();
+			SetLifeSpan(0.2f); // 짧은 시간 후에 액터 제거
         }
     }
 }
@@ -62,6 +74,12 @@ void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
     HP -= DamageAmount;
 
     PlayHitFlashEffect();
+
+    if (DamageAmount > 0.f)
+    {
+        ShowDamageWidget(DamageAmount, true);
+        UE_LOG(LogTemp, Warning, TEXT("데미지 : %.0f"), DamageAmount);
+    }
 
     if (!bIsBossMonster) {
         ApplyKnockback();
@@ -76,6 +94,12 @@ void AP9Monster::TakeDamageFromPlayer(float DamageAmount)
 
 void AP9Monster::PlayHitFlashEffect()
 {
+    if (IsActorBeingDestroyed())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("플래시 중단: 이미 파괴 중인 액터"));
+        return;
+    }
+
     if (HitFlashMatInstance)
     {
         HitFlashMatInstance->SetScalarParameterValue("HitFlash", 1.0f);
@@ -112,6 +136,8 @@ void AP9Monster::ApplyKnockback()
 
 void AP9Monster::Die()
 {
+    bIsDead = true;
+
     if (CurrentState == EMonsterState::Dead)
         return;
 
@@ -150,7 +176,7 @@ void AP9Monster::Die()
 
 void AP9Monster::StartDissolveEffect()
 {
-    if (HitFlashMatInstance)
+    if (HitFlashMatInstance && !IsActorBeingDestroyed())
     {
         CurrentDissolveValue = 0.0f;
         HitFlashMatInstance->SetScalarParameterValue("DissolveAmount", 0.0f);
@@ -159,5 +185,95 @@ void AP9Monster::StartDissolveEffect()
 
         UE_LOG(LogTemp, Warning, TEXT("투명화 시작"));
     }
+}
+
+void AP9Monster::ShowDamageWidget(float DamageValue, bool bIsCritical)
+{
+    if (bIsDead) return;
+    if (!DamageTextWidgetClass) return;
+
+    FTimerHandle FaceTimer;
+    FTimerHandle RemoveTimer;
+
+    UWidgetComponent* DamageWidgetComp = NewObject<UWidgetComponent>(this);
+    if (!DamageWidgetComp) return;
+
+    DamageWidgetComp->RegisterComponent();
+    DamageWidgetComp->SetWidgetSpace(EWidgetSpace::World);
+    DamageWidgetComp->SetDrawAtDesiredSize(true);
+    DamageWidgetComp->SetPivot(FVector2D(0.5f, 0.5f));
+    DamageWidgetComp->SetTwoSided(true);
+    DamageWidgetComp->SetWidgetClass(DamageTextWidgetClass);
+    DamageWidgetComp->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+
+    // 위젯 띄우는 위치
+    float HalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+    float OffsetZ = HalfHeight + 80.f; // 머리 위 약간 띄우기 / 해당 수치로 위치 조절 가능
+    FVector RandomOffset(
+        FMath::RandRange(-30.f, 30.f),   // 좌우로 살짝 퍼지게
+        FMath::RandRange(-30.f, 30.f),   // 앞뒤로 살짝 퍼지게
+        FMath::RandRange(-10.f, 20.f)    // 높이도 살짝 랜덤
+    );
+
+    DamageWidgetComp->SetRelativeLocation(FVector(0.f, 0.f, OffsetZ) + RandomOffset);
+
+    // 텍스트 설정
+    if (UUserWidget* Widget = DamageWidgetComp->GetUserWidgetObject())
+    {
+        UTextBlock* DamageTextBlock = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("DamageText")));
+        if (DamageTextBlock)
+        {
+            FString DamageString = FString::Printf(TEXT("%.0f"), DamageValue);
+            DamageTextBlock->SetText(FText::FromString(DamageString));
+
+            if (bIsCritical)
+            {
+                DamageTextBlock->SetColorAndOpacity(FSlateColor(FLinearColor::Red)); // 빨간색
+                DamageTextBlock->SetRenderScale(FVector2D(1.2f, 1.2f)); // 크기 조정
+            }
+            else
+            {
+                DamageTextBlock->SetColorAndOpacity(FSlateColor(FLinearColor::White));
+                DamageTextBlock->SetRenderScale(FVector2D(1.0f, 1.0f));
+            }
+        }
+    }
+
+    TWeakObjectPtr<UWidgetComponent> WeakDamageWidget = DamageWidgetComp;
+
+    // 카메라 바라보기 타이머
+    GetWorld()->GetTimerManager().SetTimer(
+        FaceTimer,
+        [WeakDamageWidget]()
+        {
+            if (!WeakDamageWidget.IsValid()) return;
+
+            APlayerController* PC = UGameplayStatics::GetPlayerController(WeakDamageWidget->GetWorld(), 0);
+            if (PC && PC->PlayerCameraManager)
+            {
+                FVector CamLoc = PC->PlayerCameraManager->GetCameraLocation();
+                FVector ToCam = CamLoc - WeakDamageWidget->GetComponentLocation();
+                WeakDamageWidget->SetWorldRotation(ToCam.Rotation());
+            }
+        },
+        0.02f, true
+    );
+
+    // 기존 제거 타이머 안에 FaceTimer 해제도 추가
+    GetWorld()->GetTimerManager().SetTimer(RemoveTimer, [this, WeakDamageWidget, &FaceTimer]()
+        {
+            if (!IsValid(this)) return;
+
+            if (WeakDamageWidget.IsValid())
+            {
+                WeakDamageWidget->DestroyComponent();
+            }
+
+            if (GetWorld())
+            {
+                GetWorld()->GetTimerManager().ClearTimer(FaceTimer);
+            }
+        },
+        0.8f, false);
 }
 
