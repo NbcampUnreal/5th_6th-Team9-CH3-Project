@@ -117,6 +117,8 @@ public:
 
 	void ApplyPenaltyDamage(float DamageAmount);
 
+	void ApplyHealthRegen();
+
 protected:
 
 	// 무기 장착 관련 컴포넌트

@@ -9,7 +9,7 @@
 #include "P9GameMode.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class PROMISS9_API AP9GameMode : public AGameModeBase
@@ -49,7 +49,7 @@ private:
 
 	float ShopRespawnTimer;
 	TObjectPtr<AP9Shop> CurrentShop;
-	
+
 	void SpawnShop();
 
 	bool FindShopSpawnLocation(FVector& OutLocation);
