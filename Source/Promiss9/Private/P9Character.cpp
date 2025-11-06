@@ -533,32 +533,6 @@ void AP9Character::AddNormalSpeed(float Amount)
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 }
 
-void AP9Character::OnDeath()
-{
-	UE_LOG(LogTemp, Warning, TEXT("사망"));
-	if (bIsDead)
-	{
-		return;
-	}
-
-	bIsDead = true;
-	GetCharacterMovement()->DisableMovement();
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (PC)
-	{
-		PC->SetIgnoreMoveInput(true);
-		PC->SetIgnoreLookInput(true);
-	}
-
-	if (DeathMontage)
-	{
-		PlayAnimMontage(DeathMontage);
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("%s 사망"), *GetName());
-
-}
-
 float AP9Character::TakeDamage(
 	float DamageAmount,
 	struct FDamageEvent const& DamageEvent,
@@ -591,7 +565,7 @@ float AP9Character::TakeDamage(
 
 	if (Health <= 0.0f)
 	{
-		OnDeath();
+		OnDeath.Broadcast();
 	}
 
 	return ActualDamage;
@@ -668,7 +642,7 @@ void AP9Character::ApplyPenaltyDamage(float DamageAmount)
 
 	if (Health <= 0.0f)
 	{
-		OnDeath();
+		OnDeath.Broadcast();
 	}
 }
 
