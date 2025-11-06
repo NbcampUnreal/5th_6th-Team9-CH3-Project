@@ -6,10 +6,12 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Engine/Blueprint.h"
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Components/PrimitiveComponent.h"
+#include "GameFramework/Actor.h"
 
 
 
@@ -70,6 +72,45 @@ void AP9HealingItem::OnItemEndOverlap(UPrimitiveComponent* OverlappedComp,
 
 void AP9HealingItem::ActivateItem(AActor* Activator)
 {
+	UParticleSystemComponent* Particle = nullptr;
+
+	USceneComponent* Attach = Activator->GetRootComponent();
+	
+	AActor* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	if (ParticleEffect)
+	{
+		FVector PlayerLocation = PlayerPawn->GetActorLocation();
+		FRotator PlayerRotation = PlayerPawn->GetActorRotation();
+
+		Particle = UGameplayStatics::SpawnEmitterAttached(
+			ParticleEffect,
+			Attach,
+			NAME_None,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::SnapToTarget,
+			false
+		);
+	}
+
+	if (Particle)
+	{
+		FTimerHandle DestroyParticleTimerHandle;
+		TWeakObjectPtr<UParticleSystemComponent> WeakParticle = Particle;
+
+		GetWorld()->GetTimerManager().SetTimer(
+			DestroyParticleTimerHandle,
+			[WeakParticle]()
+			{
+				if (WeakParticle.IsValid())
+				{
+					WeakParticle->DestroyComponent();
+				}
+			},
+			1.5f,
+			false
+		);
+	}
 	if(AP9Character* PlayerCharacter = Cast<AP9Character>(Activator))
 	{
 		applyHeal(PlayerCharacter, HealAmount);

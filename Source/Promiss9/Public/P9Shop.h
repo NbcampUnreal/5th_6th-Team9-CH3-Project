@@ -35,7 +35,13 @@ struct FShopOffer
 
 	//공격력 뽀너스
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop")
-	int32 DamageBonus = 0;
+	float DamageBonus = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop")
+	float RangeBonus = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop")
+	float FireSpeedBonus = 0.f;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPressE);
@@ -136,5 +142,7 @@ private:
 	bool PickThreeDistinctWeapons(TArray<FName>& OutWeaponIds) const;
 
 	// 희귀도 → 데미지 보정 값(+3/+6/+9/+12)
-	int32 GetDamageBonusByRarity(EP9ShopRarity Rarity) const;
+	float GetDamageBonusByRarity(EP9ShopRarity Rarity) const;
+	float GetRangeBonusByRarity(EP9ShopRarity Rarity) const;
+	float GetFireSpeedBonusByRarity(EP9ShopRarity Rarity) const;
 };
