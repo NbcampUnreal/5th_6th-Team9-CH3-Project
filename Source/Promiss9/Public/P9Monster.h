@@ -32,7 +32,7 @@ protected:
 
     //피격 이펙트용 머티리얼
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|Effect")
-    UMaterialInstanceDynamic* HitFlashMatInstance;
+    TWeakObjectPtr<UMaterialInstanceDynamic> HitFlashMatInstance;
 
     // 체력
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster Stats")
