@@ -9,7 +9,7 @@
 #include "P9GameMode.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class PROMISS9_API AP9GameMode : public AGameModeBase
@@ -38,6 +38,10 @@ private:
 	int32 CurrentPenaltyLevel = 1;
 	float TimeUntilPenaltyUp;
 
+	UPROPERTY(EditAnywhere, Category = "HealthRegen")
+	float HealthRegenFrequency = 5.0f;
+	float TimeUntilHealthRegen;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Shop")
 	TSubclassOf<AP9Shop> ShopClass;
 	UPROPERTY(EditDefaultsOnly, Category = "Shop")
@@ -49,7 +53,7 @@ private:
 
 	float ShopRespawnTimer;
 	TObjectPtr<AP9Shop> CurrentShop;
-	
+
 	void SpawnShop();
 
 	bool FindShopSpawnLocation(FVector& OutLocation);

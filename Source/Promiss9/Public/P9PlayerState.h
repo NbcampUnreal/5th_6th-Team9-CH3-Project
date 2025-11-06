@@ -8,6 +8,7 @@
 struct FP9WeaponData;
 class UDataTable;
 
+
 UENUM(BlueprintType)
 enum class EP9Stat : uint8
 {
@@ -16,7 +17,7 @@ enum class EP9Stat : uint8
 	HeadshotChance,
 	HeadshotDamage,
 	DamagePer,
-	ReloadSpeed,
+	HealthRegen,
 	Luck,
 
 	MAX
@@ -101,7 +102,7 @@ public:
 	float GetBonusHeadshotDamage() const;
 	float GetBonusHeadshotChance() const;
 	float GetBonusDamagePer() const;
-	float GetBonusReloadSpeed() const;
+	float GetBonusHealthRegen() const;
 	float GetBonusLuck() const;
 
 
@@ -152,7 +153,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KillCount")
 	int32 Killcount;
 
-
+	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
+	float ProbCommon = 50.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
+	float ProbUncommon = 30.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
+	float ProbRare = 15.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
+	float ProbLegendary = 5.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
 	float BonusHeadshotChance;
@@ -161,7 +169,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
 	float BonusDamagePer;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
-	float BonusReloadSpeed;
+	float BonusHealthRegen;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
 	float BonusLuck;
 
@@ -169,7 +177,7 @@ protected:
 	TObjectPtr<UDataTable> RewardStatTable = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapons|Data") // 무기 기본 수치
-	TObjectPtr<UDataTable> WeaponDataTable = nullptr;
+		TObjectPtr<UDataTable> WeaponDataTable = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapons")
 	TMap<FName, float> WeaponFlatBonus;

@@ -9,6 +9,7 @@
 #include "Components/WidgetComponent.h"
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
+#include "P9PlayerState.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -691,4 +692,13 @@ void AP9Character::RotateMeshToTarget(AActor* InTargetActor)
 
 	FRotator TargetRotation = Direction.Rotation();
 	WeaponMesh_rl->SetWorldRotation(TargetRotation);
+}
+
+void AP9Character::ApplyHealthRegen()
+{
+	AP9PlayerState* PS = GetPlayerState<AP9PlayerState>();
+	if (PS && PS->GetBonusHealthRegen() > 0.0f)
+	{
+		Health = FMath::Clamp(Health + PS->GetBonusHealthRegen(), 0.0f, MaxHealth);
+	}
 }
