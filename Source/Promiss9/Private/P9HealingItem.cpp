@@ -11,6 +11,7 @@
 #include "Engine/Blueprint.h"
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Components/PrimitiveComponent.h"
+#include "GameFramework/Actor.h"
 
 
 
@@ -73,14 +74,22 @@ void AP9HealingItem::ActivateItem(AActor* Activator)
 {
 	UParticleSystemComponent* Particle = nullptr;
 
+	USceneComponent* Attach = Activator->GetRootComponent();
+	
+	AActor* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	if (ParticleEffect)
 	{
-		Particle = UGameplayStatics::SpawnEmitterAtLocation(
-			GetWorld(),
+		FVector PlayerLocation = PlayerPawn->GetActorLocation();
+		FRotator PlayerRotation = PlayerPawn->GetActorRotation();
+
+		Particle = UGameplayStatics::SpawnEmitterAttached(
 			ParticleEffect,
-			Activator->GetActorLocation(),
-			Activator->GetActorRotation(),
-			true
+			Attach,
+			NAME_None,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::SnapToTarget,
+			false
 		);
 	}
 
@@ -98,7 +107,7 @@ void AP9HealingItem::ActivateItem(AActor* Activator)
 					WeakParticle->DestroyComponent();
 				}
 			},
-			2.0f,
+			1.5f,
 			false
 		);
 	}
