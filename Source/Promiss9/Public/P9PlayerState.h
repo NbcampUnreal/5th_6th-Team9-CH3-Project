@@ -133,7 +133,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KillCount")
 	int32 Killcount;
 
-
+	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
+	float ProbCommon = 50.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
+	float ProbUncommon = 30.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
+	float ProbRare = 15.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
+	float ProbLegendary = 5.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
 	float BonusHeadshotChance;

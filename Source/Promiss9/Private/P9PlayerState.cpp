@@ -164,7 +164,48 @@ TArray<FP9LevelUpReward> AP9PlayerState::GenerateReward()
 	for (int32 i = 0; i < 3; ++i)
 	{
 		EP9Stat SelectedStat = StatPool[i];
-		EP9Rarity SelectedRarity = (EP9Rarity)FMath::RandRange(0, (int32)EP9Rarity::MAX - 1);
+		EP9Rarity SelectedRarity;
+
+
+	
+		float LuckCommon = BonusLuck * (-0.2f);
+		float LuckUncommon = BonusLuck * (-0.1f);
+		float LuckRare = BonusLuck * (0.2f);
+		float LuckLegendary = BonusLuck * (0.1f);
+
+		float FinalProbCommon = FMath::Max(0.0f, ProbCommon + LuckCommon);
+		float FinalProbUncommon = FMath::Max(0.0f, ProbUncommon + LuckUncommon);
+		float FinalProbRare = FMath::Max(0.0f, ProbRare + LuckRare);
+		float FinalProbLegendary = FMath::Max(0.0f, ProbLegendary + LuckLegendary);
+		float TotalProb = FinalProbCommon + FinalProbUncommon + FinalProbRare + FinalProbLegendary;
+
+		const float RandomRoll = FMath::FRandRange(0.0f, TotalProb);
+
+		float CurrentPer = FinalProbCommon;
+		if (RandomRoll < CurrentPer)
+		{
+			SelectedRarity = EP9Rarity::Common;
+		}
+		else
+		{
+			CurrentPer += FinalProbUncommon;
+			if (RandomRoll < CurrentPer)
+			{
+				SelectedRarity = EP9Rarity::Uncommon;
+			}
+			else
+			{
+				CurrentPer += FinalProbRare;
+				if (RandomRoll < CurrentPer)
+				{
+					SelectedRarity = EP9Rarity::Rare;
+				}
+				else
+				{
+					SelectedRarity = EP9Rarity::Legendary;
+				}
+			}
+		}
 		FP9LevelUpReward Choice;
 		float Value;
 		FString Desc;
