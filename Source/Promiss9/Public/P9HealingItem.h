@@ -47,6 +47,8 @@ public:
 	//아이템 드롭 함수
 	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"))
 	static AP9HealingItem* SpawnHealingItem(const UObject* WorldContextObject, const AActor* SourceActor);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HealingItem|Effect")
+	UParticleSystem* ParticleEffect;
 
 private:
 	
