@@ -7,19 +7,13 @@
 #include "P9GameInstance.generated.h"
 
 UCLASS()
-class PROMISS9_API UP9GameInstance : public UGameInstance
+class PROMISS9_API UMyGameInstance : public UGameInstance
 {
     GENERATED_BODY()
 
 public:
     UFUNCTION(BlueprintCallable)
     void ResetGameData();
-
-    UFUNCTION(BlueprintCallable)
-    void ClearAllTimersInWorld();
-
-    UFUNCTION(BlueprintCallable)
-	void ClearAllActorsInWorld();
 
 public:
     int32 PlayerScore = 0;
