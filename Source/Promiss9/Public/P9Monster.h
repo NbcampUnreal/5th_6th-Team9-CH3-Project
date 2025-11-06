@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Components/WidgetComponent.h" 
+#include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "P9Monster.generated.h"
 
@@ -55,10 +55,8 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
     UAnimMontage* DeathAnimMontage;
 
-    // 수정, 데미지 위젯
     UPROPERTY(EditDefaultsOnly, Category = "UI")
     TSubclassOf<UUserWidget> DamageTextWidgetClass;
-
 
 	// Dissolve 효과 관련 변수
 
@@ -70,7 +68,7 @@ protected:
     // Dissolve 총 시간 (초)
     float DissolveDuration = 2.0f;
 
-
+    bool bIsDead = false;
 
 
 public:
