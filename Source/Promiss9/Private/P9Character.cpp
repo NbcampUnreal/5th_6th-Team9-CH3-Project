@@ -421,14 +421,10 @@ void AP9Character::StartForwardRoll()
 		HideAllWeapons(true);
 
 		// 애니메이션 몽타주 재생
-		UE_LOG(LogTemp, Warning, TEXT("몽타주 실행"));
+		AnimInstance->Montage_Play(ForwardRollMontage, RollPlayRate);
 
 		OriginalMaxWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 		GetWorldTimerManager().SetTimer(StopMovementTimerHandle, this, &AP9Character::StopMovementCompletely, RollDuration, false);
-
-		AnimInstance->Montage_Play(ForwardRollMontage, RollPlayRate);
-
-
 
 		RollMontageEndedDelegate.BindUObject(this, &AP9Character::OnRollMontageEnded);
 		AnimInstance->Montage_SetEndDelegate(RollMontageEndedDelegate, ForwardRollMontage);
@@ -439,8 +435,6 @@ void AP9Character::StartForwardRoll()
 
 void AP9Character::StopMovementCompletely()
 {
-	UE_LOG(LogTemp, Warning, TEXT("움직임 제어"));
-
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->SetMovementMode(MOVE_None);
 	StopForwardRoll();
@@ -539,6 +533,32 @@ void AP9Character::AddNormalSpeed(float Amount)
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 }
 
+void AP9Character::OnDeath()
+{
+	UE_LOG(LogTemp, Warning, TEXT("사망"));
+	if (bIsDead)
+	{
+		return;
+	}
+
+	bIsDead = true;
+	GetCharacterMovement()->DisableMovement();
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC)
+	{
+		PC->SetIgnoreMoveInput(true);
+		PC->SetIgnoreLookInput(true);
+	}
+
+	if (DeathMontage)
+	{
+		PlayAnimMontage(DeathMontage);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("%s 사망"), *GetName());
+
+}
+
 float AP9Character::TakeDamage(
 	float DamageAmount,
 	struct FDamageEvent const& DamageEvent,
@@ -571,7 +591,7 @@ float AP9Character::TakeDamage(
 
 	if (Health <= 0.0f)
 	{
-		OnDeath.Broadcast();
+		OnDeath();
 	}
 
 	return ActualDamage;
@@ -648,7 +668,7 @@ void AP9Character::ApplyPenaltyDamage(float DamageAmount)
 
 	if (Health <= 0.0f)
 	{
-		OnDeath.Broadcast();
+		OnDeath();
 	}
 }
 
