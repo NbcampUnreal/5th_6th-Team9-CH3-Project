@@ -78,8 +78,8 @@ void AP9HealingItem::ActivateItem(AActor* Activator)
 		Particle = UGameplayStatics::SpawnEmitterAtLocation(
 			GetWorld(),
 			ParticleEffect,
-			GetActorLocation(),
-			GetActorRotation(),
+			Activator->GetActorLocation(),
+			Activator->GetActorRotation(),
 			true
 		);
 	}
