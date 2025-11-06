@@ -8,6 +8,7 @@
 struct FP9WeaponData;
 class UDataTable;
 
+
 UENUM(BlueprintType)
 enum class EP9Stat : uint8
 {
@@ -77,8 +78,6 @@ struct FP9RewardStatData : public FTableRowBase
 	float Legendary;
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLevelUP);
-
 UCLASS()
 class PROMISS9_API AP9PlayerState : public APlayerState
 {
@@ -86,10 +85,6 @@ class PROMISS9_API AP9PlayerState : public APlayerState
 
 public:
 	AP9PlayerState();
-
-	UPROPERTY(BlueprintAssignable)
-	FOnLevelUP OnLevelUP;
-
 	UFUNCTION(BlueprintCallable)
 	void AddXP(float XPAmount);
 	UFUNCTION(BlueprintCallable)

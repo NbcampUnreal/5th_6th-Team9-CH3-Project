@@ -270,7 +270,7 @@ void AP9PlayerState::ApplyReward(const FP9LevelUpReward& Selected)
 		break;
 	}
 	}
-	OnLevelUP.Broadcast();
+
 }
 
 void AP9PlayerState::AddKillCount()
