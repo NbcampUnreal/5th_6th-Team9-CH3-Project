@@ -116,11 +116,25 @@ public:
 	bool SpendGold(int32 Cost);
 
 	// 상점 인벤토리 연동(무기랑 최종 데미지)
+#pragma region ShopWeapon
 	UFUNCTION(BlueprintCallable, Category = "Weapons")
-	void AddWeaponDamageBonus(FName WeaponId, int32 FlatBonus);
+	void AddWeaponDamageBonus(FName WeaponId, float FlatBonus);
 
-	UFUNCTION(BlueprintPure, Category = "Weapons")
+	UFUNCTION(BlueprintPure, Category = "Weapons|Helper")
 	bool GetEffectiveDamage(FName WeaponId, float& OutDamage) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapons")
+	void AddWeaponRangeBonus(FName WeaponId, float BonusAmount);
+
+	UFUNCTION(BlueprintPure, Category = "Weapons|Helper")
+	bool GetEffectiveRange(FName WeaponId, float& OutRange) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapons")
+	void AddWeaponFireSpeedBonus(FName WeaponId, float BonusAmount);
+
+	UFUNCTION(BlueprintPure, Category = "Weapons|Helper")
+	bool GetEffectiveFireSpeed(FName WeaponId, float& OutSpeed) const;
+#pragma endregion
 
 
 private:
@@ -158,7 +172,13 @@ protected:
 	TObjectPtr<UDataTable> WeaponDataTable = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapons")
-	TMap<FName, int32> WeaponFlatBonus;
+	TMap<FName, float> WeaponFlatBonus;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapons")
+	TMap<FName, float>WeaponRangeBonusMap;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapons")
+	TMap<FName, float> WeaponFireSpeedBonusMap;
 
 	void LevelUp();
 	TArray<FP9LevelUpReward> GenerateReward();
