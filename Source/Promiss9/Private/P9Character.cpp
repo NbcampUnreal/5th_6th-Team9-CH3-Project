@@ -421,10 +421,14 @@ void AP9Character::StartForwardRoll()
 		HideAllWeapons(true);
 
 		// 애니메이션 몽타주 재생
-		AnimInstance->Montage_Play(ForwardRollMontage, RollPlayRate);
+		UE_LOG(LogTemp, Warning, TEXT("몽타주 실행"));
 
 		OriginalMaxWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 		GetWorldTimerManager().SetTimer(StopMovementTimerHandle, this, &AP9Character::StopMovementCompletely, RollDuration, false);
+
+		AnimInstance->Montage_Play(ForwardRollMontage, RollPlayRate);
+
+
 
 		RollMontageEndedDelegate.BindUObject(this, &AP9Character::OnRollMontageEnded);
 		AnimInstance->Montage_SetEndDelegate(RollMontageEndedDelegate, ForwardRollMontage);
@@ -435,6 +439,8 @@ void AP9Character::StartForwardRoll()
 
 void AP9Character::StopMovementCompletely()
 {
+	UE_LOG(LogTemp, Warning, TEXT("움직임 제어"));
+
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->SetMovementMode(MOVE_None);
 	StopForwardRoll();
