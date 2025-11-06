@@ -6,6 +6,12 @@
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/WidgetComponent.h" //추가
+#include "Blueprint/UserWidget.h" // 추가
+#include "Components/TextBlock.h" // 추가
+#include "Components/CapsuleComponent.h" 
+#include "UObject/ConstructorHelpers.h" //추가
+
 
 AP9Monster::AP9Monster()
 {
