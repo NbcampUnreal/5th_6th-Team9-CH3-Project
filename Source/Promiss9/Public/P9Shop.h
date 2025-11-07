@@ -135,6 +135,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Shop")
 	bool TryPurchase(int32 OfferIndex, APawn* BuyerPawn);
 
+	UFUNCTION(BlueprintPure, Category = "Shop|Helper")
+	static FString GetStatTypeString(EP9ShopStatType StatType);
+
 protected:
 	UFUNCTION()
 	void OnTriggerBegin(UPrimitiveComponent* Comp, AActor* Other, UPrimitiveComponent* OtherComp,
