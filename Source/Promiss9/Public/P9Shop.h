@@ -19,6 +19,15 @@ enum class EP9ShopRarity : uint8
 	MAX UMETA(Hidden)
 };
 
+UENUM(BlueprintType)
+enum class EP9ShopStatType : uint8
+{
+	None,
+	Damage,
+	Range,
+	FireSpeed
+};
+
 USTRUCT(BlueprintType)
 struct FShopOffer
 {
@@ -34,6 +43,10 @@ struct FShopOffer
 	int32 Price = 0;
 
 	//공격력 뽀너스
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop")
+	EP9ShopStatType StatType = EP9ShopStatType::None;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop")
 	float DamageBonus = 0.f;
 
@@ -121,6 +134,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Shop")
 	bool TryPurchase(int32 OfferIndex, APawn* BuyerPawn);
+
+	UFUNCTION(BlueprintPure, Category = "Shop|Helper")
+	static FString GetStatTypeString(EP9ShopStatType StatType);
 
 protected:
 	UFUNCTION()

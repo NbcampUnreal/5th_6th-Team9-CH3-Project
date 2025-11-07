@@ -137,9 +137,17 @@ public:
 	bool GetEffectiveFireSpeed(FName WeaponId, float& OutSpeed) const;
 #pragma endregion
 
+	UFUNCTION(BlueprintCallable, Category="Level")
+	void FinishLevelUpSelection();
 
 private:
 	void GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutValue, FString& OutDescription);
+	UPROPERTY(EditAnywhere)
+	bool bLevelUp;
+
+	int32 PendingLevelUp = 0;
+
+	void TryShowLevelUpUI();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
@@ -187,6 +195,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapons")
 	TMap<FName, float> WeaponFireSpeedBonusMap;
+
+
 
 	void LevelUp();
 	TArray<FP9LevelUpReward> GenerateReward();

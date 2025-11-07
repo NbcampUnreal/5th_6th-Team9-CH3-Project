@@ -102,9 +102,31 @@ void AP9Shop::BuildOffers()
 		Offer.Rarity = RollRarity();
 		Offer.Price = GetPriceByRarity(Offer.Rarity);
 
-		Offer.DamageBonus = GetDamageBonusByRarity(Offer.Rarity);
-		Offer.RangeBonus = GetRangeBonusByRarity(Offer.Rarity);
-		Offer.FireSpeedBonus = GetFireSpeedBonusByRarity(Offer.Rarity);
+		const int32 OptionType = FMath::RandRange(0, 2);  // 0=데미지, 1=사거리, 2=사속  
+
+		switch (OptionType)
+		{
+		case 0: // 데미지
+			Offer.StatType = EP9ShopStatType::Damage;
+			Offer.DamageBonus = GetDamageBonusByRarity(Offer.Rarity);
+			Offer.RangeBonus = 0.f;
+			Offer.FireSpeedBonus = 0.f;
+			break;
+
+		case 1: // 사거리
+			Offer.StatType = EP9ShopStatType::Range;
+			Offer.DamageBonus = 0.f;
+			Offer.RangeBonus = GetRangeBonusByRarity(Offer.Rarity);
+			Offer.FireSpeedBonus = 0.f;
+			break;
+
+		case 2: // 발사속도
+			Offer.StatType = EP9ShopStatType::FireSpeed;
+			Offer.DamageBonus = 0.f;
+			Offer.RangeBonus = 0.f;
+			Offer.FireSpeedBonus = GetFireSpeedBonusByRarity(Offer.Rarity);
+			break;
+		}
 
 		CurrentOffers.Add(Offer);
 	}
@@ -236,7 +258,7 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 	UP9InventoryComponent* Inv = BuyerPawn->FindComponentByClass<UP9InventoryComponent>();
 	if (!Inv) return false;
 
-	if (!Inv->AddWeaponById_Validated(Offer.WeaponId))
+	if (!Inv->AddWeaponById_AllowDuplicate(Offer.WeaponId))
 	{
 		return false;
 	}
@@ -266,6 +288,24 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 	}
 
 	return true;
+}
+
+FString AP9Shop::GetStatTypeString(EP9ShopStatType StatType)
+{
+	switch (StatType)
+	{
+	case EP9ShopStatType::Damage:
+		return TEXT("공격력");
+
+	case EP9ShopStatType::Range:
+		return TEXT("사거리");
+
+	case EP9ShopStatType::FireSpeed:
+		return TEXT("발사속도");
+
+	default:
+		return TEXT("");
+	}
 }
 
 void AP9Shop::OnTriggerBegin(UPrimitiveComponent* Comp, AActor* Other, UPrimitiveComponent* OtherComp,
