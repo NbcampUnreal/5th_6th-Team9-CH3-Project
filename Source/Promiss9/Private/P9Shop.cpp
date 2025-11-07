@@ -290,6 +290,24 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 	return true;
 }
 
+FString AP9Shop::GetStatTypeString(EP9ShopStatType StatType)
+{
+	switch (StatType)
+	{
+	case EP9ShopStatType::Damage:
+		return TEXT("공격력");
+
+	case EP9ShopStatType::Range:
+		return TEXT("사거리");
+
+	case EP9ShopStatType::FireSpeed:
+		return TEXT("발사속도");
+
+	default:
+		return TEXT("");
+	}
+}
+
 void AP9Shop::OnTriggerBegin(UPrimitiveComponent* Comp, AActor* Other, UPrimitiveComponent* OtherComp,
 	int32 BodyIndex, bool bFromSweep, const FHitResult& Hit)
 {
