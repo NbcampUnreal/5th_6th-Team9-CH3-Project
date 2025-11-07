@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Components/AudioComponent.h"
 #include "P9GameInstance.generated.h"
 
 UCLASS()
@@ -12,6 +13,10 @@ class PROMISS9_API UP9GameInstance : public UGameInstance
     GENERATED_BODY()
 
 public:
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Audio")
+    TWeakObjectPtr<UAudioComponent> CurrentBGM;
+
+
     UFUNCTION(BlueprintCallable)
     void ResetGameData();
 

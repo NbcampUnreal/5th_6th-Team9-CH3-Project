@@ -13,6 +13,7 @@ AP9GameMode::AP9GameMode()
 void AP9GameMode::BeginPlay()
 {
 	Super::BeginPlay();
+	GEngine->Exec(GetWorld(), TEXT("r.SetRes 1920x1080w"));
 
 	P9GameState = GetGameState<AP9GameState>();
 	if (P9GameState != nullptr)
