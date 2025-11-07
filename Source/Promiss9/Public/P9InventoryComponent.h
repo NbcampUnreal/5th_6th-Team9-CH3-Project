@@ -67,6 +67,9 @@ public:
     UFUNCTION(BlueprintPure, Category = "Inventory")
     void GetCurrentWeaponIds(TArray<FName>& OutWeaponIds) const;
 
+    UFUNCTION(BlueprintCallable, Category = "Inventory")
+    bool AddWeaponById_AllowDuplicate(FName WeaponId);
+
 
 public:
 

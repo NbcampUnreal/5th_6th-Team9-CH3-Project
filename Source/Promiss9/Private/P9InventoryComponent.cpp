@@ -229,6 +229,11 @@ void UP9InventoryComponent::GetCurrentWeaponIds(TArray<FName>& OutWeaponIds) con
     }
 }
 
+bool UP9InventoryComponent::AddWeaponById_AllowDuplicate(FName WeaponId)
+{
+    return AddWeaponById(WeaponId);
+}
+
 /** DataTable 연동 */
 bool UP9InventoryComponent::GetWeaponData(FName WeaponId, FP9WeaponData& OutRow) const
 {
