@@ -47,9 +47,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Shop")
 	float ShopSpawnFrequency = 20.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Shop")
-	float ShopMinSpawnRadius = 500.0f;
+	float ShopMinSpawnRadius = 1000.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Shop")
-	float ShopMaxSpawnRadius = 2000.0f;
+	float ShopMaxSpawnRadius = 1500.0f;
 
 	float ShopRespawnTimer;
 	TObjectPtr<AP9Shop> CurrentShop;
