@@ -188,6 +188,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Weapons")
 	TMap<FName, float> WeaponFireSpeedBonusMap;
 
+	UPROPERTY(EditAnywhere)
+	bool bLevelUp;
+
 	void LevelUp();
 	TArray<FP9LevelUpReward> GenerateReward();
 	UFUNCTION(BlueprintCallable)

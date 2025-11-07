@@ -17,6 +17,8 @@ AP9PlayerState::AP9PlayerState()
 
 	Killcount = 0;
 
+	bLevelUp = false;
+
 	BonusHeadshotChance = 0.0f;
 	BonusHeadshotDamage = 0.0f;
 	BonusDamagePer = 0.0f;
@@ -148,7 +150,11 @@ void AP9PlayerState::LevelUp()
 	CurrentLevel += 1;
 	XPForNextLevel += 15;
 	TArray<FP9LevelUpReward> Choices = GenerateReward();
-	LevelUpUI(Choices);
+	if (bLevelUp == false)
+	{
+		bLevelUp = true;
+		LevelUpUI(Choices);
+	}
 }
 TArray<FP9LevelUpReward> AP9PlayerState::GenerateReward()
 {
