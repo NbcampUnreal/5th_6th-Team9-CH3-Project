@@ -17,6 +17,8 @@ AP9PlayerState::AP9PlayerState()
 
 	Killcount = 0;
 
+	bLevelUp = false;
+
 	BonusHeadshotChance = 0.0f;
 	BonusHeadshotDamage = 0.0f;
 	BonusDamagePer = 0.0f;
@@ -127,14 +129,13 @@ void AP9PlayerState::GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutV
 }
 
 
-
 void AP9PlayerState::AddXP(float XPAmount)
 {
 	if (CurrentXP < XPForNextLevel)
 	{
 		CurrentXP += XPAmount;
 	}
-	if (CurrentXP >= XPForNextLevel)
+	while (CurrentXP >= XPForNextLevel)
 	{
 		LevelUp();
 	}
@@ -147,9 +148,30 @@ void AP9PlayerState::LevelUp()
 	CurrentXP -= XPForNextLevel;
 	CurrentLevel += 1;
 	XPForNextLevel += 15;
+	PendingLevelUp++;
+	TryShowLevelUpUI();
+
+}
+
+void AP9PlayerState::TryShowLevelUpUI()
+{
+	if (bLevelUp == true) return;
+	if (PendingLevelUp <= 0) return;
+
+	bLevelUp = true;
+
+	PendingLevelUp--;
+
 	TArray<FP9LevelUpReward> Choices = GenerateReward();
 	LevelUpUI(Choices);
 }
+
+void AP9PlayerState::FinishLevelUpSelection()
+{
+	bLevelUp = false;
+	TryShowLevelUpUI();
+}
+
 TArray<FP9LevelUpReward> AP9PlayerState::GenerateReward()
 {
 	TArray<EP9Stat> StatPool;
