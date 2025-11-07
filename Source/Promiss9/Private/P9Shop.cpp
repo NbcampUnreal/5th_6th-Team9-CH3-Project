@@ -258,7 +258,7 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 	UP9InventoryComponent* Inv = BuyerPawn->FindComponentByClass<UP9InventoryComponent>();
 	if (!Inv) return false;
 
-	if (!Inv->AddWeaponById_Validated(Offer.WeaponId))
+	if (!Inv->AddWeaponById_AllowDuplicate(Offer.WeaponId))
 	{
 		return false;
 	}
