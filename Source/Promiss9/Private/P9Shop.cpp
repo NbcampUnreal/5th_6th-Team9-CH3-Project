@@ -239,27 +239,20 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 
 	const FShopOffer& Offer = CurrentOffers[OfferIndex];
 
+	// PlayerState(골드/보정 관리)
 	AP9PlayerState* PS = BuyerPawn->GetPlayerState<AP9PlayerState>();
 	if (!PS) return false;
 
+	// 골드 확인
 	if (!PS->CanAfford(Offer.Price))
-		return false;
-
-	if (!PS->SpendGold(Offer.Price))
-		return false;
-
-	if (Offer.DamageBonus != 0.f)
-		PS->AddWeaponDamageBonus(Offer.WeaponId, Offer.DamageBonus);
-
-	if (Offer.RangeBonus != 0.f)
-		PS->AddWeaponRangeBonus(Offer.WeaponId, Offer.RangeBonus);
-
-	if (Offer.FireSpeedBonus != 0.f)
-		PS->AddWeaponFireSpeedBonus(Offer.WeaponId, Offer.FireSpeedBonus);
-
-	if (Offer.WeaponId.IsNone())
 	{
-		return true;
+		return false;
+	}
+
+	// 결제
+	if (!PS->SpendGold(Offer.Price))
+	{
+		return false;
 	}
 
 	UP9InventoryComponent* Inv = BuyerPawn->FindComponentByClass<UP9InventoryComponent>();
@@ -269,8 +262,6 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 	{
 		return false;
 	}
-
-	return true;
 
 	//  데미지 
 	if (!FMath::IsNearlyZero(Offer.DamageBonus))
