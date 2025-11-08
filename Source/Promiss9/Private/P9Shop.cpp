@@ -10,6 +10,7 @@
 #include "P9InventoryComponent.h"  
 #include "P9WeaponData.h"  
 #include "P9GameMode.h"
+#include "P9Character.h"
 
 AP9Shop::AP9Shop()
 {
@@ -79,14 +80,6 @@ void AP9Shop::BuildOffers()
 		}
 	}
 
-	if (CandidatePool.Num() <= 0)
-	{
-#if !(UE_BUILD_SHIPPING)
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("[Shop] 후보 무기가 없습니다."));
-#endif
-		return;
-	}
-
 	for (int32 i = 0; i < 16; ++i)
 	{
 		const int32 A = FMath::RandRange(0, CandidatePool.Num() - 1);
@@ -146,7 +139,19 @@ FShopOffer AP9Shop::GetOffer(int32 Index) const
 
 bool AP9Shop::TryPurchaseWithCurrentPawn(int32 OfferIndex)
 {
-	return TryPurchase(OfferIndex, OverlappedPawn);
+	APawn* PawnToUse = nullptr;
+
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+	{
+		PawnToUse = PC->GetPawn();  
+	}
+
+	if (!IsValid(PawnToUse))
+	{
+		PawnToUse = OverlappedPawn;
+	}
+
+	return TryPurchase(OfferIndex, PawnToUse);
 }
 
 bool AP9Shop::PickThreeDistinctWeapons(TArray<FName>& OutWeaponIds) const
@@ -235,53 +240,58 @@ float AP9Shop::GetFireSpeedBonusByRarity(EP9ShopRarity Rarity) const
 bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 {
 	if (!BuyerPawn) return false;
-	if (!CurrentOffers.IsValidIndex(OfferIndex)) return false;
+
+	AP9PlayerState* PS = BuyerPawn->GetPlayerState<AP9PlayerState>();
+
+	if (!PS)
+	{
+		if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+		{
+			if (APawn* RealPawn = PC->GetPawn())
+			{
+				BuyerPawn = RealPawn;
+				PS = RealPawn->GetPlayerState<AP9PlayerState>();
+			}
+		}
+	}
 
 	const FShopOffer& Offer = CurrentOffers[OfferIndex];
 
-	// PlayerState(골드/보정 관리)
-	AP9PlayerState* PS = BuyerPawn->GetPlayerState<AP9PlayerState>();
-	if (!PS) return false;
-
-	// 골드 확인
-	if (!PS->CanAfford(Offer.Price))
+	if (!PS)
 	{
-		return false;
+		if (AController* C = BuyerPawn->GetController())
+		{
+			PS = C->GetPlayerState<AP9PlayerState>();
+		}
 	}
 
-	// 결제
-	if (!PS->SpendGold(Offer.Price))
+	if (!PS && CachedPC)
 	{
-		return false;
+		PS = CachedPC->GetPlayerState<AP9PlayerState>();
 	}
 
-	UP9InventoryComponent* Inv = BuyerPawn->FindComponentByClass<UP9InventoryComponent>();
-	if (!Inv) return false;
+	const int32 CurrentGold = PS->GetGold();
+	const int32 Price = Offer.Price;
 
-	if (!Inv->AddWeaponById_AllowDuplicate(Offer.WeaponId))
+	if (UP9InventoryComponent* Inv = BuyerPawn->FindComponentByClass<UP9InventoryComponent>())
 	{
-		return false;
+		Inv->AddWeaponById_AllowDuplicate(Offer.WeaponId);
 	}
 
-	//  데미지 
+	// 보너스 적용
 	if (!FMath::IsNearlyZero(Offer.DamageBonus))
 	{
 		PS->AddWeaponDamageBonus(Offer.WeaponId, Offer.DamageBonus);
 	}
-
-	//  사거리 
 	if (!FMath::IsNearlyZero(Offer.RangeBonus))
 	{
 		PS->AddWeaponRangeBonus(Offer.WeaponId, Offer.RangeBonus);
 	}
-
-	//  발사속도
 	if (!FMath::IsNearlyZero(Offer.FireSpeedBonus))
 	{
 		PS->AddWeaponFireSpeedBonus(Offer.WeaponId, Offer.FireSpeedBonus);
 	}
 
-	//구매 성공 후 사라지기
 	if (AP9GameMode* GM = Cast<AP9GameMode>(UGameplayStatics::GetGameMode(this)))
 	{
 		GM->OnShopPurchased();
@@ -311,10 +321,14 @@ FString AP9Shop::GetStatTypeString(EP9ShopStatType StatType)
 void AP9Shop::OnTriggerBegin(UPrimitiveComponent* Comp, AActor* Other, UPrimitiveComponent* OtherComp,
 	int32 BodyIndex, bool bFromSweep, const FHitResult& Hit)
 {
-	if (!Other || !Other->IsA<APawn>()) return;
+	AP9Character* OtherPawn = Cast<AP9Character>(Other);
+	if (!OtherPawn)
+		return;
 
-	OverlappedPawn = Cast<APawn>(Other);
+	if (!OtherPawn->IsPlayerControlled())
+		return;
 
+	OverlappedPawn = OtherPawn;
 	bPlayerInRange = true;
 	BindInput();
 }
@@ -322,7 +336,10 @@ void AP9Shop::OnTriggerBegin(UPrimitiveComponent* Comp, AActor* Other, UPrimitiv
 void AP9Shop::OnTriggerEnd(UPrimitiveComponent* Comp, AActor* Other, UPrimitiveComponent* OtherComp,
 	int32 BodyIndex)
 {
-	if (!Other || !Other->IsA<APawn>()) return;
+	if (!Other) return;
+
+	AP9Character* PlayerChar = Cast<AP9Character>(Other);
+	if (!PlayerChar) return;
 
 	if (Other == OverlappedPawn)
 	{
@@ -361,6 +378,16 @@ void AP9Shop::UnbindInput()
 void AP9Shop::HandleInteract()
 {
 	if (!bPlayerInRange) return;
+
 	BuildOffers();
+
+	APawn* PlayerPawn = nullptr;
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+	{
+		PlayerPawn = PC->GetPawn();
+	}
+
 	OnPressE.Broadcast();
+
+	OverlappedPawn = PlayerPawn;
 }
