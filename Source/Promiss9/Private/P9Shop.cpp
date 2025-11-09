@@ -273,6 +273,11 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 	const int32 CurrentGold = PS->GetGold();
 	const int32 Price = Offer.Price;
 
+	if (CurrentGold < Price)
+	{
+		return false;
+	}
+
 	if (UP9InventoryComponent* Inv = BuyerPawn->FindComponentByClass<UP9InventoryComponent>())
 	{
 		Inv->AddWeaponById_AllowDuplicate(Offer.WeaponId);
