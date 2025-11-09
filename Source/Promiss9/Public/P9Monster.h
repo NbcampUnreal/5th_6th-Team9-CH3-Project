@@ -15,6 +15,8 @@ enum class EMonsterState : uint8
     Dead        UMETA(DisplayName = "Dead")
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDieEvent);
+
 UCLASS()
 class PROMISS9_API AP9Monster : public ACharacter
 {
@@ -98,5 +100,8 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Widget")
     void ShowDamageWidget(float DamageValue, bool bIsCritical);
+
+    UPROPERTY(BlueprintAssignable, Category = "Event")
+    FOnDieEvent OnDie;
 
 };
