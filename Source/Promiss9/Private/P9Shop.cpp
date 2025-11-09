@@ -204,10 +204,10 @@ float AP9Shop::GetDamageBonusByRarity(EP9ShopRarity Rarity) const
 {
 	switch (Rarity)
 	{
-	case EP9ShopRarity::Common:     return 3.f;
-	case EP9ShopRarity::Uncommon:   return 6.f;
-	case EP9ShopRarity::Rare:       return 9.f;
-	case EP9ShopRarity::Legendary:  return 12.f;
+	case EP9ShopRarity::Common:     return 5.f;
+	case EP9ShopRarity::Uncommon:   return 10.f;
+	case EP9ShopRarity::Rare:       return 20.f;
+	case EP9ShopRarity::Legendary:  return 30.f;
 	default:                        return 0.f;
 	}
 }
@@ -228,13 +228,13 @@ float AP9Shop::GetFireSpeedBonusByRarity(EP9ShopRarity Rarity) const
 {
 	switch (Rarity)
 	{
-	case EP9ShopRarity::Common:     return -0.1f;
-	case EP9ShopRarity::Uncommon:   return -0.2f;
-	case EP9ShopRarity::Rare:       return -0.3f;
-	case EP9ShopRarity::Legendary:  return -0.4f;
+	case EP9ShopRarity::Common:     return -0.05f;
+	case EP9ShopRarity::Uncommon:   return -0.1f;
+	case EP9ShopRarity::Rare:       return -0.2f;
+	case EP9ShopRarity::Legendary:  return -0.3f;
 	default:                        return 0.f;
 	}
-}
+} 
 
 // 구매: 골드 차감 + 인벤토리 등록
 bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)

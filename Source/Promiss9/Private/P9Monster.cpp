@@ -131,10 +131,10 @@ void AP9Monster::ApplyKnockback()
     FVector KnockbackDir = (GetActorLocation() - Player->GetActorLocation()).GetSafeNormal();
 
     //넉백 세기
-    float KnockbackStrength = 600.0f; // 상황에 맞게 조절 가능 (300~1000 정도 권장)
+    float KnockbackStrength = 200.0f; // 상황에 맞게 조절 가능 (300~1000 정도 권장)
 
     //수직 방향(살짝 위로 밀리는 효과)
-    FVector KnockbackVelocity = (KnockbackDir + FVector(0, 0, 0.3f)) * KnockbackStrength;
+    FVector KnockbackVelocity = (KnockbackDir + FVector(0, 0, 0.15f)) * KnockbackStrength;
 
     //캐릭터 이동 중 넉백 효과 적용
     LaunchCharacter(KnockbackVelocity, true, true);
@@ -171,6 +171,8 @@ void AP9Monster::Die()
 			AP9HealingItem::SpawnHealingItem(GetWorld(), this);
         }
     }
+
+    OnDie.Broadcast();
    
     //1.33초 뒤에 디졸브 시작
     FTimerHandle DeathTimerHandle;
