@@ -33,12 +33,17 @@ void AP9MonsterSpawner::WaveStarted(int32 NewWaveIndex, FString NewWaveName)
 	{
 		const FP9WaveData PreWaveData = GameState->WaveSettings[PreWaveIndex];
 
+		UE_LOG(LogTemp, Warning, TEXT("MidBoss: %s"), *PreWaveData.MidBoss->GetName());
+
 		if (PreWaveData.MidBoss != nullptr)
 		{
 			FVector BossSpawnLocation;
 			if (FindSpawnLocation(BossSpawnLocation))
 			{
 				GetWorld()->SpawnActor<AP9Monster>(PreWaveData.MidBoss, BossSpawnLocation, FRotator::ZeroRotator);
+			}
+			else {
+				GetWorld()->SpawnActor<AP9Monster>(PreWaveData.MidBoss, MiddleBossSpawnCenter, FRotator::ZeroRotator);
 			}
 		}
 	}
@@ -87,7 +92,7 @@ bool AP9MonsterSpawner::FindSpawnLocation(FVector& OutSpawnLocation)
 	UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
 	if (NavSystem == nullptr) return false;
 
-	for (int32 i = 0; i < 100; ++i)
+	for (int32 i = 0; i < 1000; ++i)
 	{
 		float RandomAngle = FMath::RandRange(0.0f, 360.0f);
 		FVector RandomDirection = FRotator(0.0f, RandomAngle, 0.0f).Vector();

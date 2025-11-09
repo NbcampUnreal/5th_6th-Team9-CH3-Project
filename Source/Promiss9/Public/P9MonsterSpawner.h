@@ -13,6 +13,9 @@ class PROMISS9_API AP9MonsterSpawner : public AActor
 public:	
 	AP9MonsterSpawner();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn")
+	FVector MiddleBossSpawnCenter;
+
 protected:
 	UPROPERTY(EditAnywhere)
 	float MaxSpawnRadius;

@@ -204,10 +204,10 @@ float AP9Shop::GetDamageBonusByRarity(EP9ShopRarity Rarity) const
 {
 	switch (Rarity)
 	{
-	case EP9ShopRarity::Common:     return 5.f;
-	case EP9ShopRarity::Uncommon:   return 10.f;
-	case EP9ShopRarity::Rare:       return 20.f;
-	case EP9ShopRarity::Legendary:  return 30.f;
+	case EP9ShopRarity::Common:     return 10.f;
+	case EP9ShopRarity::Uncommon:   return 20.f;
+	case EP9ShopRarity::Rare:       return 40.f;
+	case EP9ShopRarity::Legendary:  return 60.f;
 	default:                        return 0.f;
 	}
 }
