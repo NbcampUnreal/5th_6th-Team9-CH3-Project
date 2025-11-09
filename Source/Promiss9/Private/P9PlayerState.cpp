@@ -375,7 +375,16 @@ bool AP9PlayerState::GetEffectiveDamage(FName WeaponId, float& OutDamage) const
 	const float* Flat = WeaponFlatBonus.Find(WeaponId);
 	const float Add = Flat ? *Flat : 0.f;
 
-	OutDamage = Row->Damage + Add;
+	float Multiplier = 1.0f;
+
+	if (WeaponId == "HG")         Multiplier = 1.0f;   
+	else if (WeaponId == "AR")    Multiplier = 1.0f;   
+	else if (WeaponId == "SG")    Multiplier = 2.5f;   
+	else if (WeaponId == "RF")    Multiplier = 5.0f;   
+	else if (WeaponId == "GR")    Multiplier = 0.5f;   
+	else if (WeaponId == "CL")    Multiplier = 3.5f;
+
+	OutDamage = Row->Damage + (Add * Multiplier);
 	return true;
 }
 
@@ -398,7 +407,16 @@ bool AP9PlayerState::GetEffectiveRange(FName WeaponId, float& OutRange) const
 	const float* Bonus = WeaponRangeBonusMap.Find(WeaponId);
 	const float Add = Bonus ? *Bonus : 0.f;
 
-	OutRange = Row->Range + Add;
+	float Multiplier = 1.0f;
+
+	if (WeaponId == "HG")         Multiplier = 1.0f;
+	else if (WeaponId == "AR")    Multiplier = 1.3f;
+	else if (WeaponId == "SG")    Multiplier = 0.5f;
+	else if (WeaponId == "RF")    Multiplier = 2.5f;
+	else if (WeaponId == "GR")    Multiplier = 1.5f;
+	else if (WeaponId == "CL")    Multiplier = 1.0f;
+
+	OutRange = Row->Range + (Add * Multiplier);
 	return true;
 }
 
@@ -422,7 +440,21 @@ bool AP9PlayerState::GetEffectiveFireSpeed(FName WeaponId, float& OutSpeed) cons
 	const float* Bonus = WeaponFireSpeedBonusMap.Find(WeaponId);
 	const float Add = Bonus ? *Bonus : 0.f;
 
-	OutSpeed = Row->FireSpeed + Add;
+	float Multiplier = 1.0f;
+
+	if (WeaponId == "HG")         Multiplier = 1.0f;
+	else if (WeaponId == "AR")    Multiplier = 0.5f;
+	else if (WeaponId == "SG")    Multiplier = 2.0f;
+	else if (WeaponId == "RF")    Multiplier = 4.0f;
+	else if (WeaponId == "GR")    Multiplier = 3.0f;
+	else if (WeaponId == "CL")    Multiplier = 5.0f;
+
+	OutSpeed = Row->FireSpeed + (Add * Multiplier);
+	if(OutSpeed < 0.1f)
+	{
+		OutSpeed = 0.1f;
+	}
+
 	return true;
 }
 #pragma endregion
