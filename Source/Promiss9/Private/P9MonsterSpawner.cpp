@@ -87,7 +87,7 @@ bool AP9MonsterSpawner::FindSpawnLocation(FVector& OutSpawnLocation)
 	UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
 	if (NavSystem == nullptr) return false;
 
-	for (int32 i = 0; i < 10; ++i)
+	for (int32 i = 0; i < 100; ++i)
 	{
 		float RandomAngle = FMath::RandRange(0.0f, 360.0f);
 		FVector RandomDirection = FRotator(0.0f, RandomAngle, 0.0f).Vector();

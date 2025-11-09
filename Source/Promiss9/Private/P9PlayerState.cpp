@@ -381,8 +381,8 @@ bool AP9PlayerState::GetEffectiveDamage(FName WeaponId, float& OutDamage) const
 	else if (WeaponId == "AR")    Multiplier = 1.0f;   
 	else if (WeaponId == "SG")    Multiplier = 2.5f;   
 	else if (WeaponId == "RF")    Multiplier = 5.0f;   
-	else if (WeaponId == "GR")    Multiplier = 0.5f;   
-	else if (WeaponId == "CL")    Multiplier = 3.5f;
+	else if (WeaponId == "GR")    Multiplier = 3.5f;   
+	else if (WeaponId == "CL")    Multiplier = 1.0f;
 
 	OutDamage = Row->Damage + (Add * Multiplier);
 	return true;
@@ -414,7 +414,7 @@ bool AP9PlayerState::GetEffectiveRange(FName WeaponId, float& OutRange) const
 	else if (WeaponId == "SG")    Multiplier = 0.5f;
 	else if (WeaponId == "RF")    Multiplier = 2.5f;
 	else if (WeaponId == "GR")    Multiplier = 1.5f;
-	else if (WeaponId == "CL")    Multiplier = 1.0f;
+	else if (WeaponId == "CL")    Multiplier = 1.5f;
 
 	OutRange = Row->Range + (Add * Multiplier);
 	return true;
@@ -443,7 +443,7 @@ bool AP9PlayerState::GetEffectiveFireSpeed(FName WeaponId, float& OutSpeed) cons
 	float Multiplier = 1.0f;
 
 	if (WeaponId == "HG")         Multiplier = 1.0f;
-	else if (WeaponId == "AR")    Multiplier = 0.5f;
+	else if (WeaponId == "AR")    Multiplier = 1.0f;
 	else if (WeaponId == "SG")    Multiplier = 2.0f;
 	else if (WeaponId == "RF")    Multiplier = 4.0f;
 	else if (WeaponId == "GR")    Multiplier = 3.0f;
