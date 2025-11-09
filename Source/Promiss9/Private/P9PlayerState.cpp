@@ -19,7 +19,7 @@ AP9PlayerState::AP9PlayerState()
 
 	bLevelUp = false;
 
-	BonusHeadshotChance = 0.0f;
+	BonusHeadshotChance = 20.0f;
 	BonusHeadshotDamage = 0.0f;
 	BonusDamagePer = 0.0f;
 	BonusHealthRegen = 0.0f;
