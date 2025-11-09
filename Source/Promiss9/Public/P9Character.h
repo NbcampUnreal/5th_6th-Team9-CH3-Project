@@ -3,10 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/ObjectMacros.h"
+#include "UObject/ScriptMacros.h"
 #include "GameFramework/Character.h"
 #include "P9InventoryComponent.h"
 #include "P9FinalBossAltar.h"
 #include "P9Character.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
 
 class USpringArmComponent;
 class UCameraComponent;
@@ -16,7 +20,6 @@ class UUserWidget;
 
 struct FInputActionValue;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
 
 UCLASS()
 class PROMISS9_API AP9Character : public ACharacter
@@ -27,6 +30,9 @@ public:
 	AP9Character();
 
 	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	class USpringArmComponent* SpringArm9;
 
 	UPROPERTY(BlueprintAssignable, Category = "Death")
 	FOnDeath OnDeath;
@@ -236,6 +242,10 @@ private:
 	FTimerHandle StopMovementTimerHandle;
 	void StopMovementCompletely();
 	float OriginalMaxWalkSpeed;
+
+	FTimerHandle JumpCameraBugFixHandle;
+	void JumpCameraBugFix();
+
 
 
 	void InteractHoldSucceeded();
