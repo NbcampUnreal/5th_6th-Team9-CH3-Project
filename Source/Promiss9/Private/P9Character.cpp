@@ -337,6 +337,19 @@ void AP9Character::StartJump(const FInputActionValue& Value)
 	if (Value.Get<bool>())
 	{
 		Jump();
+		if (SpringArm9)
+		{
+			SpringArm9->bDoCollisionTest = false;
+		}
+		GetWorldTimerManager().SetTimer(JumpCameraBugFixHandle, this, &AP9Character::JumpCameraBugFix, 1.0f, false);
+	}
+}
+
+void AP9Character::JumpCameraBugFix()
+{
+	if (SpringArm9)
+	{
+		SpringArm9->bDoCollisionTest = true;;
 	}
 }
 
@@ -347,6 +360,10 @@ void AP9Character::StopJump(const FInputActionValue& Value)
 	if (Value.Get<bool>())
 	{
 		StopJumping();
+		if (SpringArm9)
+		{
+			SpringArm9->bDoCollisionTest = true;
+		}
 	}
 }
 
@@ -407,6 +424,10 @@ void AP9Character::OnFreeLookEnd(const FInputActionValue& Value)
 void AP9Character::StartForwardRoll()
 {
 	if (bForwardRolling || !bCanRoll || !ForwardRollMontage || GetCharacterMovement()->IsFalling()) return;
+	if (SpringArm9)
+	{
+		SpringArm9->bDoCollisionTest = false;
+	}
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance)
@@ -474,6 +495,10 @@ void AP9Character::RestoreMovementAfterRoll()
 	if (GetCharacterMovement())
 	{
 		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		if (SpringArm9)
+		{
+			SpringArm9->bDoCollisionTest = true;
+		}
 	}
 }
 
