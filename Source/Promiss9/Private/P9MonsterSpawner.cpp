@@ -37,14 +37,16 @@ void AP9MonsterSpawner::WaveStarted(int32 NewWaveIndex, FString NewWaveName)
 
 		if (PreWaveData.MidBoss != nullptr)
 		{
-			FVector BossSpawnLocation;
-			if (FindSpawnLocation(BossSpawnLocation))
-			{
-				GetWorld()->SpawnActor<AP9Monster>(PreWaveData.MidBoss, BossSpawnLocation, FRotator::ZeroRotator);
-			}
-			else {
-				GetWorld()->SpawnActor<AP9Monster>(PreWaveData.MidBoss, MiddleBossSpawnCenter, FRotator::ZeroRotator);
-			}
+			//FVector BossSpawnLocation;
+			//if (FindSpawnLocation(BossSpawnLocation))
+			//{
+			//	GetWorld()->SpawnActor<AP9Monster>(PreWaveData.MidBoss, BossSpawnLocation, FRotator::ZeroRotator);
+			//}
+			//else {
+			//	GetWorld()->SpawnActor<AP9Monster>(PreWaveData.MidBoss, MiddleBossSpawnCenter, FRotator::ZeroRotator);
+			//}
+			GetWorld()->SpawnActor<AP9Monster>(PreWaveData.MidBoss, MiddleBossSpawnCenter, FRotator::ZeroRotator);
+
 		}
 	}
 	CurrentWaveIndex = NewWaveIndex;
