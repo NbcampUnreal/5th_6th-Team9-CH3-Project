@@ -85,13 +85,13 @@ protected:
 
 	// 가격 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop|Rule", meta = (AllowPrivateAccess = "true"))
-	int32 Price_Common = 100;
+	int32 Price_Common = 50;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop|Rule", meta = (AllowPrivateAccess = "true"))
-	int32 Price_Uncommon = 200;
+	int32 Price_Uncommon = 100;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop|Rule", meta = (AllowPrivateAccess = "true"))
-	int32 Price_Rare = 400;
+	int32 Price_Rare = 150;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop|Rule", meta = (AllowPrivateAccess = "true"))
-	int32 Price_Legendary = 800;
+	int32 Price_Legendary = 300;
 
 	// 등급 확률
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shop|Rule", meta = (ClampMin = "0.0", ClampMax = "1.0", AllowPrivateAccess = "true"))
