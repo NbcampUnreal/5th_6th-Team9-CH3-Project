@@ -1,6 +1,7 @@
 ﻿#include "P9GameMode.h"
 #include "NavigationSystem.h"
 #include "Kismet/GameplayStatics.h"
+#include "P9healingitem.h"
 
 AP9GameMode::AP9GameMode()
 {
@@ -14,6 +15,8 @@ void AP9GameMode::BeginPlay()
 {
 	Super::BeginPlay();
 	GEngine->Exec(GetWorld(), TEXT("r.SetRes 1920x1080w"));
+
+	AP9HealingItem::RegisterHealingItem(TSoftClassPtr<AP9HealingItem>(FSoftObjectPath("/Game/Blueprints/Weapon/BP_P9HealingItem.BP_P9HealingItem_C")));
 
 	P9GameState = GetGameState<AP9GameState>();
 	if (P9GameState != nullptr)

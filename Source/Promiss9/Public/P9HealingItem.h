@@ -10,6 +10,7 @@
 class UPrimitiveComponent;
 class USphereComponent;
 class UStaticMeshComponent;
+class UParticleSystem;
 
 UCLASS()
 class PROMISS9_API AP9HealingItem : public AP9ItemActor
@@ -23,6 +24,9 @@ public:
 	float RotationSpeed;
 
 	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HealingItem|Mesh")
+	UStaticMeshComponent* Mesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HealingItem")
 	FName ItemType = FName("Healing");
@@ -50,6 +54,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HealingItem|Effect")
 	UParticleSystem* ParticleEffect;
 
+	UFUNCTION(BlueprintCallable)
+	static void RegisterHealingItem(TSoftClassPtr<class AP9HealingItem> ItemClass);
+
+	static void ClearHealingItemPool();
+
 private:
 	
 	UFUNCTION()
@@ -72,5 +81,7 @@ private:
 	virtual void DestroyItem() override;
 
 	void applyHeal(AActor* Target, float InAmount);
+
+
 
 };

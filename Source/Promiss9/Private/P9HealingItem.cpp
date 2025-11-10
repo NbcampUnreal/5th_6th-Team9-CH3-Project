@@ -7,7 +7,6 @@
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
-#include "AssetRegistry/AssetRegistryModule.h"
 #include "Engine/Blueprint.h"
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Components/PrimitiveComponent.h"
@@ -18,7 +17,12 @@
 AP9HealingItem::AP9HealingItem()
 {	
 	Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
-	Collision->SetupAttachment(GetRootComponent()); 
+	SetRootComponent(Collision);
+
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	Mesh->SetupAttachment(Collision);
+	Mesh->SetRelativeLocation(FVector(0, 0, 0)); 
+	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	Collision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Collision->SetCollisionObjectType(ECC_WorldDynamic);
@@ -142,85 +146,62 @@ void AP9HealingItem::applyHeal(AActor* Target, float InAmount)
 	}
 }
 
-// ===== 자동 드랍 풀(파생 BP만, 로드 없이 경로로 수집) =====
-static TArray<TSoftClassPtr<AP9HealingItem>>& GetHealingItemPool()
+// cpp 로컬 정적 풀 (Shipping 안전)
+static TArray<TSoftClassPtr<AP9HealingItem>> GHealingItemPool;
+
+// 헤더의 static 선언과 매칭되는 정의
+void AP9HealingItem::RegisterHealingItem(TSoftClassPtr<AP9HealingItem> ItemClass)
 {
-	static bool bBuilt = false;
-	static TArray<TSoftClassPtr<AP9HealingItem>> Pool;
-	if (bBuilt) return Pool;
-	bBuilt = true;
-
-	IAssetRegistry& AR = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry").Get();
-
-	TArray<FTopLevelAssetPath> BaseClasses;
-	BaseClasses.Add(AP9HealingItem::StaticClass()->GetClassPathName()); // UE5.3+: ClassPaths
-
-	TSet<FTopLevelAssetPath> Excluded;
-	TSet<FTopLevelAssetPath> OutDerived;
-	AR.GetDerivedClassNames(BaseClasses, Excluded, OutDerived); // 파생 클래스 경로만 추출
-
-	for (const FTopLevelAssetPath& Path : OutDerived)
+	if (!ItemClass.IsNull())
 	{
-		FSoftClassPath SCP(Path.ToString());
-		Pool.Add(TSoftClassPtr<AP9HealingItem>(SCP)); // 로드 지연(Soft)
+		GHealingItemPool.AddUnique(ItemClass);
+		UE_LOG(LogTemp, Log, TEXT("[HealingItem] Registered: %s"), *ItemClass.ToString());
 	}
-	return Pool;
 }
 
-// ===== 가중치 랜덤 선택 (CDO 검사 포함) =====
-static UClass* RandomHealingItemBP()
+void AP9HealingItem::ClearHealingItemPool()
 {
-	const auto& Pool = GetHealingItemPool();
-	if (Pool.Num() == 0)
+	GHealingItemPool.Reset();
+}
+
+// 내부 선택 로직 (가중치 기반)
+static UClass* RandomHealingItemBP_Internal()
+{
+	if (GHealingItemPool.Num() == 0)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[HealingItem] Pool is empty!"));
 		return nullptr;
 	}
-	struct FCand { UClass* Cls; double W; const AP9HealingItem* CDO; };
-	TArray<FCand> Cands; Cands.Reserve(Pool.Num());
-	double TotalW = 0.0;
 
-	for (const auto& Soft : Pool)
+	struct FCandidate { UClass* Cls; double Weight; const AP9HealingItem* CDO; };
+	TArray<FCandidate> Cands;
+	double TotalWeight = 0.0;
+
+	for (const auto& Soft : GHealingItemPool)
 	{
 		if (UClass* C = Soft.LoadSynchronous())
 		{
-			if (!C->IsChildOf(AP9HealingItem::StaticClass()))
-			{
-				continue;
-			}
-			if (!C->HasAnyClassFlags(CLASS_CompiledFromBlueprint))
-			{
-				continue;
-			}
-			if (C->HasAnyClassFlags(CLASS_Abstract))
-			{
-				continue;
-			}
 			const AP9HealingItem* CDO = Cast<AP9HealingItem>(C->GetDefaultObject());
-				if (!CDO)
-				{
-					continue;
-				}
-				if(!CDO->bEligibleForDrop || CDO->DropWeight <= 0.0f)
-				{
-					continue;
-				}
-				Cands.Add({ C,(double)CDO->DropWeight, CDO });
-				TotalW += CDO->DropWeight;
-		
+			if (!CDO || !CDO->bEligibleForDrop || CDO->DropWeight <= 0.0f)
+				continue;
+
+			Cands.Add({ C, (double)CDO->DropWeight, CDO });
+			TotalWeight += CDO->DropWeight;
 		}
 	}
-	if (Cands.Num() == 0 || TotalW <= 0.0)
-	{
+
+	if (Cands.Num() == 0 || TotalWeight <= 0.0)
 		return nullptr;
-	}
-	double r = FMath::FRand() * TotalW;
-	for (const FCand& E : Cands)
+
+	double r = FMath::FRand() * TotalWeight;
+	for (const auto& E : Cands)
 	{
-		r -= E.W;
+		r -= E.Weight;
 		if (r <= 0.0) return E.Cls;
 	}
-	return Cands.Last().Cls; // 안전장치
+	return Cands.Last().Cls;
 }
+
 
 // ===== 스폰 (★ DropChance/Offset/Impulse 모두 "선택된 BP의 CDO"에서 사용) =====
 AP9HealingItem* AP9HealingItem::SpawnHealingItem(const UObject* WorldContextObject, const AActor* SourceActor)
@@ -235,7 +216,7 @@ AP9HealingItem* AP9HealingItem::SpawnHealingItem(const UObject* WorldContextObje
 		return nullptr;
 	}
 	// 1) 어떤 힐 아이템 BP를 드랍할지 선택
-	UClass* ChosenClass = RandomHealingItemBP();
+	UClass* ChosenClass = RandomHealingItemBP_Internal();
 	if (!ChosenClass)
 	{
 		return nullptr;
@@ -274,3 +255,4 @@ AP9HealingItem* AP9HealingItem::SpawnHealingItem(const UObject* WorldContextObje
 	}
 	return Item;
 }
+ 
