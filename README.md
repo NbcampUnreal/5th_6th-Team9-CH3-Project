@@ -93,11 +93,11 @@ Project9강9조/
 
 | 이름 | 역할 | 담당 기능 | GitHub |
 |------|------|------------|--------|
-| **노재욱 (팀장)** | AI 시스템 | 몬스터 탐지/추적/공격 | [@jaewookno](https://github.com/jaewookno) |
-| **박진연** | 게임 시스템 | 게임 진행 흐름 제어 | [@jinyeonpark](https://github.com/jinyeonpark) |
-| **이규진** | 전투 / UI | 전투 시스템, 체력바, 위젯 | [@gyujinlee](https://github.com/gyujinlee) |
-| **유용선** | 아이템 / 무기 | 아이템 구조, 드랍 및 무기 획득 | [@yongseonyu](https://github.com/yongseonyu) |
-| **이종혁** | 상점 / 인벤토리 | 인벤토리 컴포넌트 및 거래 시스템 | [@jonghyuklee](https://github.com/jonghyuklee) |
+| **노재욱 (팀장)** | AI 시스템 | 몬스터 탐지/추적/공격 | [@NoJaeuk](https://github.com/NoJaeuk) |
+| **박진연** | 게임 시스템 | 게임 진행 흐름 제어 | [@JinYeon-Park](https://github.com/JinYeon-Park) |
+| **이규진** | 전투 / UI | 전투 시스템, 체력바, 위젯 | [@ggyu-ik](https://github.com/ggyu-ik) |
+| **유용선** | 아이템 / 무기 | 아이템 구조, 드랍 및 무기 획득 | [@dtoli0930-prog](https://github.com/dtoli0930-prog) |
+| **이종혁** | 상점 / 인벤토리 | 인벤토리 컴포넌트 및 거래 시스템 | [@JJ00ng](https://github.com/JJ00ng) |
 | **원유연** | 캐릭터 시스템 | 회전 보간, 자유시점, 구르기 | [@yuyeonwon](https://github.com/yuyeonwon) |
 
 ---
