@@ -1,4 +1,4 @@
-# ⚔️ Project 9강9조 — Unreal Team Portfolio
+# ⚔️ 9강9조 — Unreal Team Project 
 
 > Unreal Engine 5 기반 3D 액션 슈팅 싱글플레이 게임  
 > "자유로운 전투 시스템과 구조화된 게임 진행"을 목표로 한 6인 팀 프로젝트
