@@ -194,4 +194,4 @@ GitHub Organization: [https://github.com/9gang9jo](https://github.com/NbcampUnre
 | UI 아이콘 - 돌격소총 | 돌격 소총 무료 아이콘 | [flaticon.com](https://www.flaticon.com/kr/free-icon/assault-rifle_3509459) | Nikita Golubev | Flaticon License |
 | UI 아이콘 - 저격소총 | 저격 총 무료 아이콘 | [flaticon.com](https://www.flaticon.com/kr/free-icon/sniper-rifle_3509247) | Nikita Golubev | Flaticon License |
 | UI 아이콘 - 수류탄 | 수류탄 무료 아이콘 | [flaticon.com](https://www.flaticon.com/kr/free-icon/grenade_5716082?term=%EC%88%98%EB%A5%98%ED%83%84&page=1&position=8&origin=search&related_id=5716082) | Good Ware | Flaticon License |
-| UI 아이콘 - 화염병 |
+| UI 아이콘 - 화염병 | 화염병 무료 아이콘 | [flaticon.com](https://www.flaticon.com/kr/free-icon/molotov_4533139?term=%ED%99%94%EC%97%BC%EB%B3%91&page=1&position=23&origin=search&related_id=4533139) | Good Ware | Flaticon License |
