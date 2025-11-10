@@ -34,20 +34,53 @@ RPG형 슈팅게임입니다.
 
 ## 🧱 프로젝트 구조 (Project Structure)
 ```
-Project9강9조/
+Project-9강9조/
 ┣ Source/
-┃ ┣ Project9강9조/
-┃ ┃ ┣ Character/ # 캐릭터 및 이동 시스템
-┃ ┃ ┣ Combat/ # 전투 관련 로직
-┃ ┃ ┣ AI/ # 몬스터 AI 클래스
-┃ ┃ ┣ Items/ # 아이템 및 드랍 구조
-┃ ┃ ┣ UI/ # 위젯 및 HUD
-┃ ┃ ┗ Systems/ # 게임 진행 및 관리
-┃ ┗ Project9강9조Editor/
+┃ ┣ Promiss9/
+┃ ┃ ┣ P9Character/ # 캐릭터 및 이동 시스템
+┃ ┃ ┣ P9DragonMonster/ # 드래곤 몬스터
+┃ ┃ ┣ P9FinalBossAltar/ # 최종 보스몬스터 스포너
+┃ ┃ ┣ P9GameInstance/ # 게임 진행 흐름 관리
+┃ ┃ ┣ P9GameMode/ # 게임 모드
+┃ ┃ ┣ P9GameState/ # 게임 Wave 관리
+┃ ┃ ┣ P9HealingItem/ # 맵 스폰 힐링 아이템
+┃ ┃ ┣ P9InventoryComponent/ # 캐릭터 인벤토리 컴포넌트
+┃ ┃ ┣ P9ItemActor/ # 아이템 액터
+┃ ┃ ┣ P9ItemGameInstanceSubsystem/ # 아이템 액터 정보 관리
+┃ ┃ ┣ P9ItemInterface/ # 아이템 정의
+┃ ┃ ┣ P9MiddleDragonMonster/ # 첫 번째 중간 보스 몬스터
+┃ ┃ ┣ P9Monster/ # 몬스터 클래스
+┃ ┃ ┣ P9MonsterSpawner/ # 몬스터 스포너
+┃ ┃ ┣ P9MushroomMonster/ # 버섯 몬스터
+┃ ┃ ┣ P9PlayerController/ # 플레이어 컨트롤러
+┃ ┃ ┣ P9PlayerState/ # 캐릭터 정보(스탯) 관리
+┃ ┃ ┣ P9SecondMiddleDragonMonster/ # 두 번째 중간 보스 몬스터
+┃ ┃ ┣ P9ShellMonster / # 쉘 몬스터
+┃ ┃ ┣ P9Shop/ # 상점
+┃ ┃ ┣ P9SlimeMonster/ # 슬라임 몬스터
+┃ ┃ ┗ P9WeaponData/ # 무기 아이템 데이터
+┃ ┗ Project-9강9조Editor/
 ┣ Content/
+┃ ┣ Asset/
+┃ ┃ ┣ AlstraInfinite_TacticalStarterPack/ # 투척 무기 에셋
+┃ ┃ ┣ BattleWizardPolyart/ # 캐릭터 에셋
+┃ ┃ ┣ FourEvilDragonsHP/ # 드래곤 몬스터 에셋
+┃ ┃ ┣ Icon/ # 아이템 및 게임 아이콘 에셋
+┃ ┃ ┣ MonsterForSurvivalGame/ 
+┃ ┃ ┣ MuzzleFlash/ # 아이템 효과 에셋
+┃ ┃ ┣ RPGTinyFantasyForest/ # 레벨(맵) 에셋
+┃ ┃ ┣ Sound/ # 음향효과 에셋
+┃ ┃ ┣ Vefects/ #
+┃ ┃ ┗ Weapons_Free/ # 사격 무기 에셋
 ┃ ┣ Blueprints/
-┃ ┣ Animations/
-┃ ┣ UI/
+┃ ┃ ┣ Character / 캐릭터 블루프린트 클래스
+┃ ┃ ┣ Monster / 몬스터 블루프린트 클래스
+┃ ┃ ┣ Shop / 상점 블루프린트 클래스
+┃ ┃ ┣ System / 게임 시스템 블루프린트 클래스
+┃ ┃ ┣ UI / # UI, HUD 블루프린트 클래스
+┃ ┃ ┗ Weapon / # 아이템 액터 블루프린트 클래스
+┃ ┣ Inputs/
+┃ ┣ Maps/
 ┃ ┗ FX/
 ┣ Config/
 ┗ README.md
@@ -111,12 +144,15 @@ Project9강9조/
 ## 🧾 개발 일지 (Dev Log)
 | 날짜 | 내용 |
 |------|------|
-| 2025-10-10 | 프로젝트 초기 세팅 및 팀 역할 분담 |
-| 2025-09-01 | 캐릭터 이동 및 카메라 시스템 구축 |
-| 2025-09-15 | AI 탐지 / 전투 시스템 구현 |
-| 2025-10-05 | 아이템 / 인벤토리 / 상점 연동 |
+| 2025-10-20 | 프로젝트 초기 세팅 및 팀 역할 분담 |
+| 2025-10-23 | 캐릭터 이동 및 카메라 시스템 구축 |
+| 2025-10-24 | AI 탐지 / 전투 시스템 구현 |
+| 2025-10-29 | 아이템 / 인벤토리 연결 |
+| 2025-10-30 | 상점 연동 / 상인 생성 |
 | 2025-10-25 | UI 및 게임 플로우 통합 |
-| 2025-11-05 | 전체 테스트 및 버그 수정 완료 |
+| 2025-11-05 | 맵 세팅 |
+| 2025-11-07 | UI 수정 |
+| 2025-11-10 | 전체 테스트 및 버그 수정 완료 |
 
 ---
 
