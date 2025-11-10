@@ -189,5 +189,9 @@ GitHub Organization: [https://github.com/9gang9jo](https://github.com/NbcampUnre
 | 총구 화염 이펙트 | Muzzle Flash (Niagara System) | [Fab.com](https://fab.com/s/a348197f2d09) | Kopo study | CC BY 4.0 |
 | 힐 파티클 | Particles and Wind Control System | [Fab.com](https://fab.com/s/541f4d0128a8) | Dragon Motion | CC BY 4.0 |
 | 사운드 | Footstep Sound Pack | [Freesound.org](https://freesound.org/) | InspectorJ | Free (Attribution) |
-| UI 아이콘 | RPG Icon Set | [itch.io](https://itch.io/) | Kenney | CC0 (Public Domain) |
-| 폰트 | Pretendard | [Github](https://github.com/orioncactus/pretendard) | orioncactus | Open Font License |
+| UI 아이콘 - 권총 | Pistol Icon | [icon-icons.com](https://icon-icons.com/icon/pistol/109357) | Google | Apache 2.0 |
+| UI 아이콘 - 샷건 | RPG Icon Set | [itch.io](https://itch.io/) | Kenney | CC0 (Public Domain) |
+| UI 아이콘 - 돌격소총 |
+| UI 아이콘 - 저격소총 | 
+| UI 아이콘 - 수류탄 |
+| UI 아이콘 - 화염병 |
