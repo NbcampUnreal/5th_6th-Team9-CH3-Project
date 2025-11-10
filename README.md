@@ -182,9 +182,14 @@ GitHub Organization: [https://github.com/9gang9jo](https://github.com/NbcampUnre
 | 캐릭터 | Wizard for Battle Polyart | [Fab.com](https://fab.com/s/b39c9e916ff1) | Dungeon Mason | CC BY 4.0 |
 | 맵 | RPG Tiny Fantasy Forest | [Fab.com](https://fab.com/s/77897c6710e7) | Dungeon Mason | CC BY 4.0 |
 | 일반 몬스터 | Monster for Survival Game PBR Polyart | [Fab.com](https://fab.com/s/f06519f0e24f) | Dungeon Mason | CC BY 4.0 |
-| 보스 몬스터 |                   | [Fab.com](https://fab.com/s/aeaefb514489) | | |
-| 일반 무기(총) |             | [Fab.com] https://fab.com/s/1133d6e887b6 | | |
-| 힐팩, 투척 무기 |  | [Fab.com](https://www.fab.com/ko/listings/00b6336b-8c9a-4cd7-ab53-767f7cb952ed) |||
+| 보스 몬스터 | 
+Dragon for Boss Monster : Handpainted | [Fab.com](https://fab.com/s/aeaefb514489) | Dungeon Mason | CC BY 4.0 |
+| 일반 무기(총) | 
+Weapons FREE - Low Poly 3D Models Pack | [Fab.com](https://fab.com/s/1133d6e887b6) | 
+ithappy | CC BY 4.0 |
+| 힐팩, 투척 무기 | 
+Shooter Essentials - PolyPack Starter - Low Poly Assets | [Fab.com](https://www.fab.com/ko/listings/00b6336b-8c9a-4cd7-ab53-767f7cb952ed) |
+ Alstra Infinite | CC BY 4.0 |
 | 총알 발사 이펙트 |  | [Fab.com](https://www.fab.com/ko/listings/ee38d7fd-b1a9-4a94-bfd2-10772cf9c69e) |  | |
 | 총구 화염 이펙트 |           | [Fab.com](https://fab.com/s/a348197f2d09) |||
 | 사운드 | Footstep Sound Pack | [Freesound.org](https://freesound.org/) | InspectorJ | Free (Attribution) |
