@@ -1,0 +1,214 @@
+﻿#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/PlayerState.h"
+#include "Engine/DataTable.h"
+#include "P9PlayerState.generated.h"
+
+struct FP9WeaponData;
+class UDataTable;
+
+
+UENUM(BlueprintType)
+enum class EP9Stat : uint8
+{
+	MoveSpeed,
+	Health,
+	HeadshotChance,
+	HeadshotDamage,
+	DamagePer,
+	HealthRegen,
+	Luck,
+
+	MAX
+};
+
+UENUM(BlueprintType)
+enum class EP9Rarity : uint8
+{
+	Common,
+	Uncommon,
+	Rare,
+	Legendary,
+
+	MAX
+};
+
+USTRUCT(BlueprintType)
+struct FP9LevelUpReward
+{
+	GENERATED_BODY()
+
+	FP9LevelUpReward()
+	{
+		Stat = EP9Stat::MAX;
+		Rarity = EP9Rarity::MAX;
+	}
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Reward")
+	EP9Stat Stat;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Reward")
+	EP9Rarity Rarity;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Reward")
+	FString Description;
+};
+
+USTRUCT(BlueprintType)
+struct FP9RewardStatData : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	FP9RewardStatData()
+	{
+		Common = 0.0f;
+		Uncommon = 0.0f;
+		Rare = 0.0f;
+		Legendary = 0.0f;
+	}
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FString StatName;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float Common;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float Uncommon;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float Rare;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float Legendary;
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLevelUP);
+
+UCLASS()
+class PROMISS9_API AP9PlayerState : public APlayerState
+{
+	GENERATED_BODY()
+
+public:
+	AP9PlayerState();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnLevelUP OnLevelUP;
+
+	UFUNCTION(BlueprintCallable)
+	void AddXP(float XPAmount);
+	UFUNCTION(BlueprintCallable)
+	void AddGold(int32 GoldAmount);
+
+	UFUNCTION(BlueprintCallable)
+	void AddKillCount();
+
+	float GetBonusHeadshotDamage() const;
+	float GetBonusHeadshotChance() const;
+	float GetBonusDamagePer() const;
+	float GetBonusHealthRegen() const;
+	float GetBonusLuck() const;
+
+
+	// 상점 연동용 골드 계산
+	UFUNCTION(BlueprintPure, Category = "Gold")
+	int32 GetGold() const;
+
+	UFUNCTION(BlueprintPure, Category = "Gold")
+	bool CanAfford(int32 Cost) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Gold")
+	bool SpendGold(int32 Cost);
+
+	// 상점 인벤토리 연동(무기랑 최종 데미지)
+#pragma region ShopWeapon
+	UFUNCTION(BlueprintCallable, Category = "Weapons")
+	void AddWeaponDamageBonus(FName WeaponId, float FlatBonus);
+
+	UFUNCTION(BlueprintPure, Category = "Weapons|Helper")
+	bool GetEffectiveDamage(FName WeaponId, float& OutDamage) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapons")
+	void AddWeaponRangeBonus(FName WeaponId, float BonusAmount);
+
+	UFUNCTION(BlueprintPure, Category = "Weapons|Helper")
+	bool GetEffectiveRange(FName WeaponId, float& OutRange) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapons")
+	void AddWeaponFireSpeedBonus(FName WeaponId, float BonusAmount);
+
+	UFUNCTION(BlueprintPure, Category = "Weapons|Helper")
+	bool GetEffectiveFireSpeed(FName WeaponId, float& OutSpeed) const;
+#pragma endregion
+
+	UFUNCTION(BlueprintCallable, Category="Level")
+	void FinishLevelUpSelection();
+
+private:
+	void GetRewardDetail(EP9Stat Stat, EP9Rarity Rarity, float& OutValue, FString& OutDescription);
+	UPROPERTY(EditAnywhere)
+	bool bLevelUp;
+
+	int32 PendingLevelUp = 0;
+
+	void TryShowLevelUpUI();
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
+	int32 CurrentLevel;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
+	float CurrentXP;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
+	float XPForNextLevel;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gold")
+	int32 CurrentGold;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KillCount")
+	int32 Killcount;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
+	float ProbCommon = 50.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
+	float ProbUncommon = 30.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
+	float ProbRare = 15.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Level|Rarity")
+	float ProbLegendary = 5.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
+	float BonusHeadshotChance;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
+	float BonusHeadshotDamage;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
+	float BonusDamagePer;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
+	float BonusHealthRegen;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BonusStats")
+	float BonusLuck;
+
+	UPROPERTY(EditDefaultsOnly, Category = " Level")
+	TObjectPtr<UDataTable> RewardStatTable = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapons|Data") // 무기 기본 수치
+		TObjectPtr<UDataTable> WeaponDataTable = nullptr;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapons")
+	TMap<FName, float> WeaponFlatBonus;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapons")
+	TMap<FName, float>WeaponRangeBonusMap;
+
+	UPROPERTY(VisibleAnywhere, Category = "Weapons")
+	TMap<FName, float> WeaponFireSpeedBonusMap;
+
+
+
+	void LevelUp();
+	TArray<FP9LevelUpReward> GenerateReward();
+	UFUNCTION(BlueprintCallable)
+	void ApplyReward(const FP9LevelUpReward& Selected);
+	UFUNCTION(BlueprintImplementableEvent, Category = "Level")
+	void LevelUpUI(const TArray<FP9LevelUpReward>& Reward);
+
+public:
+	//Damage
+	UFUNCTION(BlueprintCallable)
+	float DamageCalculation(float WeaponDamage, bool& bHeadshot);
+
+	bool IsHeadshot();
+};

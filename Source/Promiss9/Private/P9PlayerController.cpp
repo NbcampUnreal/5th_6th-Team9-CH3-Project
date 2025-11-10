@@ -7,9 +7,7 @@
 AP9PlayerController::AP9PlayerController()
 	:InputMappingContext(nullptr),
 	MoveAction(nullptr),
-	TurnAction(nullptr),
 	JumpAction(nullptr),
-	SprintAction(nullptr),
 	LookAction(nullptr),
 	ZoomCameraAction(nullptr),
 	FreeLookAction(nullptr),

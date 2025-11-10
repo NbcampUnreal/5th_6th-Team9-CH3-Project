@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "P9ItemInterface.h"
 #include "P9WeaponData.h"
+#include "P9InventoryComponent.h"
+#include "P9ItemGameInstanceSubsystem.h"
 #include "P9ItemActor.generated.h"
 
 
@@ -19,22 +21,113 @@ public:
 	AP9ItemActor();
 
 protected:
-	// Called when the game starts or when spawned
+	
 	virtual void BeginPlay() override;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Data")
+	FDataTableRowHandle P9WeaponRow;
 
-	FName ItemType;
 
 
-	virtual void OnItemOverlap(AActor* OverlapActor) override;
-	virtual void OnItemEndOverlap(AActor* OverlapActor) override;
-	virtual void ActivateItem(AActor* Activator) override;
-	virtual FName GetItemType() const override;
+	
+	//FP9WeaponData* GetRowData(int32 RowNumber) const;
 
-	virtual void DestroyIterm();
+	bool bOnInventoryWeapon(AActor* Activator, const FP9WeaponData* Row) const;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Root")
+	USceneComponent* SceneRoot;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Mesh")
+	UStaticMeshComponent* StaticMesh;
+	
+	
+	//UFUNCTION(BlueprintCallable, Category = "Weapon|Action")
+	//void Fire(int32 RowNumber) const;
+	virtual void OnItemOverlap(UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult) override;
+
+	virtual void OnItemEndOverlap(UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex) override;
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Action")
+	//virtual void ActivateItem(AActor* Activator, int32 RowNumber) override;
+	virtual FName GetItemType() const;
+
+	virtual void DestroyItem();
 
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	float Damage;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	float Range;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	float FireSpeed;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	int32 Price;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	int32 Count;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	float Cooldown;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Base")
+	float Radius;
 
+	
+
+	//void  SetRange(float Range);
+
+	//void SetDamage(float Damage);
+
+	//void SetFireSpeed(float FireSpeed);
+
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	float GetRange() const;
+
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	float GetDamage() const;
+
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	int32 GetPrice() const;
+
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	int32 GetCount() const;
+
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	float GetFireSpeed() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	float GetRadius() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Data")
+	float GetCooldown() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float CurrentRange() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float CurrentDamage() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float CurrentFireSpeed () const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float CurrentRadius() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float CurrentCooldown() const;
+
+	/*UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float GetCurrentRange() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float GetCurrentDamage() const;
+	UFUNCTION(BlueprintCallable, Category = "Weapon|State")
+	float GetCurrentFireSpeed() const;*/
 };

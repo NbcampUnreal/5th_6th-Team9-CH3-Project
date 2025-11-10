@@ -1,0 +1,398 @@
+#include "P9Shop.h"
+
+#include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/DataTable.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/PlayerController.h"
+
+#include "P9PlayerState.h"          
+#include "P9InventoryComponent.h"  
+#include "P9WeaponData.h"  
+#include "P9GameMode.h"
+#include "P9Character.h"
+
+AP9Shop::AP9Shop()
+{
+	PrimaryActorTick.bCanEverTick = false;
+
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	SetRootComponent(Mesh);
+	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Trigger = CreateDefaultSubobject<USphereComponent>(TEXT("Trigger"));
+	Trigger->SetupAttachment(RootComponent);
+	Trigger->InitSphereRadius(200.f);
+	Trigger->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	Trigger->SetCollisionResponseToAllChannels(ECR_Ignore);
+	Trigger->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	Trigger->SetGenerateOverlapEvents(true);
+}
+
+void AP9Shop::BeginPlay()
+{
+	Super::BeginPlay();
+
+	Trigger->OnComponentBeginOverlap.AddDynamic(this, &AP9Shop::OnTriggerBegin);
+	Trigger->OnComponentEndOverlap.AddDynamic(this, &AP9Shop::OnTriggerEnd);
+
+	CachedPC = UGameplayStatics::GetPlayerController(this, 0);
+}
+
+void AP9Shop::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	UnbindInput();
+	Super::EndPlay(EndPlayReason);
+}
+
+
+// 오퍼 3개(무기 중복 X) , 등급 랜덤
+
+void AP9Shop::BuildOffers()
+{
+	if (bOffersBuilt)
+		return;
+
+	CurrentOffers.Reset();
+
+	//   DataTable에 있는 전체 무기
+	TArray<FName> CandidatePool;
+	if (WeaponDataTable)
+	{
+		CandidatePool = WeaponDataTable->GetRowNames();
+	}
+
+	//  케릭터의 인벤토리가 꽉 차면 보유한 무기만 뜨게 함.
+	if (OverlappedPawn)
+	{
+		if (UP9InventoryComponent* Inv = OverlappedPawn->FindComponentByClass<UP9InventoryComponent>())
+		{
+			TArray<FName> OwnedIds;
+			Inv->GetCurrentWeaponIds(OwnedIds);  
+
+			//  4개 이상이면 꽉 찼다고 본다
+			const bool bInventoryFull = (OwnedIds.Num() >= 4);
+
+			if (bInventoryFull && OwnedIds.Num() > 0)
+			{
+				CandidatePool = OwnedIds;
+			}
+		}
+	}
+
+	for (int32 i = 0; i < 16; ++i)
+	{
+		const int32 A = FMath::RandRange(0, CandidatePool.Num() - 1);
+		const int32 B = FMath::RandRange(0, CandidatePool.Num() - 1);
+		if (A != B) CandidatePool.Swap(A, B);
+	}
+
+	const int32 OfferCount = FMath::Min(3, CandidatePool.Num());
+	for (int32 i = 0; i < OfferCount; ++i)
+	{
+		FShopOffer Offer;
+		Offer.WeaponId = CandidatePool[i];
+		Offer.Rarity = RollRarity();
+		Offer.Price = GetPriceByRarity(Offer.Rarity);
+
+		const int32 OptionType = FMath::RandRange(0, 2);  // 0=데미지, 1=사거리, 2=사속  
+
+		switch (OptionType)
+		{
+		case 0: // 데미지
+			Offer.StatType = EP9ShopStatType::Damage;
+			Offer.DamageBonus = GetDamageBonusByRarity(Offer.Rarity);
+			Offer.RangeBonus = 0.f;
+			Offer.FireSpeedBonus = 0.f;
+			break;
+
+		case 1: // 사거리
+			Offer.StatType = EP9ShopStatType::Range;
+			Offer.DamageBonus = 0.f;
+			Offer.RangeBonus = GetRangeBonusByRarity(Offer.Rarity);
+			Offer.FireSpeedBonus = 0.f;
+			break;
+
+		case 2: // 발사속도
+			Offer.StatType = EP9ShopStatType::FireSpeed;
+			Offer.DamageBonus = 0.f;
+			Offer.RangeBonus = 0.f;
+			Offer.FireSpeedBonus = GetFireSpeedBonusByRarity(Offer.Rarity);
+			break;
+		}
+
+		CurrentOffers.Add(Offer);
+	}
+
+	bOffersBuilt = true;
+}
+//요기도
+FShopOffer AP9Shop::GetOffer(int32 Index) const
+{
+	if (CurrentOffers.IsValidIndex(Index))
+	{
+		return CurrentOffers[Index];
+	}
+
+	return FShopOffer();
+}
+
+bool AP9Shop::TryPurchaseWithCurrentPawn(int32 OfferIndex)
+{
+	APawn* PawnToUse = nullptr;
+
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+	{
+		PawnToUse = PC->GetPawn();  
+	}
+
+	if (!IsValid(PawnToUse))
+	{
+		PawnToUse = OverlappedPawn;
+	}
+
+	return TryPurchase(OfferIndex, PawnToUse);
+}
+
+bool AP9Shop::PickThreeDistinctWeapons(TArray<FName>& OutWeaponIds) const
+{
+	OutWeaponIds.Reset();
+	if (!WeaponDataTable) return false;
+
+	const TArray<FName> Rows = WeaponDataTable->GetRowNames();
+	if (Rows.Num() < 3) return false;
+
+	TArray<FName> Pool = Rows;
+	for (int32 i = 0; i < 16; ++i)
+	{
+		const int32 A = FMath::RandRange(0, Pool.Num() - 1);
+		const int32 B = FMath::RandRange(0, Pool.Num() - 1);
+		if (A != B) Pool.Swap(A, B);
+	}
+	OutWeaponIds.Append(Pool.GetData(), 3);
+	return true;
+}
+
+EP9ShopRarity AP9Shop::RollRarity() const
+{
+	const float r = FMath::FRand();
+	float acc = Prob_Common;
+	if (r < acc) return EP9ShopRarity::Common;
+
+	acc += Prob_Uncommon;
+	if (r < acc) return EP9ShopRarity::Uncommon;
+
+	acc += Prob_Rare;
+	if (r < acc) return EP9ShopRarity::Rare;
+
+	return EP9ShopRarity::Legendary;
+}
+
+int32 AP9Shop::GetPriceByRarity(EP9ShopRarity Rarity) const
+{
+	switch (Rarity)
+	{
+	case EP9ShopRarity::Common:     return Price_Common;
+	case EP9ShopRarity::Uncommon:   return Price_Uncommon;
+	case EP9ShopRarity::Rare:       return Price_Rare;
+	case EP9ShopRarity::Legendary:  return Price_Legendary;
+	default:                        return Price_Common;
+	}
+}
+
+float AP9Shop::GetDamageBonusByRarity(EP9ShopRarity Rarity) const
+{
+	switch (Rarity)
+	{
+	case EP9ShopRarity::Common:     return 10.f;
+	case EP9ShopRarity::Uncommon:   return 20.f;
+	case EP9ShopRarity::Rare:       return 40.f;
+	case EP9ShopRarity::Legendary:  return 60.f;
+	default:                        return 0.f;
+	}
+}
+
+float AP9Shop::GetRangeBonusByRarity(EP9ShopRarity Rarity) const
+{
+	switch (Rarity)
+	{
+	case EP9ShopRarity::Common:     return 50.f;
+	case EP9ShopRarity::Uncommon:   return 100.f;
+	case EP9ShopRarity::Rare:       return 150.f;
+	case EP9ShopRarity::Legendary:  return 200.f;
+	default:                        return 0.f;
+	}
+}
+
+float AP9Shop::GetFireSpeedBonusByRarity(EP9ShopRarity Rarity) const
+{
+	switch (Rarity)
+	{
+	case EP9ShopRarity::Common:     return -0.05f;
+	case EP9ShopRarity::Uncommon:   return -0.1f;
+	case EP9ShopRarity::Rare:       return -0.2f;
+	case EP9ShopRarity::Legendary:  return -0.3f;
+	default:                        return 0.f;
+	}
+} 
+
+// 구매: 골드 차감 + 인벤토리 등록
+bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
+{
+	if (!BuyerPawn) return false;
+
+	AP9PlayerState* PS = BuyerPawn->GetPlayerState<AP9PlayerState>();
+
+	if (!PS)
+	{
+		if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+		{
+			if (APawn* RealPawn = PC->GetPawn())
+			{
+				BuyerPawn = RealPawn;
+				PS = RealPawn->GetPlayerState<AP9PlayerState>();
+			}
+		}
+	}
+
+	const FShopOffer& Offer = CurrentOffers[OfferIndex];
+
+	if (!PS)
+	{
+		if (AController* C = BuyerPawn->GetController())
+		{
+			PS = C->GetPlayerState<AP9PlayerState>();
+		}
+	}
+
+	if (!PS && CachedPC)
+	{
+		PS = CachedPC->GetPlayerState<AP9PlayerState>();
+	}
+
+	const int32 CurrentGold = PS->GetGold();
+	const int32 Price = Offer.Price;
+
+	if (CurrentGold < Price)
+	{
+		return false;
+	}
+
+	if (UP9InventoryComponent* Inv = BuyerPawn->FindComponentByClass<UP9InventoryComponent>())
+	{
+		Inv->AddWeaponById_AllowDuplicate(Offer.WeaponId);
+	}
+
+	// 보너스 적용
+	if (!FMath::IsNearlyZero(Offer.DamageBonus))
+	{
+		PS->AddWeaponDamageBonus(Offer.WeaponId, Offer.DamageBonus);
+	}
+	if (!FMath::IsNearlyZero(Offer.RangeBonus))
+	{
+		PS->AddWeaponRangeBonus(Offer.WeaponId, Offer.RangeBonus);
+	}
+	if (!FMath::IsNearlyZero(Offer.FireSpeedBonus))
+	{
+		PS->AddWeaponFireSpeedBonus(Offer.WeaponId, Offer.FireSpeedBonus);
+	}
+
+	if (AP9GameMode* GM = Cast<AP9GameMode>(UGameplayStatics::GetGameMode(this)))
+	{
+		GM->OnShopPurchased();
+	}
+
+	return true;
+}
+
+FString AP9Shop::GetStatTypeString(EP9ShopStatType StatType)
+{
+	switch (StatType)
+	{
+	case EP9ShopStatType::Damage:
+		return TEXT("공격력");
+
+	case EP9ShopStatType::Range:
+		return TEXT("사거리");
+
+	case EP9ShopStatType::FireSpeed:
+		return TEXT("발사속도");
+
+	default:
+		return TEXT("");
+	}
+}
+
+void AP9Shop::OnTriggerBegin(UPrimitiveComponent* Comp, AActor* Other, UPrimitiveComponent* OtherComp,
+	int32 BodyIndex, bool bFromSweep, const FHitResult& Hit)
+{
+	AP9Character* OtherPawn = Cast<AP9Character>(Other);
+	if (!OtherPawn)
+		return;
+
+	if (!OtherPawn->IsPlayerControlled())
+		return;
+
+	OverlappedPawn = OtherPawn;
+	bPlayerInRange = true;
+	BindInput();
+}
+
+void AP9Shop::OnTriggerEnd(UPrimitiveComponent* Comp, AActor* Other, UPrimitiveComponent* OtherComp,
+	int32 BodyIndex)
+{
+	if (!Other) return;
+
+	AP9Character* PlayerChar = Cast<AP9Character>(Other);
+	if (!PlayerChar) return;
+
+	if (Other == OverlappedPawn)
+	{
+		OverlappedPawn = nullptr;
+	}
+
+	bPlayerInRange = false;
+	UnbindInput();
+}
+
+void AP9Shop::BindInput()
+{
+	if (!CachedPC) return;
+
+	EnableInput(CachedPC);
+
+	if (InputComponent && !bInteractBound)
+	{
+		InputComponent->BindKey(EKeys::E, IE_Pressed, this, &AP9Shop::HandleInteract);
+		bInteractBound = true;
+	}
+}
+
+void AP9Shop::UnbindInput()
+{
+	if (!CachedPC) return;
+
+	if (InputComponent)
+	{
+		InputComponent->ClearActionBindings();
+		bInteractBound = false;
+	}
+	DisableInput(CachedPC);
+}
+
+void AP9Shop::HandleInteract()
+{
+	if (!bPlayerInRange) return;
+
+	BuildOffers();
+
+	APawn* PlayerPawn = nullptr;
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+	{
+		PlayerPawn = PC->GetPawn();
+	}
+
+	OnPressE.Broadcast();
+
+	OverlappedPawn = PlayerPawn;
+}

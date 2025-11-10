@@ -2,12 +2,20 @@
 
 
 #include "P9ItemActor.h"
+#include "GameFramework/Pawn.h"
+#include "P9PlayerState.h"
 
 // Sets default values
 AP9ItemActor::AP9ItemActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	
+	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
+	SetRootComponent(SceneRoot);
+
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
+	StaticMesh->SetupAttachment(SceneRoot);
 
 }
 
@@ -15,8 +23,56 @@ AP9ItemActor::AP9ItemActor()
 void AP9ItemActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (UGameInstance* GameInstance = GetGameInstance())
+	{
+		if (UP9ItemGameInstanceSubsystem* ItemSubsystem = GameInstance->GetSubsystem<UP9ItemGameInstanceSubsystem>())
+		{
+			FP9WeaponData WeaponData = ItemSubsystem->GetWeaponDataByID(P9WeaponRow.RowName);
+			Damage = WeaponData.Damage;
+			Range = WeaponData.Range;
+			FireSpeed = WeaponData.FireSpeed;
+			Price = WeaponData.Price;
+			Count = WeaponData.Count;
+			Radius = WeaponData.Radius;
+			Cooldown = WeaponData.Cooldown;
+		}
+		
+	}
 	
 }
+/*
+
+void AP9ItemActor::SetRange(float Range)
+{
+	CurrentRange = FMath::Max(0, Range);;
+}
+
+void AP9ItemActor::SetDamage(float Damage)
+{
+	CurrentDamage = FMath::Max(0.0f, Damage);
+}
+
+void AP9ItemActor::SetFireSpeed(float FireSpeed)
+{
+	CurrentFireSpeed = FMath::Max(0.0f, FireSpeed);
+}
+
+float AP9ItemActor::GetCurrentRange()const
+{
+	return CurrentRange;
+}
+
+float AP9ItemActor::GetCurrentDamage()const
+{
+	return CurrentDamage;
+}
+
+float AP9ItemActor::GetCurrentFireSpeed()const
+{
+	return CurrentFireSpeed;
+}*/
+
 
 // Called every frame
 void AP9ItemActor::Tick(float DeltaTime)
@@ -25,24 +81,186 @@ void AP9ItemActor::Tick(float DeltaTime)
 
 }
 
-void AP9ItemActor::OnItemOverlap(AActor* OverlapActor)
+void AP9ItemActor::OnItemOverlap(UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
 {
+
 }
 
-void AP9ItemActor::OnItemEndOverlap(AActor* OverlapActor)
+void AP9ItemActor::OnItemEndOverlap(UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex)
 {
+
 }
 
-void AP9ItemActor::ActivateItem(AActor* Activator)
+/*FP9WeaponData* AP9ItemActor::GetRowData(int32 RowNumber) const
 {
-}	
+	if (!P9WeaponRow.DataTable)
+	{
+		return nullptr;
+	}
+	else
+	{
+		return P9WeaponRow.DataTable->FindRow<FP9WeaponData>(FName(*FString::FromInt(RowNumber)), TEXT("AP9ItemActor::GetRowData"));
+	}
+}*/
+
+/*void AP9ItemActor::Fire(int32 RowNumber) const
+{
+	FP9WeaponData* Row = GetRowData(RowNumber);
+	if (Row)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Firing weapon: %s, Damage: %f, Range: %d, FireSpeed: %f"), *Row->ItemID.ToString(), Row->Damage, Row->Range, Row->FireSpeed);
+	}
+
+}*/
+
+bool AP9ItemActor::bOnInventoryWeapon(AActor* Activator, const FP9WeaponData* Row) const
+{
+	if (!Activator && !Row)
+	{
+		return false;
+	}
+	
+	UP9InventoryComponent* InventoryComp = Activator->FindComponentByClass<UP9InventoryComponent>();
+	if (!InventoryComp)
+	{
+		return false;
+	}
+	return InventoryComp->HasWeaponId(Row->ItemID);
+}
+
+/*void AP9ItemActor::ActivateItem(AActor* Activator, int32 RowNumber)
+{
+	CurrentFromRow(RowNumber);
+	Fire(RowNumber);
+	/*FP9WeaponData* SelectedRow = GetRowData(RowNumber);
+	if (!SelectedRow)
+	{
+		return;
+	}
+	if(!bOnInventoryWeapon(Activator, SelectedRow))z
+	{
+		return;
+	}
+	if (bOnInventoryWeapon && SelectedRow)
+	{
+		return Fire(RowNumber);
+	}
+	return;
+}*/
+
+float AP9ItemActor::GetRange() const
+{
+	return Range;
+}
+
+float AP9ItemActor::GetDamage() const
+{
+	return Damage;
+}
+
+int32 AP9ItemActor::GetPrice() const
+{
+	return Price;
+}
+
+int32 AP9ItemActor::GetCount() const
+{
+	return Count;
+}
+
+float AP9ItemActor::GetFireSpeed() const
+{
+	return FireSpeed;
+}
+
+float AP9ItemActor::GetRadius() const
+{
+	return Radius;
+}
+
+float AP9ItemActor::GetCooldown() const
+{
+	return Cooldown;
+}
 
 FName AP9ItemActor::GetItemType() const
 {
-	return ItemType;
+	return FName();
 }
 
-void AP9ItemActor::DestroyIterm()
+float AP9ItemActor::CurrentRange() const
+{
+	if (APawn* PawnOwner = Cast<APawn>(GetOwner()))
+	{
+		if (AP9PlayerState* PS = PawnOwner->GetPlayerState<AP9PlayerState>())
+		{
+			float FinalRange = 0.f;
+			
+			if (PS->GetEffectiveRange(P9WeaponRow.RowName, FinalRange))
+			{
+				return FinalRange;
+			}
+		}
+	}
+
+	return GetRange();
+}
+
+float AP9ItemActor::CurrentDamage() const
+{
+	if (APawn* PawnOwner = Cast<APawn>(GetOwner()))
+	{
+		if (AP9PlayerState* PS = PawnOwner->GetPlayerState<AP9PlayerState>())
+		{
+			float FinalDamage = 0.f;
+		
+			if (PS->GetEffectiveDamage(P9WeaponRow.RowName, FinalDamage))
+			{
+				return FinalDamage;
+			}
+		}
+	}
+
+	return GetDamage();
+}
+
+float AP9ItemActor::CurrentFireSpeed() const
+{
+	if (APawn* PawnOwner = Cast<APawn>(GetOwner()))
+	{
+		if (AP9PlayerState* PS = PawnOwner->GetPlayerState<AP9PlayerState>())
+		{
+			float FinalFireSpeed = 0.f;
+		
+			if (PS->GetEffectiveFireSpeed(P9WeaponRow.RowName, FinalFireSpeed))
+			{
+				return FinalFireSpeed;
+			}
+		}
+	}
+
+	return GetFireSpeed();
+}
+
+float AP9ItemActor::CurrentRadius() const
+{
+	return GetRadius();
+}
+
+float AP9ItemActor::CurrentCooldown() const
+{
+	return GetCooldown();
+}
+
+void AP9ItemActor::DestroyItem()
 {
 	Destroy();
 }
