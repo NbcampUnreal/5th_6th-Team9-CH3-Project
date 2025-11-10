@@ -185,8 +185,8 @@ GitHub Organization: [https://github.com/9gang9jo](https://github.com/NbcampUnre
 | 보스 몬스터 | Dragon for Boss Monster : Handpainted | [Fab.com](https://fab.com/s/aeaefb514489) | Dungeon Mason | CC BY 4.0 |
 | 일반 무기(총) | Weapons FREE - Low Poly 3D Models Pack | [Fab.com](https://fab.com/s/1133d6e887b6) | ithappy | CC BY 4.0 |
 | 힐팩, 투척 무기 | Shooter Essentials - PolyPack Starter - Low Poly Assets | [Fab.com](https://www.fab.com/ko/listings/00b6336b-8c9a-4cd7-ab53-767f7cb952ed) | Alstra Infinite | CC BY 4.0 |
-| 총알 발사 이펙트 |  | [Fab.com](https://www.fab.com/ko/listings/ee38d7fd-b1a9-4a94-bfd2-10772cf9c69e) |  | |
-| 총구 화염 이펙트 |           | [Fab.com](https://fab.com/s/a348197f2d09) |||
+| 총알 발사 이펙트 | Zap VFX | [Fab.com](https://www.fab.com/ko/listings/ee38d7fd-b1a9-4a94-bfd2-10772cf9c69e) | Vefects | CC BY 4.0 |
+| 총구 화염 이펙트 | Muzzle Flash (Niagara System) | [Fab.com](https://fab.com/s/a348197f2d09) | Kopo study | CC BY 4.0 |
 | 사운드 | Footstep Sound Pack | [Freesound.org](https://freesound.org/) | InspectorJ | Free (Attribution) |
 | UI 아이콘 | RPG Icon Set | [itch.io](https://itch.io/) | Kenney | CC0 (Public Domain) |
 | 폰트 | Pretendard | [Github](https://github.com/orioncactus/pretendard) | orioncactus | Open Font License |
