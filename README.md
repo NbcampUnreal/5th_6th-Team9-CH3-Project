@@ -98,7 +98,7 @@ Project9강9조/
 | **이규진** | 전투 / UI | 전투 시스템, 체력바, 위젯 | [@ggyu-ik](https://github.com/ggyu-ik) |
 | **유용선** | 아이템 / 무기 | 아이템 구조, 드랍 및 무기 획득 | [@dtoli0930-prog](https://github.com/dtoli0930-prog) |
 | **이종혁** | 상점 / 인벤토리 | 인벤토리 컴포넌트 및 거래 시스템 | [@JJ00ng](https://github.com/JJ00ng) |
-| **원유연** | 캐릭터 시스템 | 회전 보간, 자유시점, 구르기 | [@yuyeonwon](https://github.com/yuyeonwon) |
+| **원유연** | 캐릭터 시스템 | 회전 보간, 자유시점, 구르기 | [@YUYEON91](https://github.com/YUYEON91) |
 
 ---
 
