@@ -158,6 +158,7 @@ Project-9강9조/
 
 ## ⚙️ 실행 방법 (Getting Started)
 
+```bash
 # 저장소 클론
 git clone https://github.com/9gang9jo/Project9Gang9Jo.git
 
