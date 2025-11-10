@@ -191,7 +191,7 @@ GitHub Organization: [https://github.com/9gang9jo](https://github.com/NbcampUnre
 | 사운드 | Footstep Sound Pack | [Freesound.org](https://freesound.org/) | InspectorJ | Free (Attribution) |
 | UI 아이콘 - 권총 | Pistol Icon | [icon-icons.com](https://icon-icons.com/icon/pistol/109357) | Google | Apache 2.0 |
 | UI 아이콘 - 샷건 | RPG Icon Set | [itch.io](https://itch.io/) | Kenney | CC0 (Public Domain) |
-| UI 아이콘 - 돌격소총 |
-| UI 아이콘 - 저격소총 | 
-| UI 아이콘 - 수류탄 |
+| UI 아이콘 - 돌격소총 | 돌격 소총 무료 아이콘 | [flaticon.com](https://www.flaticon.com/kr/free-icon/assault-rifle_3509459) | Nikita Golubev | Flaticon License |
+| UI 아이콘 - 저격소총 | 저격 총 무료 아이콘 | [flaticon.com](https://www.flaticon.com/kr/free-icon/sniper-rifle_3509247) | Nikita Golubev | Flaticon License |
+| UI 아이콘 - 수류탄 | 수류탄 무료 아이콘 | [flaticon.com](https://www.flaticon.com/kr/free-icon/grenade_5716082?term=%EC%88%98%EB%A5%98%ED%83%84&page=1&position=8&origin=search&related_id=5716082) | Good Ware | Flaticon License |
 | UI 아이콘 - 화염병 |
