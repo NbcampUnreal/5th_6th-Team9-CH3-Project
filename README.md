@@ -136,7 +136,7 @@ Project-9강9조/
 ---
 
 ## 🎬 시연 영상 (Demo Video)
-> 🎥 [YouTube 시연 영상 보기](https://youtu.be/example)  
+> 🎥 [YouTube 시연 영상 보기](https://youtu.be/example)
 > 🖼️ [시연 GIF 보기](https://github.com/9gang9jo/project/assets/demo.gif)
 
 ---
@@ -160,7 +160,7 @@ Project-9강9조/
 
 ```bash
 # 저장소 클론
-git clone https://github.com/9gang9jo/Project9Gang9Jo.git
+git clone https://github.com/NbcampUnreal/5th_6th-Team9-CH3-Project.git
 
 # 언리얼 에디터에서 .uproject 열기
 # (Project9Gang9Jo.uproject 더블 클릭)
@@ -168,9 +168,19 @@ git clone https://github.com/9gang9jo/Project9Gang9Jo.git
 # Play 버튼으로 실행
 🪪 라이선스 (License)
 이 프로젝트는 MIT License 하에 배포됩니다.
-자세한 내용은 LICENSE 파일을 참조하세요.
 
 📞 문의 (Contact)
-팀 이메일: 9gang9jo.team@gmail.com
+팀장(노재욱) 이메일: shwodnr@gmail.com
 
-GitHub Organization: https://github.com/9gang9jo
+GitHub Organization: [https://github.com/9gang9jo](https://github.com/NbcampUnreal/5th_6th-Team9-CH3-Project)
+```
+
+## 🎨 에셋 출처 (Asset Credits)
+
+| 구분 | 에셋 이름 | 출처 / 링크 | 제작자 | 라이선스 |
+|------|------------|--------------|-----------|------------|
+| 캐릭터 | Stylized Warrior Pack | [Unreal Marketplace](https://www.unrealengine.com/marketplace) | Mana Station | Free for UE projects |
+| 몬스터 | Low Poly Monsters | [Sketchfab](https://sketchfab.com/) | PolyPerfect | CC BY 4.0 |
+| 사운드 | Footstep Sound Pack | [Freesound.org](https://freesound.org/) | InspectorJ | Free (Attribution) |
+| UI 아이콘 | RPG Icon Set | [itch.io](https://itch.io/) | Kenney | CC0 (Public Domain) |
+| 폰트 | Pretendard | [Github](https://github.com/orioncactus/pretendard) | orioncactus | Open Font License |
