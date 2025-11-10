@@ -581,13 +581,11 @@ float AP9Character::TakeDamage(
 	}
 	
 	// CharacterLaunch 여부
-	bool bIsLaunched = !GetCharacterMovement()->IsMovingOnGround();
+	//bool bIsLaunched = !GetCharacterMovement()->IsMovingOnGround();
 
 	//구르기 중이거나 / 롤 몽타주 중이거나 / LaunchCharacter 이동 중일 때는 데미지 무시
-	if (bForwardRolling || bIsRollingMontagePlaying || bIsLaunched)
+	if (bForwardRolling || bIsRollingMontagePlaying)
 	{
-		UE_LOG(LogTemp, Warning, TEXT(">> Damage ignored (Rolling=%d, Montage=%d, Launched=%d)"),
-			bForwardRolling, bIsRollingMontagePlaying, bIsLaunched);
 		return 0.f;
 	}
 
