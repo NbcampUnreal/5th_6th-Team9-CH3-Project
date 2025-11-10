@@ -188,10 +188,10 @@ GitHub Organization: [https://github.com/9gang9jo](https://github.com/NbcampUnre
 | 총알 발사 이펙트 | Zap VFX | [Fab.com](https://www.fab.com/ko/listings/ee38d7fd-b1a9-4a94-bfd2-10772cf9c69e) | Vefects | CC BY 4.0 |
 | 총구 화염 이펙트 | Muzzle Flash (Niagara System) | [Fab.com](https://fab.com/s/a348197f2d09) | Kopo study | CC BY 4.0 |
 | 힐 파티클 | Particles and Wind Control System | [Fab.com](https://fab.com/s/541f4d0128a8) | Dragon Motion | CC BY 4.0 |
-| 사운드 | Footstep Sound Pack | [Freesound.org](https://freesound.org/) | InspectorJ | Free (Attribution) |
 | UI 아이콘 - 권총 | Pistol Icon | [icon-icons.com](https://icon-icons.com/icon/pistol/109357) | Google | Apache 2.0 |
 | UI 아이콘 - 샷건 | RPG Icon Set | [itch.io](https://itch.io/) | Kenney | Flaticon License |
 | UI 아이콘 - 돌격소총 | 돌격 소총 무료 아이콘 | [flaticon.com](https://www.flaticon.com/kr/free-icon/assault-rifle_3509459) | Nikita Golubev | Flaticon License |
 | UI 아이콘 - 저격소총 | 저격 총 무료 아이콘 | [flaticon.com](https://www.flaticon.com/kr/free-icon/sniper-rifle_3509247) | Nikita Golubev | Flaticon License |
 | UI 아이콘 - 수류탄 | 수류탄 무료 아이콘 | [flaticon.com](https://www.flaticon.com/kr/free-icon/grenade_5716082?term=%EC%88%98%EB%A5%98%ED%83%84&page=1&position=8&origin=search&related_id=5716082) | Good Ware | Flaticon License |
 | UI 아이콘 - 화염병 | 화염병 무료 아이콘 | [flaticon.com](https://www.flaticon.com/kr/free-icon/molotov_4533139?term=%ED%99%94%EC%97%BC%EB%B3%91&page=1&position=23&origin=search&related_id=4533139) | Good Ware | Flaticon License |
+| 사운드 | Footstep Sound Pack | [Freesound.org](https://freesound.org/) | InspectorJ | Free (Attribution) |
