@@ -1,3 +1,5 @@
+© 2025 9강9조 Team, NbcampUnreal.5th_6th-Team9-CH3-Project. All rights reserved.
+
 # ⚔️ 9강9조 — Unreal Team Project 
  
 > "Unreal Engine과 C++를 활용한 다수의 적을 쓰러뜨리는 슈터 게임 프로젝트" 만들기<br>
