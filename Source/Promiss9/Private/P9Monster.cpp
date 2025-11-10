@@ -11,6 +11,7 @@
 #include "Components/TextBlock.h" // 추가
 #include "Components/CapsuleComponent.h" 
 #include "UObject/ConstructorHelpers.h" //추가
+#include "DamageTextWidgetComponent.h"
 
 AP9Monster::AP9Monster()
 {
@@ -203,10 +204,7 @@ void AP9Monster::ShowDamageWidget(float DamageValue, bool bIsCritical)
     if (bIsDead) return;
     if (!DamageTextWidgetClass) return;
 
-    FTimerHandle FaceTimer;
-    FTimerHandle RemoveTimer;
-
-    UWidgetComponent* DamageWidgetComp = NewObject<UWidgetComponent>(this);
+    UDamageTextWidgetComponent* DamageWidgetComp = NewObject<UDamageTextWidgetComponent>(this);
     if (!DamageWidgetComp) return;
 
     DamageWidgetComp->RegisterComponent();
@@ -255,41 +253,5 @@ void AP9Monster::ShowDamageWidget(float DamageValue, bool bIsCritical)
         }
     }
 
-    TWeakObjectPtr<UWidgetComponent> WeakDamageWidget = DamageWidgetComp;
-
-    // 카메라 바라보기 타이머
-    GetWorld()->GetTimerManager().SetTimer(
-        FaceTimer,
-        [WeakDamageWidget]()
-        {
-            if (!WeakDamageWidget.IsValid()) return;
-
-            APlayerController* PC = UGameplayStatics::GetPlayerController(WeakDamageWidget->GetWorld(), 0);
-            if (PC && PC->PlayerCameraManager)
-            {
-                FVector CamLoc = PC->PlayerCameraManager->GetCameraLocation();
-                FVector ToCam = CamLoc - WeakDamageWidget->GetComponentLocation();
-                WeakDamageWidget->SetWorldRotation(ToCam.Rotation());
-            }
-        },
-        0.02f, true
-    );
-
-    // 기존 제거 타이머 안에 FaceTimer 해제도 추가
-    GetWorld()->GetTimerManager().SetTimer(RemoveTimer, [this, WeakDamageWidget, &FaceTimer]()
-        {
-            if (!IsValid(this)) return;
-
-            if (WeakDamageWidget.IsValid())
-            {
-                WeakDamageWidget->DestroyComponent();
-            }
-
-            if (GetWorld())
-            {
-                GetWorld()->GetTimerManager().ClearTimer(FaceTimer);
-            }
-        },
-        0.8f, false);
 }
 
