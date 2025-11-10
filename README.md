@@ -70,15 +70,15 @@ Project-9강9조/
 ┃ ┃ ┣ MuzzleFlash/ # 아이템 효과 에셋
 ┃ ┃ ┣ RPGTinyFantasyForest/ # 레벨(맵) 에셋
 ┃ ┃ ┣ Sound/ # 음향효과 에셋
-┃ ┃ ┣ Vefects/ #
+┃ ┃ ┣ Vefects/
 ┃ ┃ ┗ Weapons_Free/ # 사격 무기 에셋
 ┃ ┣ Blueprints/
-┃ ┃ ┣ Character / 캐릭터 블루프린트 클래스
-┃ ┃ ┣ Monster / 몬스터 블루프린트 클래스
-┃ ┃ ┣ Shop / 상점 블루프린트 클래스
-┃ ┃ ┣ System / 게임 시스템 블루프린트 클래스
-┃ ┃ ┣ UI / # UI, HUD 블루프린트 클래스
-┃ ┃ ┗ Weapon / # 아이템 액터 블루프린트 클래스
+┃ ┃ ┣ Character/ # 캐릭터 블루프린트 클래스
+┃ ┃ ┣ Monster/ # 몬스터 블루프린트 클래스
+┃ ┃ ┣ Shop/ # 상점 블루프린트 클래스
+┃ ┃ ┣ System/ # 게임 시스템 블루프린트 클래스
+┃ ┃ ┣ UI/ # UI, HUD 블루프린트 클래스
+┃ ┃ ┗ Weapon/ # 아이템 액터 블루프린트 클래스
 ┃ ┣ Inputs/
 ┃ ┣ Maps/
 ┃ ┗ FX/
