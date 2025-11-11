@@ -158,8 +158,8 @@ Project-9강9조/
 ---
 
 ## 🎬 시연 영상 (Demo Video)
+> 🎞️ [YouTube 트레일러 보기](https://www.youtube.com/watch?v=2aOj6RgDz20)
 > 🎥 [YouTube 시연 영상 보기](https://youtu.be/u-e8yY0ScBs?si=COEOM9dvAAj2AahV)
-> 🖼️ [시연 GIF 보기]()
 
 ---
 
