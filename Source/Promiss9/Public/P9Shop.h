@@ -123,6 +123,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Shop")
 	void BuildOffers();
 
+	UFUNCTION(BlueprintCallable, Category = "Shop")
+	void RerollOffers();
+
 	UFUNCTION(BlueprintPure, Category = "Shop")
 	const TArray<FShopOffer>& GetOffers() const { return CurrentOffers; }
 	//이거 블루프린트
@@ -134,6 +137,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Shop")
 	bool TryPurchase(int32 OfferIndex, APawn* BuyerPawn);
+
+	UFUNCTION(BlueprintCallable, Category = "Shop")
+	bool TryReroll(APawn* BuyerPawn);
 
 	UFUNCTION(BlueprintPure, Category = "Shop|Helper")
 	static FString GetStatTypeString(EP9ShopStatType StatType);

@@ -126,6 +126,82 @@ void AP9Shop::BuildOffers()
 
 	bOffersBuilt = true;
 }
+
+void AP9Shop::RerollOffers()
+{
+	CurrentOffers.Reset();
+
+	//   DataTable에 있는 전체 무기
+	TArray<FName> CandidatePool;
+	if (WeaponDataTable)
+	{
+		CandidatePool = WeaponDataTable->GetRowNames();
+	}
+
+	//  케릭터의 인벤토리가 꽉 차면 보유한 무기만 뜨게 함.
+	if (OverlappedPawn)
+	{
+		if (UP9InventoryComponent* Inv = OverlappedPawn->FindComponentByClass<UP9InventoryComponent>())
+		{
+			TArray<FName> OwnedIds;
+			Inv->GetCurrentWeaponIds(OwnedIds);
+
+			//  4개 이상이면 꽉 찼다고 본다
+			const bool bInventoryFull = (OwnedIds.Num() >= 4);
+
+			if (bInventoryFull && OwnedIds.Num() > 0)
+			{
+				CandidatePool = OwnedIds;
+			}
+		}
+	}
+
+	for (int32 i = 0; i < 16; ++i)
+	{
+		const int32 A = FMath::RandRange(0, CandidatePool.Num() - 1);
+		const int32 B = FMath::RandRange(0, CandidatePool.Num() - 1);
+		if (A != B) CandidatePool.Swap(A, B);
+	}
+
+	const int32 OfferCount = FMath::Min(3, CandidatePool.Num());
+	for (int32 i = 0; i < OfferCount; ++i)
+	{
+		FShopOffer Offer;
+		Offer.WeaponId = CandidatePool[i];
+		Offer.Rarity = RollRarity();
+		Offer.Price = GetPriceByRarity(Offer.Rarity);
+
+		const int32 OptionType = FMath::RandRange(0, 2);  // 0=데미지, 1=사거리, 2=사속  
+
+		switch (OptionType)
+		{
+		case 0: // 데미지
+			Offer.StatType = EP9ShopStatType::Damage;
+			Offer.DamageBonus = GetDamageBonusByRarity(Offer.Rarity);
+			Offer.RangeBonus = 0.f;
+			Offer.FireSpeedBonus = 0.f;
+			break;
+
+		case 1: // 사거리
+			Offer.StatType = EP9ShopStatType::Range;
+			Offer.DamageBonus = 0.f;
+			Offer.RangeBonus = GetRangeBonusByRarity(Offer.Rarity);
+			Offer.FireSpeedBonus = 0.f;
+			break;
+
+		case 2: // 발사속도
+			Offer.StatType = EP9ShopStatType::FireSpeed;
+			Offer.DamageBonus = 0.f;
+			Offer.RangeBonus = 0.f;
+			Offer.FireSpeedBonus = GetFireSpeedBonusByRarity(Offer.Rarity);
+			break;
+		}
+
+		CurrentOffers.Add(Offer);
+	}
+}
+
+
 //요기도
 FShopOffer AP9Shop::GetOffer(int32 Index) const
 {
@@ -303,6 +379,51 @@ bool AP9Shop::TryPurchase(int32 OfferIndex, APawn* BuyerPawn)
 	}
 
 	return true;
+}
+
+bool AP9Shop::TryReroll(APawn* BuyerPawn)
+{
+	if (!BuyerPawn) return false;
+
+	AP9PlayerState* PS = BuyerPawn->GetPlayerState<AP9PlayerState>();
+
+	if (!PS)
+	{
+		if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+		{
+			if (APawn* RealPawn = PC->GetPawn())
+			{
+				BuyerPawn = RealPawn;
+				PS = RealPawn->GetPlayerState<AP9PlayerState>();
+			}
+		}
+	}
+
+
+	if (!PS)
+	{
+		if (AController* C = BuyerPawn->GetController())
+		{
+			PS = C->GetPlayerState<AP9PlayerState>();
+		}
+	}
+
+	if (!PS && CachedPC)
+	{
+		PS = CachedPC->GetPlayerState<AP9PlayerState>();
+	}
+
+	const int32 CurrentGold = PS->GetGold();
+	const int32 Price = 100;
+
+	if (CurrentGold < Price)
+	{
+		return false;
+	}
+
+	RerollOffers();
+	return true;
+
 }
 
 FString AP9Shop::GetStatTypeString(EP9ShopStatType StatType)
